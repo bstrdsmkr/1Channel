@@ -1,6 +1,6 @@
 '''
-    letmewatchthis XBMC Addon
-    Copyright (C) 2011 t0mm0
+    1Channel XBMC Addon
+    Copyright (C) 2012 Bstrdsmkr
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
