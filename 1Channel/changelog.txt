@@ -1,0 +1,38 @@
+[B]Version 0.1.5[/B]
+- Fixed year missing from search results
+- Added option to delete favorites
+- Implemented Metadata
+- Updates to ensure compatability with latest libraries
+- Reverted Genre browsing from A-Z to page by page
+- Order favorites alphabetically
+- Added context menu option to play movie trailer if available
+
+[B]Version 0.1.4[/B]
+- Fixed issue with weird encoding causing script errors
+- Implemented Favorites list
+
+[B]Version 0.1.3[/B]
+- Sources dialog now drops any sources that URLReslover can't resolve
+- Added year to browse listings
+- Added quality to sources dialog
+- Added access to URL Resolver settings
+- Added option to browse by featured
+- Implemented pagination for all browsing modes
+
+[B]Version 0.1.2[/B]
+- Added icon created by mikey1234 (Thanks!)
+- Genres can now be narrowed by A-Z
+- Content types set to enable different views
+- Processing dialogs now reflect results returned (respecting max results setting) instead of all results
+- Added more logging entries
+- Results now display alphabetically (again)
+- Removed dependency on script.common.plugin.cache to (hopefully) fix atv2/ipad issues
+
+[B]Version 0.1.1[/B]
+- Added search function
+- Fixed Number/Symbol option in A-Z menu
+- Added script.common.plugin.cache dependency
+
+[B]Version 0.1.0[/B]
+- Initial version
+- Re-write and update of t0mm0's letmewatchthis.ch plugin
