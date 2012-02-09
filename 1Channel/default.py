@@ -1,6 +1,6 @@
 '''
-    1Channel XBMC Addon
-    Copyright (C) 2012 Bstrdsmkr
+    letmewatchthis XBMC Addon
+    Copyright (C) 2011 t0mm0
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -366,30 +366,45 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 		AddOption('Next Page >>', True, 3000, section=section, genre=genre, letter=letter, sort=sort, page=page)
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def TVShowSeasonList(url): #4000
+def TVShowSeasonList(url, title, year): #4000
 	print 'Seasons for TV Show %s' % url
 	html = GetURL(url)
 	cnxn = sqlite.connect( DB )
 	cnxn.text_factory = str
 	cursor = cnxn.cursor()
+	if year: title = title +'('+year+')'
 	try:
 		imdbnum = re.search('mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"', html).group(1)
 	except: imdbnum = ''
 	seasons = re.search('tv_container(.+?)<div class="clearer', html, re.DOTALL)
 	if not seasons: ADDON.log_error('couldn\'t find seasons')
 	else:
-		for season in seasons.group(1).split('<h2>'):
-			r = re.search('<a.+?>(.+?)</a>', season)
+		season_container = seasons.group(1)
+		season_nums = re.compile('<a href=".+?">Season ([0-9]{1,2})').findall(season_container)
+		metaget=metahandlers.MetaData(preparezip=prepare_zip)
+		season_meta = metaget.get_seasons(title, imdbnum, season_nums)
+		print 'Getting season meta for: %s\n %s\n %s\n' %(title, imdbnum, season_nums)
+		seasonList = season_container.split('<h2>')
+		num = 0
+		temp = {}
+		for eplist in seasonList:
+			r = re.search('<a.+?>(.+?)</a>', eplist)
 			if r:
 				season_name = r.group(1)
-				listitem = xbmcgui.ListItem(season_name, iconImage=img, thumbnailImage=img)
+				try: 	temp = season_meta[num]
+				except: temp['cover_url'] = ''
+				listitem = xbmcgui.ListItem(season_name, iconImage=temp['cover_url'], thumbnailImage=temp['cover_url'])
+				listitem.setInfo(type="Video", infoLabels=temp)
+				try: listitem.setProperty('fanart_image', temp['backdrop_url'])
+				except: pass
 				season_name = unicode_urlencode(season_name).lower()
 				cursor.execute('INSERT or REPLACE into seasons (season,contents) VALUES(?,?);',
-								(season_name, season))
+								(season_name, eplist))
 				url = sys.argv[0]+ '?mode=5000'+'&season=' +season_name+ '&imdbnum='+imdbnum
 				xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=listitem, 
 											isFolder=True)
 				cnxn.commit()
+				num += 1
 		xbmcplugin.endOfDirectory(int(sys.argv[1]))
 		cnxn.close()
 
@@ -465,9 +480,9 @@ def BrowseFavorites(section): #8000
 		listitem = xbmcgui.ListItem(disptitle, iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
 		listitem.setInfo(type="Video", infoLabels=meta)
 		listitem.setProperty('fanart_image', meta['backdrop_url'])
-		remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=7777&section=%s&title=%s&url=%s)' %(sys.argv[1],section,title,favurl)
+		remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=7777&section=%s&title=%s&year=%s&url=%s)' %(sys.argv[1],section,title,year,favurl)
 		cm.append(('Remove from Favorites', remfavstring))
-		listitem.addContextMenuItems(cm, replaceItems = True)
+		listitem.addContextMenuItems(cm)
 		xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=liurl, listitem=listitem, 
 						isFolder=True, totalItems=0)
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -581,7 +596,7 @@ elif mode==2000: #Browse by genre
 elif mode==3000: #Show the results of the menus selected
 	GetFilteredResults(section, genre, letter, sort, page)
 elif mode==4000: #TV Show season list
-	TVShowSeasonList(url)
+	TVShowSeasonList(url, title, year)
 elif mode==5000: #TVShow episode list
 	TVShowEpisodeList(season, imdbnum)
 elif mode==6000: #Get search terms
