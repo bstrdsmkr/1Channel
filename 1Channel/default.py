@@ -29,6 +29,7 @@ import xbmc, xbmcvfs
 from t0mm0.common.addon import Addon
 from metahandler import metahandlers
 
+
 ADDON = Addon('plugin.video.1channel', sys.argv)
 
 try:
@@ -383,8 +384,9 @@ def TVShowSeasonList(url, title, year): #4000
 		season_container = seasons.group(1)
 		season_nums = re.compile('<a href=".+?">Season ([0-9]{1,2})').findall(season_container)
 		metaget=metahandlers.MetaData(preparezip=prepare_zip)
-		season_meta = metaget.get_seasons(title, imdbnum, season_nums)
-		if imdbnum: metaget.update_meta('tvshow', title, imdbnum, year=year)
+		if imdbnum: 
+			metaget.update_meta('tvshow', title, imdbnum, year=year)
+			season_meta = metaget.get_seasons(title, imdbnum, season_nums)
 		seasonList = season_container.split('<h2>')
 		num = 0
 		temp = {}
@@ -433,6 +435,8 @@ def TVShowEpisodeList(season, imdbnum): #5000
 		img = meta['cover_url']
 		listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
 		listitem.setInfo(type="Video", infoLabels=meta)
+		try: listitem.setProperty('fanart_image', meta['backdrop_url'])
+		except: pass
 		listitem.addContextMenuItems(cm)
 		url = '%s?mode=10&url=%s&title=%s&img=%s' % \
 				(sys.argv[0], BASE_URL + epurl, unicode_urlencode(title), img)
