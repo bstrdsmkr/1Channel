@@ -1,6 +1,6 @@
 '''
-    letmewatchthis XBMC Addon
-    Copyright (C) 2011 t0mm0
+    1Channel XBMC Addon
+    Copyright (C) 2012 Bstrdsmkr
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 '''
 
 import re
+import os
 import string
 import sys
 import urllib2
@@ -334,9 +335,9 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 				if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
 					meta = metaget.get_meta(type,title)
 			elif type == 'movie':
-				meta = metaget.get_meta(type,disptitle,year)
+				meta = metaget.get_meta(type,title,year)
 				if meta['imdb_id'] =='':
-					meta = metaget.get_meta(type,title)
+					meta = metaget.get_meta(type,disptitle)
 				if meta['trailer_url']:
 					url = meta['trailer_url']
 					url = re.sub('&feature=related','',url)
@@ -383,7 +384,7 @@ def TVShowSeasonList(url, title, year): #4000
 		season_nums = re.compile('<a href=".+?">Season ([0-9]{1,2})').findall(season_container)
 		metaget=metahandlers.MetaData(preparezip=prepare_zip)
 		season_meta = metaget.get_seasons(title, imdbnum, season_nums)
-		print 'Getting season meta for: %s\n %s\n %s\n' %(title, imdbnum, season_nums)
+		if imdbnum: metaget.update_meta('tvshow', title, imdbnum, year=year)
 		seasonList = season_container.split('<h2>')
 		num = 0
 		temp = {}
@@ -426,7 +427,7 @@ def TVShowEpisodeList(season, imdbnum): #5000
 		title = urllib.unquote_plus(title)
 		name = re.search('/(tv|watch)-[0-9]+-(.+?)/season-', epurl).group(2)
 		name = re.sub('-',' ',name)
-		season = re.search('/season-([0-9]{1,2})-', epurl).group(1)
+		season = re.search('/season-([0-9]{1,3})-', epurl).group(1)
 		epnum = re.search('-episode-([0-9]{1,3})', epurl).group(1)
 		meta = metaget.get_episode_meta(name=name,imdb_id=imdbnum,season=season, episode=epnum)
 		img = meta['cover_url']
@@ -463,9 +464,9 @@ def BrowseFavorites(section): #8000
 		disptitle = title +'('+year+')'
 
 		if type == 'tvshow':
-			meta = metaget.get_meta(type,disptitle)
-			if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
-				meta = metaget.get_meta(type,title)
+			meta = metaget.get_meta(type,title)
+#			if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
+#				meta = metaget.get_meta(type,disptitle)
 		elif type == 'movie':
 			meta = metaget.get_meta(type,title,year)
 			if meta['imdb_id'] =='':
