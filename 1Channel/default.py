@@ -23,14 +23,15 @@ import sys
 import urllib2
 import urllib
 import urlresolver
+import zipfile
 import xbmcgui
 import xbmcplugin
 import xbmc, xbmcvfs 
 from t0mm0.common.addon import Addon
 from metahandler import metahandlers
-
-
-ADDON = Addon('plugin.video.1channel', sys.argv)
+from metahandler import metacontainers
+from contextlib import closing
+from zipfile import ZipFile, ZIP_DEFLATED
 
 try:
 	from sqlite3 import dbapi2 as sqlite
@@ -39,6 +40,7 @@ except:
 	from pysqlite2 import dbapi2 as sqlite
 	print "Loading pysqlite2 as DB engine"
 
+ADDON = Addon('plugin.video.1channel', sys.argv)
 DB = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
 AZ_DIRECTORIES = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y', 'Z']
 BASE_URL = 'http://www.1channel.ch'
@@ -49,7 +51,7 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport', 
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
-prepare_zip = False
+prepare_zip = True
 metaget=metahandlers.MetaData(preparezip=prepare_zip)
 
 def AddOption(text, isFolder, mode, letter=None, section=None, sort=None, genre=None, query=None, page=None):
@@ -383,7 +385,6 @@ def TVShowSeasonList(url, title, year): #4000
 	else:
 		season_container = seasons.group(1)
 		season_nums = re.compile('<a href=".+?">Season ([0-9]{1,2})').findall(season_container)
-		metaget=metahandlers.MetaData(preparezip=prepare_zip)
 		if imdbnum: 
 			metaget.update_meta('tvshow', title, imdbnum, year=year)
 			season_meta = metaget.get_seasons(title, imdbnum, season_nums)
@@ -493,7 +494,7 @@ def BrowseFavorites(section): #8000
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 	db.close()
 
-def create_meta_pack(section, letter):
+def scan_by_letter(section, letter):
 	print 'Building meta for %s letter %s' % (section,letter)
 	pDialog = xbmcgui.DialogProgress()
 	ret = pDialog.create('Scanning Metadata')
@@ -516,14 +517,11 @@ def create_meta_pack(section, letter):
 		regex = re.finditer(r, html, re.DOTALL)
 		for s in regex:
 			title,year = s.groups()
-			if type == 'tvshow':
-				meta = metaget.get_meta(type,title)
-			elif type == 'movie':
-				meta = metaget.get_meta(type,title,year)
+			meta = metaget.get_meta(section,title,year)
 			pattern = re.search('number_movies_result">([0-9,]+)', html)
 			if pattern: total = int(pattern.group(1).replace(',', ''))
 			items += 1
-			percent = float(100*items)
+			percent = 100*items
 			percent = percent/total
 			pDialog.update(percent,'Scanning metadata for %s' % letter, title)
 			if (pDialog.iscanceled()): break
@@ -531,6 +529,31 @@ def create_meta_pack(section, letter):
 		page += 1
 	if (pDialog.iscanceled()): return
 
+def zipdir(basedir, archivename):
+    assert os.path.isdir(basedir)
+    with closing(ZipFile(archivename, "w", ZIP_DEFLATED)) as z:
+        for root, dirs, files in os.walk(basedir):
+            #NOTE: ignore empty directories
+            for fn in files:
+				if not fn.endswith('db'):
+					absfn = os.path.join(root, fn)
+					zfn = absfn[len(basedir)+len(os.sep):] #XXX: relative path
+					z.write(absfn, zfn)
+
+def create_meta_packs():
+	container = metacontainers.MetaContainer()
+	savpath = container.path
+#	for letter in AZ_DIRECTORIES:
+#		scan_by_letter('tvshow', letter)
+#		arcname = 'MetaPackLetter%s.zip' % letter
+#		arcname = os.path.join(savpath, filename)
+#		zipdir(container.cache_path, arcname)
+	letter = 'A'
+	scan_by_letter('tvshow', letter)
+	arcname = 'MetaPackLetter%s.zip' % letter
+	arcname = os.path.join(savpath, arcname)
+	zipdir(container.cache_path, arcname)
+	
 
 def GetParams():
 	param=[]
@@ -582,6 +605,7 @@ except: year = 	  None
 print '==========================PARAMS:\nMODE: %s\nMYHANDLE: %s\nPARAMS: %s' % (mode, sys.argv[1], params )
 
 initDatabase()
+#create_meta_packs()
 
 #for letter in AZ_DIRECTORIES:
 #	create_meta_pack('tvshow', letter)
