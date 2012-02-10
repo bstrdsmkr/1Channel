@@ -30,8 +30,7 @@ import xbmc, xbmcvfs
 from t0mm0.common.addon import Addon
 from metahandler import metahandlers
 from metahandler import metacontainers
-from contextlib import closing
-from zipfile import ZipFile, ZIP_DEFLATED
+
 
 try:
 	from sqlite3 import dbapi2 as sqlite
@@ -246,7 +245,8 @@ def Search(section, query):
 				listitem = xbmcgui.ListItem(disptitle, iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
 				listitem.setInfo(type="Video", infoLabels=meta)
 				title = unicode_urlencode(title)
-				runstring = 'RunScript(plugin.video.1channel,%s,?mode=8888&section=%s&title=%s&url=%s&year=%s)' %(sys.argv[1],section,title,resurl,year)
+				runstring = 'RunScript(plugin.video.1channel,%s,?mode=8888&section=%s&title=%s&url=%s&year=%s)'\
+							%(sys.argv[1],section,title,BASE_URL+resurl,year)
 				cm.append(('Show Information', 'XBMC.Action(Info)'))
 				cm.append(('Add to Favorites', runstring))
 				listitem.addContextMenuItems(cm, replaceItems=True)
@@ -541,18 +541,26 @@ def zipdir(basedir, archivename):
 					z.write(absfn, zfn)
 
 def create_meta_packs():
+	from contextlib import closing
+	from zipfile import ZipFile, ZIP_DEFLATED
+	import shutil
 	container = metacontainers.MetaContainer()
 	savpath = container.path
-#	for letter in AZ_DIRECTORIES:
-#		scan_by_letter('tvshow', letter)
-#		arcname = 'MetaPackLetter%s.zip' % letter
-#		arcname = os.path.join(savpath, filename)
-#		zipdir(container.cache_path, arcname)
-	letter = 'A'
-	scan_by_letter('tvshow', letter)
-	arcname = 'MetaPackLetter%s.zip' % letter
-	arcname = os.path.join(savpath, arcname)
-	zipdir(container.cache_path, arcname)
+	AZ_DIRECTORIES.append('#123')
+	for letter in AZ_DIRECTORIES:
+		scan_by_letter('tvshow', letter)
+		arcname = 'MetaPackTVShowLetter%s.zip' % letter
+		arcname = os.path.join(savpath, arcname)
+		zipdir(container.cache_path, arcname)
+		shutil.rmtree(container.tv_images)
+		container.make_dir(container.tv_images)
+	for letter in AZ_DIRECTORIES:
+		scan_by_letter('movie', letter)
+		arcname = 'MetaPackMovieLetter%s.zip' % letter
+		arcname = os.path.join(savpath, arcname)
+		zipdir(container.cache_path, arcname)
+		shutil.rmtree(container.movie_images)
+		container.make_dir(container.movie_images)
 	
 
 def GetParams():
@@ -607,8 +615,6 @@ print '==========================PARAMS:\nMODE: %s\nMYHANDLE: %s\nPARAMS: %s' % 
 initDatabase()
 #create_meta_packs()
 
-#for letter in AZ_DIRECTORIES:
-#	create_meta_pack('tvshow', letter)
 
 if mode==None: #Main menu
 	AddonMenu()
