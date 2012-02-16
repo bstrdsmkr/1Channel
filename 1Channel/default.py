@@ -26,7 +26,8 @@ import urlresolver
 import zipfile
 import xbmcgui
 import xbmcplugin
-import xbmc, xbmcvfs 
+import xbmc, xbmcvfs
+import pyaxel
 from t0mm0.common.addon import Addon
 from metahandler import metahandlers
 from metahandler import metacontainers
@@ -50,11 +51,18 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport', 
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
-prepare_zip = True
+prepare_zip = False
 metaget=metahandlers.MetaData(preparezip=prepare_zip)
+print 'XXXXXXXXXXXXXXXXXXXXX Profile: %s' % ADDON.get_profile()
 
-def AddOption(text, isFolder, mode, letter=None, section=None, sort=None, genre=None, query=None, page=None):
+def AddOption(text, isFolder, mode, letter=None, section=None, sort=None, genre=None, query=None, page=None, img=None):
 	li = xbmcgui.ListItem(text)
+	fanart = os.path.join(ADDON.get_path(),'fanart.jpg')
+	li.setProperty('fanart_image', fanart)
+	if img is not None:
+		img = os.path.join(ADDON.get_path(),'art',img)
+		li.setIconImage(img)
+		li.setThumbnailImage(img)
 	print 'Adding option with params:\n Text: %s\n Folder: %s\n Mode %s\n Letter: %s\n Section: %s\n Sort: %s\n Genre: %s' %(text, isFolder,mode, letter, section, sort, genre)
 	url = sys.argv[0]+'?mode=' + str(mode)
 	if letter  is not None: url += '&letter=%s'  % letter
@@ -141,7 +149,7 @@ def GetSources(url, title='', img=''): #10
 
 	#find all sources and their info
 	sources = []
-	for s in re.finditer('class="movie_version.+?quality_(?!sponsored)(.+?)>.+?url=(.+?)' + 
+	for s in re.finditer('class="movie_version.+?quality_(?!sponsored|unknown)(.+?)>.+?url=(.+?)' + 
 						 '&domain=(.+?)&.+?"version_veiws">(.+?)</', 
 						 html, re.DOTALL):
 		q, url, host, views = s.groups()
@@ -162,8 +170,13 @@ def GetSources(url, title='', img=''): #10
 	source = urlresolver.choose_source(sources)
 	if source: stream_url = source.resolve()
 	else: stream_url = ''
+	mediafile = os.path.join('C:\\', 'temp.flv')
+#	pyaxel.download(stream_url, mediafile)
+	playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 	listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
-	xbmc.Player().play(stream_url, listitem)
+	playlist.add(url=stream_url, listitem=listitem)
+	xbmc.Player().play(playlist)
+	playlist.clear()
 
 def PlayTrailer(url): #250
 	url = url.decode('base-64')
@@ -263,21 +276,21 @@ def Search(section, query):
 
 def AddonMenu():  #homescreen
 	print '1Channel menu'
-	AddOption('Movies',  True, 500, section=None)
-	AddOption('TV shows',True, 500, section='tv')
-	AddOption('Settings',True, 9999)
+	AddOption('Movies',  True, 500, section=None, img='movies.jpg')
+	AddOption('TV shows',True, 500, section='tv', img='television.jpg')
+	AddOption('Settings',True, 9999, img='settings.jpg')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def BrowseListMenu(section=None): #500
-	AddOption('A-Z',		  True, 1000, section=section)
-	AddOption('Search',		  True, 6000, section=section, query=query)
-	AddOption('Favorites',	  True, 8000, section=section)
-	AddOption('Genres',		  True, 2000, section=section)
-	AddOption('Featured', 	  True, 3000, section=section, sort='featured')
-	AddOption('Most Popular', True, 3000, section=section, sort='views')	
-	AddOption('Highly rated', True, 3000, section=section, sort='ratings')
-	AddOption('Date released',True, 3000, section=section, sort='release')	
-	AddOption('Date added',	  True, 3000, section=section, sort='date')
+	AddOption('A-Z',		  True, 1000, section=section, img='atoz.jpg')
+	AddOption('Search',		  True, 6000, section=section, img='search.jpg', query=query)
+	AddOption('Favorites',	  True, 8000, section=section, img='favourites.jpg')
+	AddOption('Genres',		  True, 2000, section=section, img='genres.jpg')
+	AddOption('Featured', 	  True, 3000, section=section, img='featured.jpg', sort='featured')
+	AddOption('Most Popular', True, 3000, section=section, img='most_popular.jpg', sort='views')	
+	AddOption('Highly rated', True, 3000, section=section, img='highly_rated.jpg', sort='ratings')
+	AddOption('Date released',True, 3000, section=section, img='date_released.jpg', sort='release')	
+	AddOption('Date added',	  True, 3000, section=section, img='date_added.jpg', sort='date')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def BrowseAlphabetMenu(section=None): #1000
@@ -432,7 +445,12 @@ def TVShowEpisodeList(season, imdbnum): #5000
 		name = re.sub('-',' ',name)
 		season = re.search('/season-([0-9]{1,3})-', epurl).group(1)
 		epnum = re.search('-episode-([0-9]{1,3})', epurl).group(1)
-		meta = metaget.get_episode_meta(name=name,imdb_id=imdbnum,season=season, episode=epnum)
+		try:
+			meta = metaget.get_episode_meta(name=name,imdb_id=imdbnum,season=season, episode=epnum)
+		except:
+			meta['cover_url'] = ''
+			meta['backdrop_url'] = ''
+			print 'Error getting metadata for %s season %s episode %s with imdbnum %s' % (name,season,epnum,imdbnum)
 		img = meta['cover_url']
 		listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
 		listitem.setInfo(type="Video", infoLabels=meta)
@@ -510,10 +528,12 @@ def scan_by_letter(section, letter):
 	r = 'class="index_item.+?href=".+?" title="Watch (.+?)(?:\(|">)([0-9]{4})?'
 	while html.find('> >> <') > -1:
 		if page == 1:
-			html = GetURL(url)
+			try: html = GetURL(url)
+			except: html = '> >> <'
 			url += '&page=%s'
 		else:
-			html = GetURL(url % page)
+			try: html = GetURL(url % page)
+			except: html = '> >> <'
 		regex = re.finditer(r, html, re.DOTALL)
 		for s in regex:
 			title,year = s.groups()
@@ -530,19 +550,19 @@ def scan_by_letter(section, letter):
 	if (pDialog.iscanceled()): return
 
 def zipdir(basedir, archivename):
-    assert os.path.isdir(basedir)
-    with closing(ZipFile(archivename, "w", ZIP_DEFLATED)) as z:
-        for root, dirs, files in os.walk(basedir):
-            #NOTE: ignore empty directories
-            for fn in files:
-				if not fn.endswith('db'):
+	from contextlib import closing
+	from zipfile import ZipFile, ZIP_DEFLATED
+	assert os.path.isdir(basedir)
+	with closing(ZipFile(archivename, "w", ZIP_DEFLATED)) as z:
+		for root, dirs, files in os.walk(basedir):
+			#NOTE: ignore empty directories
+			for fn in files:
+				if not fn.endswith('db'): #Ignore the db file
 					absfn = os.path.join(root, fn)
 					zfn = absfn[len(basedir)+len(os.sep):] #XXX: relative path
 					z.write(absfn, zfn)
 
 def create_meta_packs():
-	from contextlib import closing
-	from zipfile import ZipFile, ZIP_DEFLATED
 	import shutil
 	container = metacontainers.MetaContainer()
 	savpath = container.path
@@ -552,14 +572,21 @@ def create_meta_packs():
 		arcname = 'MetaPackTVShowLetter%s.zip' % letter
 		arcname = os.path.join(savpath, arcname)
 		zipdir(container.cache_path, arcname)
+		xbmc.sleep(5000)
 		shutil.rmtree(container.tv_images)
+		try: shutil.rmtree(container.movie_images)
+		except: pass
 		container.make_dir(container.tv_images)
+		
 	for letter in AZ_DIRECTORIES:
 		scan_by_letter('movie', letter)
 		arcname = 'MetaPackMovieLetter%s.zip' % letter
 		arcname = os.path.join(savpath, arcname)
 		zipdir(container.cache_path, arcname)
+		xbmc.sleep(5000)
 		shutil.rmtree(container.movie_images)
+		try: shutil.rmtree(container.tv_images)
+		except: pass
 		container.make_dir(container.movie_images)
 	
 
