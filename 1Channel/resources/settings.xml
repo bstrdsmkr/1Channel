@@ -1,0 +1,16 @@
+<settings>
+   <category label="Meta Data">
+  	<setting id="use-meta" type="bool" label="30600" default="true"/>
+
+	<setting type="action" label="30700" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-A-G.zip)"/>
+	<setting type="action" label="30701" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-H-N.zip)"/>
+	<setting type="action" label="30702" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-O-U.zip)"/>
+	<setting type="action" label="30703" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-V-#123.zip)"/>
+
+	<setting type="action" label="30710" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-movie-A-G.zip)"/>
+	<setting type="action" label="30711" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-movie-H-N.zip)"/>
+	<setting type="action" label="30712" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-movie-O-U.zip)"/>
+	<setting type="action" label="30713" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-movie-V-#123.zip)"/>
+
+	</category>
+</settings>

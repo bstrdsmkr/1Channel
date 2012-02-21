@@ -28,10 +28,12 @@ import xbmcgui
 import xbmcplugin
 import xbmc, xbmcvfs
 import pyaxel
-from t0mm0.common.addon import Addon
-from metahandler import metahandlers
-from metahandler import metacontainers
 
+from t0mm0.common.addon import Addon
+from t0mm0.common.net import Net
+from tempmeta import metahandlers
+from tempmeta import metacontainers
+from tempmeta import metapacks
 
 try:
 	from sqlite3 import dbapi2 as sqlite
@@ -42,6 +44,7 @@ except:
 
 ADDON = Addon('plugin.video.1channel', sys.argv)
 DB = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
+META_ON = ADDON.get_setting('use-meta')
 AZ_DIRECTORIES = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y', 'Z']
 BASE_URL = 'http://www.1channel.ch'
 USER_AGENT = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
@@ -51,9 +54,11 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport', 
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
-prepare_zip = False
+prepare_zip = True
 metaget=metahandlers.MetaData(preparezip=prepare_zip)
-print 'XXXXXXXXXXXXXXXXXXXXX Profile: %s' % ADDON.get_profile()
+
+if not os.path.isdir(ADDON.get_profile()):
+     os.makedirs(ADDON.get_profile())
 
 def AddOption(text, isFolder, mode, letter=None, section=None, sort=None, genre=None, query=None, page=None, img=None):
 	li = xbmcgui.ListItem(text)
@@ -145,7 +150,19 @@ def GetSources(url, title='', img=''): #10
 	url	  = urllib.unquote_plus(url)
 	title = urllib.unquote_plus(title)
 	print 'Playing: %s' % url
-	html = GetURL(url)
+	net = Net(http_debug=True)
+	cookiejar = ADDON.get_profile()
+	cookiejar = os.path.join(cookiejar,'cookies')
+	html = net.http_GET(url).content
+	net.save_cookies(cookiejar)
+	adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
+	r = re.search(adultregex, html, re.DOTALL)
+	if r:
+		print 'Adult content url detected'
+		adulturl = BASE_URL + r.group(1)
+		headers = {'Referer': url}
+		net.set_cookies(cookiejar)
+		html = net.http_GET(adulturl, headers=headers).content #.encode('utf-8', 'ignore')
 
 	#find all sources and their info
 	sources = []
@@ -170,13 +187,28 @@ def GetSources(url, title='', img=''): #10
 	source = urlresolver.choose_source(sources)
 	if source: stream_url = source.resolve()
 	else: stream_url = ''
-	mediafile = os.path.join('C:\\', 'temp.flv')
-#	pyaxel.download(stream_url, mediafile)
+	profile = ADDON.get_profile()
+	if not os.path.isdir(profile):
+		os.makedirs(profile)
+	mediafile = os.path.join(profile, 'temp.flv')
+
 	playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 	listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
 	playlist.add(url=stream_url, listitem=listitem)
 	xbmc.Player().play(playlist)
 	playlist.clear()
+
+#	print 'Downloading %s' % stream_url
+#	t = pyaxel.Download(stream_url, 'c:/temp.flv', num_connections=8)
+#	t.start()
+#	playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+#	listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
+#	playlist.add(url=mediafile, listitem=listitem)
+	#xbmc.sleep(10000)
+#	xbmc.Player().play(playlist)
+#	playlist.clear()
+
+
 
 def PlayTrailer(url): #250
 	url = url.decode('base-64')
@@ -232,27 +264,32 @@ def Search(section, query):
 		resurls = []
 		for s in regex:
 			resurl,title,year,thumb = s.groups()
+			meta = {}
 			if resurl not in resurls:
 				resurls.append(resurl)
 				cm = []
 				if year: disptitle = title +'('+year+')'
 				else: disptitle = title
 
-				if type == 'tvshow':
-					meta = metaget.get_meta(type,disptitle)
-					if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
-						meta = metaget.get_meta(type,title)
-				elif type == 'movie':
-					meta = metaget.get_meta(type,disptitle,year)
-					if meta['imdb_id'] =='':
-						meta = metaget.get_meta(type,title)
-					if meta['trailer_url']:
-						url = meta['trailer_url']
-						url = re.sub('&feature=related','',url)
-						url = url.encode('base-64').strip()
-						runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
-						cm.append(('Watch Trailer', runstring))
-				if meta['cover_url'] in ('/images/noposter.jpg',''):
+				if META_ON == 'true':
+					if type == 'tvshow':
+						meta = metaget.get_meta(type,disptitle)
+						if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
+							meta = metaget.get_meta(type,title)
+					elif type == 'movie':
+						meta = metaget.get_meta(type,disptitle,year)
+						if meta['imdb_id'] =='':
+							meta = metaget.get_meta(type,title)
+						if meta['trailer_url']:
+							url = meta['trailer_url']
+							url = re.sub('&feature=related','',url)
+							url = url.encode('base-64').strip()
+							runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
+							cm.append(('Watch Trailer', runstring))
+
+					if meta['cover_url'] in ('/images/noposter.jpg',''):
+						meta['cover_url'] = thumb
+				else:
 					meta['cover_url'] = thumb
 
 				listitem = xbmcgui.ListItem(disptitle, iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
@@ -263,7 +300,8 @@ def Search(section, query):
 				cm.append(('Show Information', 'XBMC.Action(Info)'))
 				cm.append(('Add to Favorites', runstring))
 				listitem.addContextMenuItems(cm, replaceItems=True)
-				listitem.setProperty('fanart_image', meta['backdrop_url'])
+				try: listitem.setProperty('fanart_image', meta['backdrop_url'])
+				except: pass
 				resurl = BASE_URL + resurl
 				liurl = sys.argv[0] + nextmode
 				liurl += '&title=' + title
@@ -278,7 +316,7 @@ def AddonMenu():  #homescreen
 	print '1Channel menu'
 	AddOption('Movies',  True, 500, section=None, img='movies.jpg')
 	AddOption('TV shows',True, 500, section='tv', img='television.jpg')
-	AddOption('Settings',True, 9999, img='settings.jpg')
+	AddOption('Resolver Settings',True, 9999, img='settings.jpg')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def BrowseListMenu(section=None): #500
@@ -340,27 +378,32 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 	resurls = []
 	for s in regex:
 		resurl,title,year,thumb = s.groups()
+		meta = {}
 		if resurl not in resurls:
 			resurls.append(resurl)
 			cm = []
 			if year: disptitle = title +'('+year+')'
 			else: disptitle = title
 
-			if type == 'tvshow':
-				meta = metaget.get_meta(type,disptitle)
-				if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
-					meta = metaget.get_meta(type,title)
-			elif type == 'movie':
-				meta = metaget.get_meta(type,title,year)
-				if meta['imdb_id'] =='':
+			if META_ON == 'true':
+				if type == 'tvshow':
 					meta = metaget.get_meta(type,disptitle)
-				if meta['trailer_url']:
-					url = meta['trailer_url']
-					url = re.sub('&feature=related','',url)
-					url = url.encode('base-64').strip()
-					runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
-					cm.append(('Watch Trailer', runstring))
-			if meta['cover_url'] in ('/images/noposter.jpg',''):
+					if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
+						meta = metaget.get_meta(type,title)
+				elif type == 'movie':
+					meta = metaget.get_meta(type,title,year)
+					if meta['imdb_id'] =='':
+						meta = metaget.get_meta(type,disptitle)
+					if meta['trailer_url']:
+						url = meta['trailer_url']
+						url = re.sub('&feature=related','',url)
+						url = url.encode('base-64').strip()
+						runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
+						cm.append(('Watch Trailer', runstring))
+			
+				if meta['cover_url'] in ('/images/noposter.jpg',''):
+					meta['cover_url'] = thumb
+			else:
 				meta['cover_url'] = thumb
 
 			listitem = xbmcgui.ListItem(disptitle, iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
@@ -374,7 +417,8 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			cm.append(('Add to Favorites', runstring))
 			cm.append(('Show Information', 'XBMC.Action(Info)'))
 			listitem.addContextMenuItems(cm, replaceItems=True)
-			listitem.setProperty('fanart_image', meta['backdrop_url'])
+			try: listitem.setProperty('fanart_image', meta['backdrop_url'])
+			except: pass
 			xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=liurl, listitem=listitem, 
 						isFolder=True, totalItems=total)
 	if page is not None: page = int(page) + 1
@@ -385,7 +429,20 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 
 def TVShowSeasonList(url, title, year): #4000
 	print 'Seasons for TV Show %s' % url
-	html = GetURL(url)
+	net = Net(http_debug=True)
+	cookiejar = ADDON.get_profile()
+	cookiejar = os.path.join(cookiejar,'cookies')
+	html = net.http_GET(url).content
+	net.save_cookies(cookiejar)
+	adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
+	r = re.search(adultregex, html, re.DOTALL)
+	if r:
+		print 'Adult content url detected'
+		adulturl = BASE_URL + r.group(1)
+		headers = {'Referer': url}
+		net.set_cookies(cookiejar)
+		html = net.http_GET(adulturl, headers=headers).content #.encode('utf-8', 'ignore')
+
 	cnxn = sqlite.connect( DB )
 	cnxn.text_factory = str
 	cursor = cnxn.cursor()
@@ -398,7 +455,7 @@ def TVShowSeasonList(url, title, year): #4000
 	else:
 		season_container = seasons.group(1)
 		season_nums = re.compile('<a href=".+?">Season ([0-9]{1,2})').findall(season_container)
-		if imdbnum: 
+		if imdbnum and META_ON == 'true': 
 			metaget.update_meta('tvshow', title, imdbnum, year=year)
 			season_meta = metaget.get_seasons(title, imdbnum, season_nums)
 		seasonList = season_container.split('<h2>')
@@ -438,6 +495,7 @@ def TVShowEpisodeList(season, imdbnum): #5000
 	cm.append(('Show Information', 'XBMC.Action(Info)'))
 	for ep in episodes:
 		epurl, title = ep.groups()
+		meta = {}
 		title = re.sub('<[^<]+?>', '', title.strip())
 		title = re.sub('\s\s+' , ' ', title)
 		title = urllib.unquote_plus(title)
@@ -445,12 +503,15 @@ def TVShowEpisodeList(season, imdbnum): #5000
 		name = re.sub('-',' ',name)
 		season = re.search('/season-([0-9]{1,3})-', epurl).group(1)
 		epnum = re.search('-episode-([0-9]{1,3})', epurl).group(1)
-		try:
-			meta = metaget.get_episode_meta(name=name,imdb_id=imdbnum,season=season, episode=epnum)
-		except:
+		if META_ON == 'true':
+			try:
+				meta = metaget.get_episode_meta(name=name,imdb_id=imdbnum,season=season, episode=epnum)
+			except:
+				meta['cover_url'] = ''
+				meta['backdrop_url'] = ''
+				print 'Error getting metadata for %s season %s episode %s with imdbnum %s' % (name,season,epnum,imdbnum)
+		else:
 			meta['cover_url'] = ''
-			meta['backdrop_url'] = ''
-			print 'Error getting metadata for %s season %s episode %s with imdbnum %s' % (name,season,epnum,imdbnum)
 		img = meta['cover_url']
 		listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
 		listitem.setInfo(type="Video", infoLabels=meta)
@@ -481,29 +542,33 @@ def BrowseFavorites(section): #8000
 		favurl	  = row[2]
 		year	  = row[3]
 		cm		  = []
+		meta	  = {}
 		liurl = sys.argv[0] + nextmode
 		liurl += '&title='  + title
 		liurl += '&url='	+ favurl
 		disptitle = title +'('+year+')'
 
-		if type == 'tvshow':
-			meta = metaget.get_meta(type,title)
-#			if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
-#				meta = metaget.get_meta(type,disptitle)
-		elif type == 'movie':
-			meta = metaget.get_meta(type,title,year)
-			if meta['imdb_id'] =='':
+		if META_ON == 'true':
+			if type == 'tvshow':
 				meta = metaget.get_meta(type,title)
-			if meta['trailer_url']:
-				url = meta['trailer_url']
-				url = re.sub('&feature=related','',url)
-				url = url.encode('base-64').strip()
-				runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
-				cm.append(('Watch Trailer', runstring))
-
+	#			if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
+	#				meta = metaget.get_meta(type,disptitle)
+			elif type == 'movie':
+				meta = metaget.get_meta(type,title,year)
+				if meta['imdb_id'] =='':
+					meta = metaget.get_meta(type,title)
+				if meta['trailer_url']:
+					url = meta['trailer_url']
+					url = re.sub('&feature=related','',url)
+					url = url.encode('base-64').strip()
+					runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
+					cm.append(('Watch Trailer', runstring))
+		else:
+			meta['cover_url'] = ''
 		listitem = xbmcgui.ListItem(disptitle, iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
 		listitem.setInfo(type="Video", infoLabels=meta)
-		listitem.setProperty('fanart_image', meta['backdrop_url'])
+		try: listitem.setProperty('fanart_image', meta['backdrop_url'])
+		except: pass
 		remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=7777&section=%s&title=%s&year=%s&url=%s)' %(sys.argv[1],section,title,year,favurl)
 		cm.append(('Remove from Favorites', remfavstring))
 		listitem.addContextMenuItems(cm)
@@ -527,17 +592,39 @@ def scan_by_letter(section, letter):
 	percent = 0
 	r = 'class="index_item.+?href=".+?" title="Watch (.+?)(?:\(|">)([0-9]{4})?'
 	while html.find('> >> <') > -1:
+		failed_attempts = 0
 		if page == 1:
-			try: html = GetURL(url)
-			except: html = '> >> <'
+			while failed_attempts < 4:
+				try: 
+					html = GetURL(url)
+					failed_attempts = 4
+				except: 
+					failed_attempts += 1
+					if failed_attempts == 4:
+						html = '> >> <'
+						failed_attempts = 0
 			url += '&page=%s'
 		else:
-			try: html = GetURL(url % page)
-			except: html = '> >> <'
+			while failed_attempts < 4:
+				try: 
+					html = GetURL(url % page)
+					failed_attempts = 4
+				except: 
+					failed_attempts += 1
+					if failed_attempts == 4:
+						html = '> >> <'
 		regex = re.finditer(r, html, re.DOTALL)
 		for s in regex:
 			title,year = s.groups()
-			meta = metaget.get_meta(section,title,year)
+			failed_attempts = 0
+			while failed_attempts < 4:
+				try: 
+					meta = metaget.get_meta(section,title,year)
+					failed_attempts = 4
+				except: 
+					failed_attempts += 1
+					if failed_attempts == 4:
+						print 'Failed retrieving metadata for %s %s %s' %(section, title, year)
 			pattern = re.search('number_movies_result">([0-9,]+)', html)
 			if pattern: total = int(pattern.group(1).replace(',', ''))
 			items += 1
@@ -557,38 +644,148 @@ def zipdir(basedir, archivename):
 		for root, dirs, files in os.walk(basedir):
 			#NOTE: ignore empty directories
 			for fn in files:
-				if not fn.endswith('db'): #Ignore the db file
-					absfn = os.path.join(root, fn)
-					zfn = absfn[len(basedir)+len(os.sep):] #XXX: relative path
-					z.write(absfn, zfn)
+				absfn = os.path.join(root, fn)
+				zfn = absfn[len(basedir)+len(os.sep):] #XXX: relative path
+				z.write(absfn, zfn)
+
+def extract_zip(src, dest):
+		try:
+			print 'Extracting '+str(src)+' to '+str(dest)
+			#make sure there are no double slashes in paths
+			src=os.path.normpath(src)
+			dest=os.path.normpath(dest) 
+
+			#Unzip - Only if file size is > 1KB
+			if os.path.getsize(src) > 10000:
+				xbmc.executebuiltin("XBMC.Extract("+src+","+dest+")")
+			else:
+				print '************* Error: File size is too small'
+				return False
+
+		except:
+			print 'Extraction failed!'
+			return False
+		else:                
+			print 'Extraction success!'
+			return True
 
 def create_meta_packs():
 	import shutil
+	global metaget
 	container = metacontainers.MetaContainer()
 	savpath = container.path
 	AZ_DIRECTORIES.append('#123')
-	for letter in AZ_DIRECTORIES:
-		scan_by_letter('tvshow', letter)
-		arcname = 'MetaPackTVShowLetter%s.zip' % letter
-		arcname = os.path.join(savpath, arcname)
-		zipdir(container.cache_path, arcname)
-		xbmc.sleep(5000)
-		shutil.rmtree(container.tv_images)
-		try: shutil.rmtree(container.movie_images)
-		except: pass
-		container.make_dir(container.tv_images)
-		
-	for letter in AZ_DIRECTORIES:
-		scan_by_letter('movie', letter)
-		arcname = 'MetaPackMovieLetter%s.zip' % letter
-		arcname = os.path.join(savpath, arcname)
-		zipdir(container.cache_path, arcname)
-		xbmc.sleep(5000)
-		shutil.rmtree(container.movie_images)
-		try: shutil.rmtree(container.tv_images)
-		except: pass
-		container.make_dir(container.movie_images)
-	
+	letters_completed = 0
+	letters_per_zip = 7
+	start_letter = ''
+	end_letter = ''
+
+	for type in ('tvshow','movie'):
+		for letter in AZ_DIRECTORIES:
+			if letters_completed == 0:
+				start_letter = letter
+				metaget.__del__()
+				shutil.rmtree(container.cache_path)
+				metaget=metahandlers.MetaData(preparezip=prepare_zip)
+
+			if letters_completed <= letters_per_zip:
+				scan_by_letter(type, letter)
+				letters_completed += 1
+
+			if letters_completed == letters_per_zip or letter == '#123':
+				end_letter = letter
+				arcname = 'MetaPack-%s-%s-%s.zip' % (type, start_letter, end_letter)
+				arcname = os.path.join(savpath, arcname)
+				metaget.__del__()
+				zipdir(container.cache_path, arcname)
+				metaget=metahandlers.MetaData(preparezip=prepare_zip)
+				letters_completed = 0
+				xbmc.sleep(5000)
+
+def copy_meta_contents(root_src_dir, root_dst_dir):
+	import shutil
+
+	for src_dir, dirs, files in os.walk(root_src_dir):
+		dst_dir = src_dir.replace(root_src_dir, root_dst_dir)
+		if not os.path.exists(dst_dir):
+			os.mkdir(dst_dir)
+		for file_ in files:
+			if not file_.endswith('.db') or file_.endswith('.zip'):
+				src_file = os.path.join(src_dir, file_)
+				dst_file = os.path.join(dst_dir, file_)
+				if os.path.exists(dst_file):
+					os.remove(dst_file)
+				shutil.move(src_file, dst_dir)
+
+def install_metapack(pack):
+	mc = metacontainers.MetaContainer()
+	work_path  = mc.work_path
+	cache_path = mc.cache_path
+	zip = os.path.join(work_path, pack)
+	complete = download_metapack(url, zip, displayname=False)
+	extract_zip(zip, work_path)
+	xbmc.sleep(5000)
+	copy_meta_contents(work_path, cache_path)
+	for table in mc.table_list:
+		install = mc._insert_metadata(table)
+
+class StopDownloading(Exception): 
+        def __init__(self, value): 
+            self.value = value 
+        def __str__(self): 
+            return repr(self.value)
+
+def download_metapack(url, dest, displayname=False):
+	if displayname == False:
+		displayname=url
+	dp = xbmcgui.DialogProgress()
+	dp.create('Downloading', '', displayname)
+	start_time = time.time() 
+	try: 
+		urllib.urlretrieve(url, dest, lambda nb, bs, fs: _pbhook(nb, bs, fs, dp, start_time)) 
+	except:
+		#only handle StopDownloading (from cancel), ContentTooShort (from urlretrieve), and OS (from the race condition); let other exceptions bubble 
+		if sys.exc_info()[0] in (urllib.ContentTooShortError, StopDownloading, OSError): 
+			return False 
+		else: 
+			raise 
+		return False
+	return True
+
+def is_metapack_installed(pack):
+	pass
+
+def _pbhook(numblocks, blocksize, filesize, dp, start_time):
+        try: 
+            percent = min(numblocks * blocksize * 100 / filesize, 100) 
+            currently_downloaded = float(numblocks) * blocksize / (1024 * 1024) 
+            kbps_speed = numblocks * blocksize / (time.time() - start_time) 
+            if kbps_speed > 0: 
+                eta = (filesize - numblocks * blocksize) / kbps_speed 
+            else: 
+                eta = 0 
+            kbps_speed = kbps_speed / 1024 
+            total = float(filesize) / (1024 * 1024) 
+            # print ( 
+                # percent, 
+                # numblocks, 
+                # blocksize, 
+                # filesize, 
+                # currently_downloaded, 
+                # kbps_speed, 
+                # eta, 
+                # ) 
+            mbs = '%.02f MB of %.02f MB' % (currently_downloaded, total) 
+            e = 'Speed: %.02f Kb/s ' % kbps_speed 
+            e += 'ETA: %02d:%02d' % divmod(eta, 60) 
+            dp.update(percent, mbs, e)
+            #print percent, mbs, e 
+        except: 
+            percent = 100 
+            dp.update(percent) 
+        if dp.iscanceled(): 
+            dp.close() 
+            raise StopDownloading('Stopped Downloading')
 
 def GetParams():
 	param=[]
@@ -640,7 +837,7 @@ except: year = 	  None
 print '==========================PARAMS:\nMODE: %s\nMYHANDLE: %s\nPARAMS: %s' % (mode, sys.argv[1], params )
 
 initDatabase()
-#create_meta_packs()
+create_meta_packs()
 
 
 if mode==None: #Main menu
@@ -674,3 +871,5 @@ elif mode==7777: #Delete favorite
 	xbmc.executebuiltin('Container.Refresh')
 elif mode==9999: #Open URL Resolver Settings
 	urlresolver.display_settings()
+elif mode==10000: #Install meta pack
+	install_metapack(title)

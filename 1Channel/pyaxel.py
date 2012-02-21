@@ -16,7 +16,58 @@ std_headers = {
     'Accept-Language': 'en-us,en;q=0.5',
 }
 
+# This function copied from rapidleech source code
+# http://rapidleech.googlecode.com/svn/trunk/classes/http.php
+def get_chunk_size(fsize):
+	if fsize <= 1024 * 1024:
+		return 4096;
+	elif fsize <= 1024 * 1024 * 10:
+		return 4096 * 10;		
+	elif fsize <= 1024 * 1024 * 40:
+		return 4096 * 30;		
+	elif fsize <= 1024 * 1024 * 80:
+		return 4096 * 47;		
+	elif fsize <= 1024 * 1024 * 120:
+		return 4096 * 65;		
+	elif fsize <= 1024 * 1024 * 150:
+		return 4096 * 70;		
+	elif fsize <= 1024 * 1024 * 200:
+		return 4096 * 85;		
+	elif fsize <= 1024 * 1024 * 250:
+		return 4096 * 100;		
+	elif fsize <= 1024 * 1024 * 300:
+		return 4096 * 115;		
+	elif fsize <= 1024 * 1024 * 400:
+		return 4096 * 135;		
+	elif fsize <= 1024 * 1024 * 500:
+		return 4096 * 170;		
+	elif fsize <= 1024 * 1024 * 1000:
+		return 4096 * 200;		
+	return 4096 * 210;
 
+def general_configuration():
+		# General configuration
+		urllib2.install_opener(urllib2.build_opener(urllib2.ProxyHandler()))
+		urllib2.install_opener(urllib2.build_opener(
+				urllib2.HTTPCookieProcessor()))
+		socket.setdefaulttimeout(120)         # 2 minutes
+		
+def get_file_size(url):
+		#print 'd-making header request'
+		request = urllib2.Request(url, None, std_headers)
+		data = urllib2.urlopen(request)
+		#print 'd-header request completed'
+		content_length = data.info()['Content-Length']
+		return int(content_length)
+		
+#General function to pretty print byte size
+def report_bytes(bytes):
+		if bytes == 0:
+			return "0b"
+		k = math.log(bytes, 1024)
+		ret_str = "%.2f%s" % (bytes / (1024.0 ** int(k)), "bKMGTPEY"[int(k)])
+		return ret_str
+		
 class ConnectionState:
     def __init__(self, n_conn, filesize):
         self.n_conn = n_conn
@@ -57,7 +108,6 @@ class ConnectionState:
         #to ensure that state is written onto the disk
         cPickle.dump(self, out_fd)
 
-
 class ProgressBar:
     def __init__(self, n_conn, conn_state):
         self.n_conn = n_conn
@@ -72,12 +122,12 @@ class ProgressBar:
     def _get_download_rate(self, bytes):
         ret_str = report_bytes(bytes)
         ret_str += "/s."
-        return len(ret_str), ret_str
+        return ret_str
 
     def _get_percentage_complete(self, dl_len):
         assert self.conn_state.filesize != 0
-        ret_str = str(dl_len * 100 / self.conn_state.filesize) + "%."
-        return len(ret_str), ret_str
+        ret_str = str(dl_len * 100 / self.conn_state.filesize)
+        return ret_str
 
     def _get_time_left(self, time_in_secs):
         ret_str = ""
@@ -89,28 +139,9 @@ class ProgressBar:
                 ret_str = "%d %s" % (pval, unit_list[i])
                 break
         if len(ret_str) == 0:
-            ret_str = "%d %s." % (int(time_in_secs / mult_list[2]), \
+            ret_str = "%d %s" % (int(time_in_secs / mult_list[2]), \
                                       unit_list[3])
-        return len(ret_str), ret_str
-
-    def _get_pbar(self, width):
-        ret_str = "["
-        for i in range(self.n_conn):
-            dots_list = ['=' for j in range((self.conn_state.progress[i] *
-                                             width) /
-                                            self.conn_state.chunks[i])]
-            self.dots[i] = "".join(dots_list)
-            if ret_str == "[":
-                ret_str += self.dots[i]
-            else:
-                ret_str += "|" + self.dots[i]
-            if len(self.dots[i]) < width:
-                ret_str += '>'
-                ret_str += "".join([' ' for i in range(width -
-                                                       len(self.dots[i]) - 1)])
-
-        ret_str += "]"
-        return len(ret_str), ret_str
+        return ret_str
 
     def display_progress(self):
         dl_len = 0
@@ -119,247 +150,207 @@ class ProgressBar:
 
         assert(self.conn_state.elapsed_time > 0)
         avg_speed = dl_len / self.conn_state.elapsed_time
-
-        ldr, drate = self._get_download_rate(avg_speed)
-        lpc, pcomp = self._get_percentage_complete(dl_len)
-        ltl, tleft = self._get_time_left((self.conn_state.filesize - dl_len) /
+        drate = self._get_download_rate(avg_speed)
+        pcomp = self._get_percentage_complete(dl_len)
+        tleft = self._get_time_left((self.conn_state.filesize - dl_len) /
                                          avg_speed if avg_speed > 0 else 0)
-        # term_width - #(|) + #([) + #(]) + #(strings) +
-        # 6 (for spaces and periods)
-        available_width = self._get_term_width() - (ldr + lpc +
-                                                    ltl) - self.n_conn - 1 - 6
-        lpb, pbar = self._get_pbar(available_width / self.n_conn)
-        sys.stdout.flush()
-        print "\r%s %s %s %s" % (drate, pcomp, tleft, pbar),
-
-
-def report_bytes(bytes):
-    if bytes == 0:
-        return "0b"
-    k = math.log(bytes, 1024)
-    ret_str = "%.2f%s" % (bytes / (1024.0 ** int(k)), "bKMGTPEY"[int(k)])
-    return ret_str
-
-
-def get_file_size(url):
-    request = urllib2.Request(url, None, std_headers)
-    data = urllib2.urlopen(request)
-    content_length = data.info()['Content-Length']
-    # print content_length
-    return int(content_length)
-
+        return {
+			"speed":drate, 
+			"status":pcomp, 
+			"time":tleft,
+			}
 
 class FetchData(threading.Thread):
 
-    def __init__(self, name, url, out_file, state_file,
-                 start_offset, conn_state):
-        threading.Thread.__init__(self)
-        self.name = name
-        self.url = url
-        self.out_file = out_file
-        self.state_file = state_file
-        self.start_offset = start_offset
-        self.conn_state = conn_state
-        self.length = conn_state.chunks[name] - conn_state.progress[name]
-        self.sleep_timer = 0
-        self.need_to_quit = False
-        self.need_to_sleep = False
+	def __init__(self, name, url, out_file, state_file,
+				 start_offset, conn_state):
+		threading.Thread.__init__(self)
+		self.name = name
+		self.url = url
+		self.out_file = out_file
+		self.state_file = state_file
+		self.start_offset = start_offset
+		self.conn_state = conn_state
+		self.length = conn_state.chunks[name] - conn_state.progress[name]
+		self.sleep_timer = 0
+		self.need_to_quit = False
+		self.need_to_sleep = False
+		
 
-    def run(self):
-        # Ready the url object
-        # print "Running thread with %d-%d" % (self.start_offset, self.length)
-        request = urllib2.Request(self.url, None, std_headers)
-        if self.length == 0:
-            return
-        request.add_header('Range', 'bytes=%d-%d' % (self.start_offset,
-                                                     self.start_offset + \
-                                                     self.length))
-        while 1:
-            try:
-                data = urllib2.urlopen(request)
-            except urllib2.URLError, u:
-                print "Connection", self.name, " did not start with", u
-            else:
-                break
+	def run(self):
+		# Ready the url object
+		print "Running thread with %d-%d" % (self.start_offset, self.length)
+		request = urllib2.Request(self.url, None, std_headers)
+		if self.length == 0:
+			return
+		request.add_header('Range', 'bytes=%d-%d' % (self.start_offset,
+													 self.start_offset + \
+													 self.length))
+		while 1:
+			try:
+				data = urllib2.urlopen(request)
+			except urllib2.URLError, u:
+				print "Connection", self.name, " did not start with", u
+			else:
+				break
 
-        # Open the output file
-        out_fd = os.open(self.out_file+".part", os.O_WRONLY)
-        os.lseek(out_fd, self.start_offset, os.SEEK_SET)
+		# Open the output file
+		#out_fd = os.open(self.out_file+".part", os.O_WRONLY)
+		out_fd = os.open(self.out_file, os.O_WRONLY)
+		os.lseek(out_fd, self.start_offset, os.SEEK_SET)
+		#Use an optimal blocksize
+		block_size = get_chunk_size(self.length)
+		#indicates if connection timed out on a try
+		while self.length > 0:
+			if self.need_to_quit:
+				return
 
-        block_size = 1024
-        #indicates if connection timed out on a try
-        while self.length > 0:
-            if self.need_to_quit:
-                return
+			if self.need_to_sleep:
+				time.sleep(self.sleep_timer)
+				self.need_to_sleep = False
 
-            if self.need_to_sleep:
-                time.sleep(self.sleep_timer)
-                self.need_to_sleep = False
+			if self.length >= block_size:
+				fetch_size = block_size
+			else:
+				fetch_size = self.length
+			try:
+				data_block = data.read(fetch_size)
+				if len(data_block) == 0:
+					print "Connection %s: [TESTING]: 0 sized block" + \
+						" fetched." % (self.name)
+				if len(data_block) != fetch_size:
+					print "Connection %s: len(data_block) != fetch_size" + \
+						", but continuing anyway." % (self.name)
+					self.run()
+					return
 
-            if self.length >= block_size:
-                fetch_size = block_size
-            else:
-                fetch_size = self.length
-            try:
-                data_block = data.read(fetch_size)
-                if len(data_block) == 0:
-                    print "Connection %s: [TESTING]: 0 sized block" + \
-                        " fetched." % (self.name)
-                if len(data_block) != fetch_size:
-                    print "Connection %s: len(data_block) != fetch_size" + \
-                        ", but continuing anyway." % (self.name)
-                    self.run()
-                    return
+			except socket.timeout, s:
+				print "Connection", self.name, "timed out with", s
+				self.run()
+				return
 
-            except socket.timeout, s:
-                print "Connection", self.name, "timed out with", s
-                self.run()
-                return
+			else:
+				retry = 0
 
-            else:
-                retry = 0
+			#assert(len(data_block) == fetch_size)
+			self.length -= fetch_size
+			self.conn_state.update_data_downloaded(fetch_size, int(self.name))
+			os.write(out_fd, data_block)
+			self.start_offset += len(data_block)
+			#saving state after each blk of dwnld
+			state_fd = file(self.state_file, "wb")
+			self.conn_state.save_state(state_fd)
+			state_fd.close()
 
-            #assert(len(data_block) == fetch_size)
-            self.length -= fetch_size
-            self.conn_state.update_data_downloaded(fetch_size, int(self.name))
-            os.write(out_fd, data_block)
-            self.start_offset += len(data_block)
-            #saving state after each blk of dwnld
-            state_fd = file(self.state_file, "wb")
-            self.conn_state.save_state(state_fd)
-            state_fd.close()
+#Test an entire thread list for alive status
+#A thread list is alive if at least one of them is alive
+def is_thread_list_alive(list):
+	for t in list:
+		if t.is_alive() == True :
+			return True
+	return False
 
-def general_configuration():
-    # General configuration
-    urllib2.install_opener(urllib2.build_opener(urllib2.ProxyHandler()))
-    urllib2.install_opener(urllib2.build_opener(
-            urllib2.HTTPCookieProcessor()))
-    socket.setdefaulttimeout(120)         # 2 minutes
+class Download(threading.Thread):
+	fetch_threads = []
+	complete = False
+	progress = None
+	def __init__(self,url,output_file,num_connections=4,callback=None):
+		self.callback = callback
+		self.url = url
+		self.output_file = output_file
+		self.num_connections = num_connections
 
-def download(url, options):
-    fetch_threads = []
-    try:
-        output_file = url.rsplit("/", 1)[1]   # basename of the url
+		threading.Thread.__init__(self)
+	def run(self):
+		try:
+			print "Saving download to: %s" % self.output_file
+			#print 'd-trying to get filesize'
+			
+			filesize = get_file_size(self.url)
+			#print 'd-Got filesize = ', filesize
+			
+			conn_state = ConnectionState(self.num_connections, filesize)
+			#pbar = ProgressBar(self.num_connections, conn_state)
+		
+			#print 'd-connection state , progress bar created'
+			
+			# Checking if we have a partial download available and resume
+			state_file = self.output_file + ".st"
+			try:
+				os.stat(state_file)
+			except OSError, o:
+				#statefile is missing for all practical purposes
+				pass
+			else:
+				state_fd = file(state_file, "r")
+				conn_state.resume_state(state_fd)
+				state_fd.close()
 
-        if options.output_file != None:
-            output_file = options.output_file
+			print "Need to fetch %s" % report_bytes(conn_state.filesize - sum(conn_state.progress))
+			
+			#create output file with a .part extension to indicate partial download
+			#out_fd = os.open(self.output_file+".part", os.O_CREAT | os.O_WRONLY)
+			out_fd = os.open(self.output_file, os.O_CREAT | os.O_WRONLY)
+			#print 'd-open result ', out_fd
+			#debug
 
-        if output_file == "":
-            print "Invalid URL"
-            sys.exit(1)
+			start_offset = 0
+			start_time = time.time()
+			for i in range(self.num_connections):
+				# each iteration should spawn a thread.
+				# print start_offset, len_list[i]
+				current_thread = FetchData(i, self.url, self.output_file, state_file,
+										   start_offset + conn_state.progress[i],
+										   conn_state)
+				self.fetch_threads.append(current_thread)
+				current_thread.start()
+				start_offset += conn_state.chunks[i]
+			#This loop runs while the file is being downloaded
+			#and updates the progress of the file download
+			#a thread list remains alive till any of its members is alive
+			while is_thread_list_alive(self.fetch_threads):
+				end_time = time.time()
+				conn_state.update_time_taken(end_time - start_time)
+				start_time = end_time
+				''' This is the sleep routine for putting sleep limits
+					Disabled for now
+				dwnld_sofar = conn_state.download_sofar()
+				if options.max_speed != None and \
+						(dwnld_sofar / conn_state.elapsed_time) > \
+						(options.max_speed * 1024):
+					for th in fetch_threads:
+						th.need_to_sleep = True
+						th.sleep_timer = dwnld_sofar / (options.max_speed * \
+							1024 - conn_state.elapsed_time)
+				'''
+				#self.progress = pbar.display_progress()
+				
+				time.sleep(1)	#Doesnt make sense to eat up resources in updating progress
+				
+			# at this point we are sure dwnld completed and can delete the
+			# state file and move the dwnld to output file from .part file
+			for thread in self.fetch_threads:
+				print 'Waiting for thread to exit'
+				thread.join()
+			self.complete = True
+			print 'Deleting state file'
+			os.remove(state_file)
+			#os.rename(self.output_file+".part", self.output_file)
+			os.rename(self.output_file+".part", self.output_file)
+			if  self.callback != None:
+				self.callback(self.url,self.output_file,self.num_connections)
+			#print 'd-tc' , threading.active_count()
+			
+		except KeyboardInterrupt, k:
+			for thread in self.fetch_threads:
+				thread.need_to_quit = True
 
-        print "Destination = ", output_file
-
-        filesize = get_file_size(url)
-
-        conn_state = ConnectionState(options.num_connections, filesize)
-        pbar = ProgressBar(options.num_connections, conn_state)
-
-        # Checking if we have a partial download available and resume
-        state_file = output_file + ".st"
-        try:
-            os.stat(state_file)
-        except OSError, o:
-            #statefile is missing for all practical purposes
-            pass
-        else:
-            state_fd = file(state_file, "r")
-            conn_state.resume_state(state_fd)
-            state_fd.close()
-
-        print "Need to fetch %s\n" % report_bytes(conn_state.filesize - sum(conn_state.progress))
-        #create output file with a .part extension to indicate partial download
-        out_fd = os.open(output_file+".part", os.O_CREAT | os.O_WRONLY)
-
-        start_offset = 0
-        start_time = time.time()
-        for i in range(options.num_connections):
-            # each iteration should spawn a thread.
-            # print start_offset, len_list[i]
-            current_thread = FetchData(i, url, output_file, state_file,
-                                       start_offset + conn_state.progress[i],
-                                       conn_state)
-            fetch_threads.append(current_thread)
-            current_thread.start()
-            start_offset += conn_state.chunks[i]
-
-        while threading.active_count() > 1:
-            #print "\n",progress
-            end_time = time.time()
-            conn_state.update_time_taken(end_time - start_time)
-            start_time = end_time
-            dwnld_sofar = conn_state.download_sofar()
-            if options.max_speed != None and \
-                    (dwnld_sofar / conn_state.elapsed_time) > \
-                    (options.max_speed * 1024):
-                for th in fetch_threads:
-                    th.need_to_sleep = True
-                    th.sleep_timer = dwnld_sofar / (options.max_speed * \
-                        1024 - conn_state.elapsed_time)
-
-            pbar.display_progress()
-            time.sleep(1)
-
-        pbar.display_progress()
-
-        # at this point we are sure dwnld completed and can delete the
-        # state file and move the dwnld to output file from .part file
-        os.remove(state_file)
-        os.rename(output_file+".part", output_file)
-
-    except KeyboardInterrupt, k:
-        for thread in fetch_threads:
-            thread.need_to_quit = True
-
-    except Exception, e:
-        # TODO: handle other types of errors too.
-        print e
-        for thread in fetch_threads:
-            thread._need_to_quit = True
-
-def main(options, args):
-    try:
-        general_configuration()
-        url = args[0]
-        download(url, options)
-
-    except KeyboardInterrupt, k:
-        sys.exit(1)
-
-    except Exception, e:
-        # TODO: handle other types of errors too.
-        print e
-        pass
-
-if __name__ == "__main__":
-
-    parser = OptionParser(usage="Usage: %prog [options] url")
-    parser.add_option("-s", "--max-speed", dest="max_speed",
-                      type="int", 
-                      help="Specifies maximum speed (Kbytes per second)."
-                      " Useful if you don't want the program to suck up"
-                      " all of your bandwidth",
-                      metavar="SPEED")
-    parser.add_option("-q", "--quiet",
-                      action="store_false", dest="verbose", default=True,
-                      help="don't print status messages to stdout")
-    parser.add_option("-n", "--num-connections", dest="num_connections",
-                      type="int", default=4,
-                      help="You can specify an alternative number of"
-                      " connections here.",
-                      metavar="NUM")
-    parser.add_option("-o", "--output", dest="output_file",
-                      help="By default, data does to a local file of "
-                      "the same name. If this option is used, downloaded"
-                      " data will go to this file.")
-    
-    (options, args) = parser.parse_args()
-
-    print "Options: ", options
-    print "args: ", args
-
-    if len(args) != 1:
-        parser.print_help()
-        sys.exit(1)
-
-    main(options, args)
+		except Exception, e:
+			# TODO: handle other types of errors too.
+			print e
+			for thread in self.fetch_threads:
+				thread._need_to_quit = True
+	#Make threads quit
+	def quit(self):
+		for thread in self.fetch_threads:
+				thread.need_to_quit = True

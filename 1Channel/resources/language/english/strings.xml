@@ -1,0 +1,15 @@
+<strings>
+  
+    <!-- Meta Data -->
+    <string id="30600">Enable MetaData</string>
+
+	<string id="30700">Install Tv Show MetaData A-G</string>
+	<string id="30701">Install Tv Show MetaData H-N</string>
+	<string id="30702">Install Tv Show MetaData O-U</string>
+	<string id="30703">Install Tv Show MetaData V-#123</string>
+
+	<string id="30710">Install Movie MetaData A-G</string>
+	<string id="30711">Install Movie MetaData H-N</string>
+	<string id="30712">Install Movie MetaData O-U</string>
+	<string id="30713">Install Movie MetaData V-#123</string>
+</strings>
