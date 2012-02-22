@@ -166,23 +166,58 @@ def GetSources(url, title='', img=''): #10
 
 	#find all sources and their info
 	sources = []
-	for s in re.finditer('class="movie_version.+?quality_(?!sponsored|unknown)(.+?)>.+?url=(.+?)' + 
-						 '&domain=(.+?)&.+?"version_veiws">(.+?)</', 
-						 html, re.DOTALL):
-		q, url, host, views = s.groups()
-		verified = s.group(0).find('star.gif') > -1
-		label = '[%s]  ' % q.upper()
-		label += host.decode('base-64')
-		if verified: label += ' [verified]'
-		label += ' (%s)' % views.strip()
-		url = url.decode('base-64')
-		host = host.decode('base-64')
-		print 'Source found:\n quality %s\n url %s\n host %s\n views %s\n' % (q, url, host, views)
-		try:
-			hosted_media = urlresolver.HostedMediaFile(url=url, title=label)
-			sources.append(hosted_media)
-		except:
-			print 'Error while trying to determine'
+#####NEW#####
+	for version in re.finditer('<table[^\n]+?class="movie_version">(.*?)</table>',
+								html, re.DOTALL|re.IGNORECASE):
+		for s in re.finditer('quality_(?!sponsored|unknown)(.*?)></span>.*?'+
+							 'url=(.*?)&(?:amp;)?domain=(.*?)&(?:amp;)?(.*?)'+
+							 '"version_veiws">(.*?)</',
+							 version.group(1), re.DOTALL):
+			q, url, host,parts, views = s.groups()
+			r = '\[<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part [0-9]*)</a>\]'
+			additional_parts = re.findall(r, parts, re.DOTALL|re.IGNORECASE)
+			verified = s.group(0).find('star.gif') > -1
+			label = '[%s]  ' % q.upper()
+			label += host.decode('base-64')
+			if additional_parts: label += ' Part 1'
+			if verified: label += ' [verified]'
+			label += ' (%s)' % views.strip()
+			url = url.decode('base-64')
+			host = host.decode('base-64')
+			print 'Source found:\n quality %s\n url %s\n host %s\n views %s\n' % (q, url, host, views)
+			try:
+				hosted_media = urlresolver.HostedMediaFile(url=url, title=label)
+				sources.append(hosted_media)
+				if additional_parts:
+					for part in additional_parts:
+						label = '     [%s]  ' % q.upper()
+						label += host
+						label += ' ' + part[1]
+						if verified: label += ' [verified]'
+						#label += ' (%s)' % views.strip()
+						url = part[0].decode('base-64')
+						hosted_media = urlresolver.HostedMediaFile(url=url, title=label)
+						sources.append(hosted_media)
+			except:
+				print 'Error while trying to determine'
+#####OLD#####
+	# for s in re.finditer('class="movie_version.+?quality_(?!sponsored|unknown)(.+?)>.+?url=(.+?)' + 
+						 # '&domain=(.+?)&.+?"version_veiws">(.+?)</', 
+						 # html, re.DOTALL):
+		# q, url, host, views = s.groups()
+		# verified = s.group(0).find('star.gif') > -1
+		# label = '[%s]  ' % q.upper()
+		# label += host.decode('base-64')
+		# if verified: label += ' [verified]'
+		# label += ' (%s)' % views.strip()
+		# url = url.decode('base-64')
+		# host = host.decode('base-64')
+		# print 'Source found:\n quality %s\n url %s\n host %s\n views %s\n' % (q, url, host, views)
+		# try:
+			# hosted_media = urlresolver.HostedMediaFile(url=url, title=label)
+			# sources.append(hosted_media)
+		# except:
+			# print 'Error while trying to determine'
 
 	source = urlresolver.choose_source(sources)
 	if source: stream_url = source.resolve()
@@ -674,14 +709,16 @@ def create_meta_packs():
 	global metaget
 	container = metacontainers.MetaContainer()
 	savpath = container.path
-	AZ_DIRECTORIES.append('#123')
+	AZ_DIRECTORIES.append('123')
 	letters_completed = 0
-	letters_per_zip = 7
+	letters_per_zip = 27
 	start_letter = ''
 	end_letter = ''
 
-	for type in ('tvshow','movie'):
-		for letter in AZ_DIRECTORIES:
+#	for type in ('tvshow','movie'):
+	for type in ('movie',):
+#		for letter in AZ_DIRECTORIES:
+		for letter in AZ_DIRECTORIES[1:]:
 			if letters_completed == 0:
 				start_letter = letter
 				metaget.__del__()
@@ -692,7 +729,8 @@ def create_meta_packs():
 				scan_by_letter(type, letter)
 				letters_completed += 1
 
-			if letters_completed == letters_per_zip or letter == '#123':
+			if (letters_completed == letters_per_zip
+				or letter == '123' or get_dir_size(container.cache_path) > (450*1024*1024)):
 				end_letter = letter
 				arcname = 'MetaPack-%s-%s-%s.zip' % (type, start_letter, end_letter)
 				arcname = os.path.join(savpath, arcname)
@@ -718,11 +756,13 @@ def copy_meta_contents(root_src_dir, root_dst_dir):
 				shutil.move(src_file, dst_dir)
 
 def install_metapack(pack):
+	packs = metapacks.list()
+	pack_details = packs[pack]
 	mc = metacontainers.MetaContainer()
 	work_path  = mc.work_path
 	cache_path = mc.cache_path
 	zip = os.path.join(work_path, pack)
-	complete = download_metapack(url, zip, displayname=False)
+	complete = download_metapack(pack_details[0], zip, displayname=pack)
 	extract_zip(zip, work_path)
 	xbmc.sleep(5000)
 	copy_meta_contents(work_path, cache_path)
@@ -786,6 +826,16 @@ def _pbhook(numblocks, blocksize, filesize, dp, start_time):
         if dp.iscanceled(): 
             dp.close() 
             raise StopDownloading('Stopped Downloading')
+
+def get_dir_size(start_path):
+	print 'Calculating size of %s' % start_path
+	total_size = 0
+	for dirpath, dirnames, filenames in os.walk(start_path):
+		for f in filenames:
+			fp = os.path.join(dirpath, f)
+			total_size += os.path.getsize(fp)
+	print 'Calculated: %s' % total_size
+	return total_size
 
 def GetParams():
 	param=[]

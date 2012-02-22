@@ -8,6 +8,7 @@
 - Added context menu option to play movie trailer if available
 - Fixed issue with sources showing as "UNKNOWN" quality
 - Added fanart and icons by mikey1234
+- Added support for multi-part sources
 
 [B]Version 0.1.4[/B]
 - Fixed issue with weird encoding causing script errors
