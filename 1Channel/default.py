@@ -27,7 +27,8 @@ import zipfile
 import xbmcgui
 import xbmcplugin
 import xbmc, xbmcvfs
-import pyaxel
+#import pyaxel
+import time
 
 from t0mm0.common.addon import Addon
 from t0mm0.common.net import Net
@@ -54,7 +55,7 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport', 
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
-prepare_zip = True
+prepare_zip = False
 metaget=metahandlers.MetaData(preparezip=prepare_zip)
 
 if not os.path.isdir(ADDON.get_profile()):
@@ -200,24 +201,6 @@ def GetSources(url, title='', img=''): #10
 						sources.append(hosted_media)
 			except:
 				print 'Error while trying to determine'
-#####OLD#####
-	# for s in re.finditer('class="movie_version.+?quality_(?!sponsored|unknown)(.+?)>.+?url=(.+?)' + 
-						 # '&domain=(.+?)&.+?"version_veiws">(.+?)</', 
-						 # html, re.DOTALL):
-		# q, url, host, views = s.groups()
-		# verified = s.group(0).find('star.gif') > -1
-		# label = '[%s]  ' % q.upper()
-		# label += host.decode('base-64')
-		# if verified: label += ' [verified]'
-		# label += ' (%s)' % views.strip()
-		# url = url.decode('base-64')
-		# host = host.decode('base-64')
-		# print 'Source found:\n quality %s\n url %s\n host %s\n views %s\n' % (q, url, host, views)
-		# try:
-			# hosted_media = urlresolver.HostedMediaFile(url=url, title=label)
-			# sources.append(hosted_media)
-		# except:
-			# print 'Error while trying to determine'
 
 	source = urlresolver.choose_source(sources)
 	if source: stream_url = source.resolve()
@@ -262,7 +245,11 @@ def GetSearchQuery(section):
 	keyboard = xbmc.Keyboard(heading=heading)
 	keyboard.doModal()
 	if (keyboard.isConfirmed()):
-		Search(section, keyboard.getText())
+		search_text = keyboard.getText()
+		if search_text.startswith('!#'):
+			if search_text == '!#create metapacks': create_meta_packs()
+		else:
+			Search(section, keyboard.getText())
 	else:
 		BrowseListMenu(section)
 
@@ -715,10 +702,8 @@ def create_meta_packs():
 	start_letter = ''
 	end_letter = ''
 
-#	for type in ('tvshow','movie'):
-	for type in ('movie',):
-#		for letter in AZ_DIRECTORIES:
-		for letter in AZ_DIRECTORIES[1:]:
+	for type in ('tvshow','movie'):
+		for letter in AZ_DIRECTORIES:
 			if letters_completed == 0:
 				start_letter = letter
 				metaget.__del__()
@@ -730,7 +715,7 @@ def create_meta_packs():
 				letters_completed += 1
 
 			if (letters_completed == letters_per_zip
-				or letter == '123' or get_dir_size(container.cache_path) > (450*1024*1024)):
+				or letter == '123' or get_dir_size(container.cache_path) > (500*1024*1024)):
 				end_letter = letter
 				arcname = 'MetaPack-%s-%s-%s.zip' % (type, start_letter, end_letter)
 				arcname = os.path.join(savpath, arcname)
@@ -762,7 +747,16 @@ def install_metapack(pack):
 	work_path  = mc.work_path
 	cache_path = mc.cache_path
 	zip = os.path.join(work_path, pack)
-	complete = download_metapack(pack_details[0], zip, displayname=pack)
+	net = Net()
+	html = net.http_GET(pack_details[0]).content
+	r = re.search('value="([0-9a-f]+?)" name="hash"', html)
+	session_hash = r.group(1)
+	html = net.http_POST(pack_details[0], form_data={'hash': session_hash, 
+                                   'confirm': 'Continue as Free User'}).content
+	r = re.search('<a href="([^\n]*?)" class="download_file_link_big">'+
+				  'Download File</a>',html)
+	pack_url = 'http://putlocker.com' + r.group(1)
+	complete = download_metapack(pack_url, zip, displayname=pack)
 	extract_zip(zip, work_path)
 	xbmc.sleep(5000)
 	copy_meta_contents(work_path, cache_path)
@@ -887,8 +881,6 @@ except: year = 	  None
 print '==========================PARAMS:\nMODE: %s\nMYHANDLE: %s\nPARAMS: %s' % (mode, sys.argv[1], params )
 
 initDatabase()
-create_meta_packs()
-
 
 if mode==None: #Main menu
 	AddonMenu()

@@ -17,8 +17,8 @@ def list():
 	containers['MetaPack-tvshow-O-U.zip']	 = ('http://www.putlocker.com/file/2CF66A0350229546',690)
 	containers['MetaPack-tvshow-V-#123.zip'] = ('http://www.putlocker.com/file/CEE936FF07A17962',133)
 
-	containers['MetaPack-movie-A-G.zip'] 	= (url,size)
-	containers['MetaPack-movie-H-N.zip'] 	= (url,size)
-	containers['MetaPack-movie-O-U.zip'] 	= (url,size)
-	containers['MetaPack-movie-V-#123.zip'] = (url,size)
+#	containers['MetaPack-movie-A-G.zip'] 	= (url,size)
+#	containers['MetaPack-movie-H-N.zip'] 	= (url,size)
+#	containers['MetaPack-movie-O-U.zip'] 	= (url,size)
+#	containers['MetaPack-movie-V-#123.zip'] = (url,size)
 	return containers

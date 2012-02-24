@@ -2,7 +2,7 @@
    <category label="Meta Data">
   	<setting id="use-meta" type="bool" label="30600" default="true"/>
 
-	<setting type="action" label="30700" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-A-G.zip)"/>
+	<setting type="action" label="30700" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-tvshow-A-G.zip)"/>
 	<setting type="action" label="30701" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-H-N.zip)"/>
 	<setting type="action" label="30702" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-O-U.zip)"/>
 	<setting type="action" label="30703" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-V-#123.zip)"/>
