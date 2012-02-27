@@ -12,13 +12,19 @@ def list():
 
 	#--- Database Meta Container ---#
 	#containers['Container_Name.zip'] = (url,size)
-	containers['MetaPack-tvshow-A-G.zip']	 = ('http://www.putlocker.com/file/4CD5AC823B8E059F',624)
-	containers['MetaPack-tvshow-H-N.zip']	 = ('http://www.putlocker.com/file/EA59DE4793042906',498)
-	containers['MetaPack-tvshow-O-U.zip']	 = ('http://www.putlocker.com/file/2CF66A0350229546',690)
-	containers['MetaPack-tvshow-V-#123.zip'] = ('http://www.putlocker.com/file/CEE936FF07A17962',133)
+	containers['MetaPack-tvshow-A-G.zip']	 = ('http://minus.com/meozfvFsy',624)
+	containers['MetaPack-tvshow-H-N.zip']	 = ('http://minus.com/meozfvFsy',498)
+	containers['MetaPack-tvshow-O-U.zip']	 = ('http://minus.com/meozfvFsy',690)
+	containers['MetaPack-tvshow-V-123.zip']  = ('http://minus.com/meozfvFsy',133)
 
-#	containers['MetaPack-movie-A-G.zip'] 	= (url,size)
-#	containers['MetaPack-movie-H-N.zip'] 	= (url,size)
-#	containers['MetaPack-movie-O-U.zip'] 	= (url,size)
-#	containers['MetaPack-movie-V-#123.zip'] = (url,size)
+	containers['MetaPack-movie-A-A.zip'] 	= ('http://minus.com/meozfvFsy',377)
+	containers['MetaPack-movie-B-C.zip'] 	= ('http://minus.com/meozfvFsy',765)
+	containers['MetaPack-movie-D-E.zip'] 	= ('http://minus.com/meozfvFsy',490)
+	containers['MetaPack-movie-F-G.zip'] 	= ('http://minus.com/meozfvFsy',507)
+	containers['MetaPack-movie-H-J.zip'] 	= ('http://minus.com/meozfvFsy',520)
+	containers['MetaPack-movie-K-M.zip'] 	= ('http://minus.com/meozfvFsy',785)
+	containers['MetaPack-movie-N-R.zip'] 	= ('http://minus.com/meozfvFsy',677)
+	containers['MetaPack-movie-S-S.zip'] 	= ('http://minus.com/meozfvFsy',524)
+	containers['MetaPack-movie-T-T.zip'] 	= ('http://minus.com/meozfvFsy',904)
+	containers['MetaPack-movie-U-123.zip'] 	= ('http://minus.com/meozfvFsy',538)
 	return containers

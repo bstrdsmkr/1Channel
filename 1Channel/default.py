@@ -240,14 +240,19 @@ def PlayTrailer(url): #250
 	xbmc.Player().play(stream_url)
 
 def GetSearchQuery(section):
-	if section == 'tv': heading = 'Search TV Shows'
-	else: heading = 'Search Movies'
-	keyboard = xbmc.Keyboard(heading=heading)
+	last_search = ADDON.load_data('search')
+	keyboard = xbmc.Keyboard()
+	if section == 'tv': keyboard.setHeading('Search TV Shows')
+	else: keyboard.setHeading('Search Movies')
+	keyboard.setDefault(last_search)
 	keyboard.doModal()
 	if (keyboard.isConfirmed()):
 		search_text = keyboard.getText()
+		ADDON.save_data('search',search_text)
 		if search_text.startswith('!#'):
 			if search_text == '!#create metapacks': create_meta_packs()
+			if search_text == '!#repair meta'	  : repair_missing_images()
+			if search_text == '!#install all meta': install_all_meta()
 		else:
 			Search(section, keyboard.getText())
 	else:
@@ -727,18 +732,42 @@ def create_meta_packs():
 
 def copy_meta_contents(root_src_dir, root_dst_dir):
 	import shutil
+	for root, dirs, files in os.walk(root_src_dir):
 
-	for src_dir, dirs, files in os.walk(root_src_dir):
-		dst_dir = src_dir.replace(root_src_dir, root_dst_dir)
-		if not os.path.exists(dst_dir):
-			os.mkdir(dst_dir)
-		for file_ in files:
-			if not file_.endswith('.db') or file_.endswith('.zip'):
-				src_file = os.path.join(src_dir, file_)
-				dst_file = os.path.join(dst_dir, file_)
-				if os.path.exists(dst_file):
-					os.remove(dst_file)
-				shutil.move(src_file, dst_dir)
+		#figure out where we're going
+		dest = root_dst_dir + root.replace(root_src_dir, '')
+
+		#if we're in a directory that doesn't exist in the destination folder
+		#then create a new folder
+		if not os.path.isdir(dest):
+			os.mkdir(dest)
+			print 'Directory created at: ' + dest
+
+		#loop through all files in the directory
+		for f in files:
+			if not f.endswith('.db') and not f.endswith('.zip'):
+				#compute current (old) & new file locations
+				oldLoc = os.path.join(root, f)
+
+				newLoc = os.path.join(dest, f)
+				if not os.path.isfile(newLoc):
+					try:
+						shutil.copy2(oldLoc, newLoc)
+						print 'File ' + f + ' copied.'
+					except IOError:
+						print 'file "' + f + '" already exists'
+			else: print 'Skipping file ' + f
+	# for src_dir, dirs, files in os.walk(root_src_dir):
+		# dst_dir = src_dir.replace(root_src_dir, root_dst_dir)
+		# if not os.path.exists(dst_dir):
+			# os.mkdir(dst_dir)
+		# for file_ in files:
+			# if not file_.endswith('.db') and not file_.endswith('.zip'):
+				# src_file = os.path.join(src_dir, file_)
+				# dst_file = os.path.join(dst_dir, file_)
+				# if os.path.exists(dst_file):
+					# os.remove(dst_file)
+				# shutil.move(src_file, dst_dir)
 
 def install_metapack(pack):
 	packs = metapacks.list()
@@ -747,21 +776,38 @@ def install_metapack(pack):
 	work_path  = mc.work_path
 	cache_path = mc.cache_path
 	zip = os.path.join(work_path, pack)
+
 	net = Net()
+	cookiejar = ADDON.get_profile()
+	cookiejar = os.path.join(cookiejar,'cookies')
+
 	html = net.http_GET(pack_details[0]).content
-	r = re.search('value="([0-9a-f]+?)" name="hash"', html)
-	session_hash = r.group(1)
-	html = net.http_POST(pack_details[0], form_data={'hash': session_hash, 
-                                   'confirm': 'Continue as Free User'}).content
-	r = re.search('<a href="([^\n]*?)" class="download_file_link_big">'+
-				  'Download File</a>',html)
-	pack_url = 'http://putlocker.com' + r.group(1)
+	net.save_cookies(cookiejar)
+	name = re.sub('-', r'\\\\u002D', pack)
+
+	r = '"name": "%s".*?"id": "([^\s]*?)".*?"secure_prefix":"(.*?)",' % name
+	r = re.search(r,html)
+	pack_url  = 'http://i.minus.com'
+	pack_url += r.group(2)
+	pack_url += '/d' + r.group(1) + '.zip'
+
 	complete = download_metapack(pack_url, zip, displayname=pack)
 	extract_zip(zip, work_path)
 	xbmc.sleep(5000)
 	copy_meta_contents(work_path, cache_path)
 	for table in mc.table_list:
 		install = mc._insert_metadata(table)
+
+def install_all_meta():
+	all_packs = metapacks.list()
+	skip = []
+	skip.append('MetaPack-tvshow-A-G.zip')
+	skip.append('MetaPack-tvshow-H-N.zip')
+	skip.append('MetaPack-tvshow-O-U.zip')
+	skip.append('MetaPack-tvshow-V-123.zip')
+	for pack in all_packs:
+		if pack not in skip:
+			install_metapack(pack)
 
 class StopDownloading(Exception): 
         def __init__(self, value): 
@@ -770,11 +816,17 @@ class StopDownloading(Exception):
             return repr(self.value)
 
 def download_metapack(url, dest, displayname=False):
+	print 'Downloading Metapack'
+	print 'URL: %s' % url
+	print 'Destination: %s' % dest
 	if displayname == False:
 		displayname=url
 	dp = xbmcgui.DialogProgress()
 	dp.create('Downloading', '', displayname)
-	start_time = time.time() 
+	start_time = time.time()
+	if os.path.isfile(dest): 
+		print 'File to be downloaded already esists'
+		return True
 	try: 
 		urllib.urlretrieve(url, dest, lambda nb, bs, fs: _pbhook(nb, bs, fs, dp, start_time)) 
 	except:
@@ -788,6 +840,91 @@ def download_metapack(url, dest, displayname=False):
 
 def is_metapack_installed(pack):
 	pass
+
+def format_eta(seconds):
+	print 'Format ETA starting with %s seconds' % seconds
+	minutes,seconds = divmod(seconds, 60)
+	print 'Minutes/Seconds: %s %s' %(minutes,seconds)
+	if minutes > 60:
+		hours,minutes = divmod(minutes, 60)
+		print 'Hours/Minutes: %s %s' %(hours,minutes)
+		return "ETA: %02d:%02d:%02d " % (hours, minutes, seconds)
+	else:
+		return "ETA: %02d:%02d " % (minutes, seconds)
+	print 'Format ETA: hours: %s minutes: %s seconds: %s' %(hours,minutes,seconds)
+
+def repair_missing_images():
+	mc = metacontainers.MetaContainer()
+	dbcon = sqlite.connect(mc.videocache)
+	dbcur = dbcon.cursor()
+	dp = xbmcgui.DialogProgress()
+	dp.create('Repairing Images', '', '', '')
+	for type in ('tvshow','movie'):
+		total  = 'SELECT count(*) from %s_meta WHERE ' % type
+		total += 'imgs_prepacked = "true"'
+		total = dbcur.execute(total).fetchone()[0]
+		statement =  'SELECT title,cover_url,backdrop_url'
+		if type   == 'tvshow': statement += ',banner_url'
+		statement += ' FROM %s_meta WHERE imgs_prepacked = "true"' % type
+		complete = 1.0
+		start_time = time.time()
+		already_existing = 0
+
+		for row in dbcur.execute(statement):
+			title	 = row[0]
+			cover 	 = row[1]
+			backdrop = row[2]
+			if type == 'tvshow': banner = row[3]
+			else: banner = False
+			percent = int((complete*100)/total)
+			entries_per_sec = (complete - already_existing)
+			entries_per_sec /=  max(float((time.time() - start_time)),1)
+			total_est_time = total / max(entries_per_sec,1)
+			eta = total_est_time - (time.time() - start_time)
+
+			eta = format_eta(eta) 
+			dp.update(percent, eta + title, '')
+			if cover:
+				dp.update(percent, eta + title, cover)
+				img_name = metaget._picname(cover)
+				img_path = os.path.join(metaget.mvcovers, img_name[0].lower())
+				file = os.path.join(img_path,img_name)
+				if not os.path.isfile(file):
+					retries = 4
+					while retries:
+						try: 
+							metaget._downloadimages(cover, img_path, img_name)
+							break
+						except: retries -= 1
+				else: already_existing -= 1
+			if backdrop:
+				dp.update(percent, eta + title, backdrop)
+				img_name = metaget._picname(backdrop)
+				img_path = os.path.join(metaget.mvbackdrops, img_name[0].lower())
+				file = os.path.join(img_path,img_name)
+				if not os.path.isfile(file):
+					retries = 4
+					while retries:
+						try: 
+							metaget._downloadimages(backdrop, img_path, img_name)
+							break
+						except: retries -= 1
+				else: already_existing -= 1
+			if banner:
+				dp.update(percent, eta + title, banner)
+				img_name = metaget._picname(banner)
+				img_path = os.path.join(metaget.tvbanners, img_name[0].lower())
+				file = os.path.join(img_path,img_name)
+				if not os.path.isfile(file):
+					retries = 4
+					while retries:
+						try: 
+							metaget._downloadimages(banner, img_path, img_name)
+							break
+						except: retries -= 1
+				else: already_existing -= 1
+			if dp.iscanceled(): return False
+			complete += 1
 
 def _pbhook(numblocks, blocksize, filesize, dp, start_time):
         try: 
@@ -911,6 +1048,10 @@ elif mode==8888: #Save to favorites
 elif mode==7777: #Delete favorite
 	DeleteFav(section, title, url)
 	xbmc.executebuiltin('Container.Refresh')
+elif mode==9988: #Metahandler Settings
+	print "Metahandler Settings"
+	import metahandler
+	metahandler.display_settings()
 elif mode==9999: #Open URL Resolver Settings
 	urlresolver.display_settings()
 elif mode==10000: #Install meta pack

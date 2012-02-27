@@ -9,6 +9,7 @@
 - Fixed issue with sources showing as "UNKNOWN" quality
 - Added fanart and icons by mikey1234
 - Added support for multi-part sources
+- Remember last search
 
 [B]Version 0.1.4[/B]
 - Fixed issue with weird encoding causing script errors

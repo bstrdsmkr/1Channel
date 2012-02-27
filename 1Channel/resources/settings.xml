@@ -1,16 +1,26 @@
 <settings>
    <category label="Meta Data">
   	<setting id="use-meta" type="bool" label="30600" default="true"/>
-
+	<setting id="meta-path" type="action" label="30601" enable="!eq(-1,false)" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=9988)"/>
 	<setting type="action" label="30700" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-tvshow-A-G.zip)"/>
-	<setting type="action" label="30701" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-H-N.zip)"/>
-	<setting type="action" label="30702" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-O-U.zip)"/>
-	<setting type="action" label="30703" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-tvshow-V-#123.zip)"/>
+	<setting type="action" label="30701" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-tvshow-H-N.zip)"/>
+	<setting type="action" label="30702" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-tvshow-O-U.zip)"/>
+	<setting type="action" label="30703" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-tvshow-V-123.zip)"/>
 
-	<setting type="action" label="30710" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-movie-A-G.zip)"/>
-	<setting type="action" label="30711" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-movie-H-N.zip)"/>
-	<setting type="action" label="30712" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-movie-O-U.zip)"/>
-	<setting type="action" label="30713" action="RunPlugin(plugin://video/1Channel/?mode=10000&title=MetaPack-movie-V-#123.zip)"/>
+	<setting type="sep" />
+
+	<setting type="action" label="30710" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-A-A.zip)"/>
+	<setting type="action" label="30711" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-B-C.zip)"/>
+	<setting type="action" label="30712" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-D-E.zip)"/>
+	<setting type="action" label="30713" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-F-G.zip)"/>
+	<setting type="action" label="30714" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-H-J.zip)"/>
+	<setting type="action" label="30715" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-K-M.zip)"/>
+	<setting type="action" label="30716" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-N-R.zip)"/>
+	<setting type="action" label="30717" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-S-S.zip)"/>
+	<setting type="action" label="30718" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-T-T.zip)"/>
+	<setting type="action" label="30719" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-U-123.zip)"/>
+	
+	<setting id="last_search" type="text" visible="false"/>
 
 	</category>
 </settings>

@@ -12,7 +12,7 @@ import os,sys
 import shutil
 
 #necessary so that the metacontainers.py can use the scrapers
-try: import xbmc,xbmcaddon,xbmcgui
+try: import xbmc, xbmcaddon
 except:
      xbmc_imported = False
 else:
@@ -20,8 +20,8 @@ else:
 
 #append lib directory
 addon = xbmcaddon.Addon(id='script.module.metahandler')
-path = addon.getAddonInfo('path')
-sys.path.append((os.path.split(path))[0])
+addon_path = addon.getAddonInfo('path')
+sys.path.append((os.path.split(addon_path))[0])
 
 '''
    Use SQLIte3 wherever possible, needed for newer versions of XBMC
@@ -38,7 +38,15 @@ class MetaContainer:
 
     def __init__(self, path='special://profile/addon_data/script.module.metahandler'):
         #!!!! This must be matched to the path in meteahandler.py MetaData __init__
-        self.path = xbmc.translatePath(path)
+
+        #Check if a path has been set in the addon settings
+        settings_path = addon.getSetting('meta_folder_location')
+        
+        if settings_path:
+            self.path = settings_path
+        else:
+            self.path = xbmc.translatePath(path)
+
         self.work_path = os.path.join(self.path, 'work')
         self.cache_path = os.path.join(self.path,  'meta_cache')
         self.videocache = os.path.join(self.cache_path, 'video_cache.db')
@@ -76,17 +84,19 @@ class MetaContainer:
         if not os.path.exists(mypath): os.makedirs(mypath)   
 
    
-    def _del_metadir(self, path=path):
-        #pass me the path the meta_caches is in
+    def _del_metadir(self, path=''):
     
-        meta_caches=os.path.join(path,'meta_caches')
-        
+        if path:
+            cache_path = path
+        else:
+            catch_path = self.cache_path
+      
         #Nuke the old meta_caches folder (if it exists) and install this meta_caches folder.
         #Will only ever delete a meta_caches folder, so is farly safe (won't delete anything it is fed)
     
-        if os.path.exists(meta_caches):
+        if os.path.exists(catch_path):
                 try:
-                    shutil.rmtree(meta_caches)
+                    shutil.rmtree(catch_path)
                 except:
                     print 'Failed to delete old meta'
                     return False
