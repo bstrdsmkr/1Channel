@@ -88,12 +88,24 @@ def unicode_urlencode(value):
 
 def initDatabase():
 	print "Building 1channel Database"
-	if ( not os.path.isdir( os.path.dirname( DB ) ) ):
+	if not os.path.isdir( os.path.dirname( DB ) ):
 		os.makedirs( os.path.dirname( DB ) )
 	db = sqlite.connect( DB )
 	cursor = db.cursor()
 	cursor.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents);')
 	cursor.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year);')
+#####Begin db upgrade code
+	try: cursor.execute('SELECT year FROM favorites')
+	except:
+		try:
+			cursor.execute('CREATE TEMPORARY TABLE favorites_backup (type,name,url,year)')
+			cursor.execute('INSERT INTO favorites_backup SELECT type,name,url FROM favorites')
+			cursor.execute('DROP TABLE favorites')
+			cursor.execute('CREATE TABLE favorites(type,name,url,year)')
+			cursor.execute('INSERT INTO favorites SELECT type,name,url FROM favorites_backup')
+			cursor.execute('DROP TABLE favorites_backup')
+		except: pass
+#####End db upgrade code
 	db.commit()
 	db.close()
 
@@ -101,8 +113,12 @@ def SaveFav(type, name, url, img, year): #8888
 	if type != 'tv': type = 'movie'
 	db = sqlite.connect( DB )
 	cursor = db.cursor()
-	cursor.execute('INSERT INTO favorites (type, name, url, year) Values (?,?,?,?)', 
-				  (type, urllib.unquote_plus(name), url, year))
+	statement  = 'INSERT INTO favorites (type, name, url, year) VALUES (?,?,?,?)'
+	# statement += ' WHERE NOT EXISTS (SELECT 1 FROM favorites WHERE type= "%s" AND'
+	# statement += ' name = "%s" AND url = "%s" AND year = "%s")'
+	# statement  = statement % (type, urllib.unquote_plus(name), url, year,
+							  # type, urllib.unquote_plus(name), url, year)
+	cursor.execute(statement, type, urllib.unquote_plus(name), url, year)
 	db.commit()
 	db.close()
 
@@ -147,7 +163,7 @@ def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie =
 	response.close()
 	return body
 
-def GetSources(url, title='', img=''): #10
+def GetSources(url, title='', img='', update='', year=''): #10
 	url	  = urllib.unquote_plus(url)
 	title = urllib.unquote_plus(title)
 	print 'Playing: %s' % url
@@ -165,9 +181,15 @@ def GetSources(url, title='', img=''): #10
 		net.set_cookies(cookiejar)
 		html = net.http_GET(adulturl, headers=headers).content #.encode('utf-8', 'ignore')
 
+	if update:
+		imdbregex = 'mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"'
+		r = re.search(imdbregex, html)
+		if r:
+			imdbnum = r.group(1)
+			metaget.update_meta('movie',title,imdb_id='',
+								new_imdb_id=imdbnum,year=year)
 	#find all sources and their info
 	sources = []
-#####NEW#####
 	for version in re.finditer('<table[^\n]+?class="movie_version">(.*?)</table>',
 								html, re.DOTALL|re.IGNORECASE):
 		for s in re.finditer('quality_(?!sponsored|unknown)(.*?)></span>.*?'+
@@ -200,7 +222,7 @@ def GetSources(url, title='', img=''): #10
 						hosted_media = urlresolver.HostedMediaFile(url=url, title=label)
 						sources.append(hosted_media)
 			except:
-				print 'Error while trying to determine'
+				print 'Error while trying to resolve %s' % url
 
 	source = urlresolver.choose_source(sources)
 	if source: stream_url = source.resolve()
@@ -241,6 +263,7 @@ def PlayTrailer(url): #250
 
 def GetSearchQuery(section):
 	last_search = ADDON.load_data('search')
+	if not last_search: last_search = ''
 	keyboard = xbmc.Keyboard()
 	if section == 'tv': keyboard.setHeading('Search TV Shows')
 	else: keyboard.setHeading('Search Movies')
@@ -297,16 +320,16 @@ def Search(section, query):
 				cm = []
 				if year: disptitle = title +'('+year+')'
 				else: disptitle = title
-
+				update = False
 				if META_ON == 'true':
 					if type == 'tvshow':
-						meta = metaget.get_meta(type,disptitle)
+						meta = metaget.get_meta(type, title, year=year)
 						if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
-							meta = metaget.get_meta(type,title)
+							update = True
 					elif type == 'movie':
 						meta = metaget.get_meta(type,disptitle,year)
 						if meta['imdb_id'] =='':
-							meta = metaget.get_meta(type,title)
+							update = True
 						if meta['trailer_url']:
 							url = meta['trailer_url']
 							url = re.sub('&feature=related','',url)
@@ -334,6 +357,7 @@ def Search(section, query):
 				liurl += '&title=' + title
 				liurl += '&img='	 + thumb
 				liurl += '&url=' + resurl
+				if update: liurl += '&update=1'
 				xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=liurl, listitem=listitem, 
 							isFolder=True, totalItems=total)
 
@@ -411,16 +435,19 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			cm = []
 			if year: disptitle = title +'('+year+')'
 			else: disptitle = title
+			update = False
 
 			if META_ON == 'true':
 				if type == 'tvshow':
-					meta = metaget.get_meta(type,disptitle)
-					if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
-						meta = metaget.get_meta(type,title)
+					meta = metaget.get_meta(type, title, year)
+					if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
+						meta = metaget.get_meta(type, title)
+						if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
+							update = True
 				elif type == 'movie':
 					meta = metaget.get_meta(type,title,year)
 					if meta['imdb_id'] =='':
-						meta = metaget.get_meta(type,disptitle)
+						  update = True
 					if meta['trailer_url']:
 						url = meta['trailer_url']
 						url = re.sub('&feature=related','',url)
@@ -430,6 +457,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			
 				if meta['cover_url'] in ('/images/noposter.jpg',''):
 					meta['cover_url'] = thumb
+
 			else:
 				meta['cover_url'] = thumb
 
@@ -440,6 +468,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			liurl = sys.argv[0] + nextmode
 			liurl += '&title=' + title
 			liurl += '&url=' + resurl
+			if update: liurl += '&update=1'
 			runstring = 'RunScript(plugin.video.1channel,%s,?mode=8888&section=%s&title=%s&url=%s&year=%s)' %(sys.argv[1],section,title,resurl,year)
 			cm.append(('Add to Favorites', runstring))
 			cm.append(('Show Information', 'XBMC.Action(Info)'))
@@ -454,7 +483,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 		AddOption('Next Page >>', True, 3000, section=section, genre=genre, letter=letter, sort=sort, page=page)
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def TVShowSeasonList(url, title, year): #4000
+def TVShowSeasonList(url, title, year, update=''): #4000
 	print 'Seasons for TV Show %s' % url
 	net = Net(http_debug=True)
 	cookiejar = ADDON.get_profile()
@@ -485,6 +514,9 @@ def TVShowSeasonList(url, title, year): #4000
 		if imdbnum and META_ON == 'true': 
 			metaget.update_meta('tvshow', title, imdbnum, year=year)
 			season_meta = metaget.get_seasons(title, imdbnum, season_nums)
+			if update:
+				metaget.update_meta('tvshow', title, imdb_id='',
+									new_imdb_id=imdbnum, year=year)
 		seasonList = season_container.split('<h2>')
 		num = 0
 		temp = {}
@@ -570,20 +602,19 @@ def BrowseFavorites(section): #8000
 		year	  = row[3]
 		cm		  = []
 		meta	  = {}
-		liurl = sys.argv[0] + nextmode
-		liurl += '&title='  + title
-		liurl += '&url='	+ favurl
 		disptitle = title +'('+year+')'
+		update = False
 
 		if META_ON == 'true':
 			if type == 'tvshow':
-				meta = metaget.get_meta(type,title)
-	#			if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
-	#				meta = metaget.get_meta(type,disptitle)
+				meta = metaget.get_meta(type,title,year)
+				if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
+					update = True
 			elif type == 'movie':
 				meta = metaget.get_meta(type,title,year)
 				if meta['imdb_id'] =='':
-					meta = metaget.get_meta(type,title)
+					update = True
+
 				if meta['trailer_url']:
 					url = meta['trailer_url']
 					url = re.sub('&feature=related','',url)
@@ -592,6 +623,11 @@ def BrowseFavorites(section): #8000
 					cm.append(('Watch Trailer', runstring))
 		else:
 			meta['cover_url'] = ''
+
+		liurl = sys.argv[0] + nextmode
+		liurl += '&title='  + title
+		liurl += '&url='	+ favurl
+		if update: liurl += '&update=1'
 		listitem = xbmcgui.ListItem(disptitle, iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
 		listitem.setInfo(type="Video", infoLabels=meta)
 		try: listitem.setProperty('fanart_image', meta['backdrop_url'])
@@ -1013,7 +1049,8 @@ try: 	imdbnum = params['imdbnum']
 except: imdbnum = None
 try: 	year =    params['year']
 except: year = 	  None
-
+try: 	update =  params['update']
+except: update =  None
 
 print '==========================PARAMS:\nMODE: %s\nMYHANDLE: %s\nPARAMS: %s' % (mode, sys.argv[1], params )
 
@@ -1022,7 +1059,7 @@ initDatabase()
 if mode==None: #Main menu
 	AddonMenu()
 elif mode==10: #Play Stream
-	GetSources(url,title,img)
+	GetSources(url,title,img,update)
 elif mode==250: #Play Trailer
 	PlayTrailer(url)
 elif mode==500: #Browsing options menu
@@ -1034,7 +1071,7 @@ elif mode==2000: #Browse by genre
 elif mode==3000: #Show the results of the menus selected
 	GetFilteredResults(section, genre, letter, sort, page)
 elif mode==4000: #TV Show season list
-	TVShowSeasonList(url, title, year)
+	TVShowSeasonList(url, title, year, update)
 elif mode==5000: #TVShow episode list
 	TVShowEpisodeList(season, imdbnum)
 elif mode==6000: #Get search terms

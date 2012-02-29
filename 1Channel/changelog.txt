@@ -10,6 +10,11 @@
 - Added fanart and icons by mikey1234
 - Added support for multi-part sources
 - Remember last search
+- Made log message from resolver exceptions slightly more useful
+- RC1 - Fixed issue with last_search not being set on first run
+- RC1 - Fixed script error on startup due to meta path not being translated during make_dirs()
+- RC1 - Viewing sources for a movie or seasons for a tv show now updates metadata if it was found when searching by title
+- RC1 - Upgrade favorites db if necessary
 
 [B]Version 0.1.4[/B]
 - Fixed issue with weird encoding causing script errors

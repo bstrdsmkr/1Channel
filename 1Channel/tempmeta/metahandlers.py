@@ -84,7 +84,7 @@ class MetaData:
         settings_path = addon.getSetting('meta_folder_location')
         
         if settings_path:
-            self.path = settings_path
+            self.path = xbmc.translatePath(settings_path)
         else:
             self.path = xbmc.translatePath(path)
         
@@ -994,10 +994,8 @@ class MetaData:
         
         #Do whatever we can to set a year, if we don't have one lets try to strip it from premiered
         if not year and meta['premiered']:
-			try:
-				meta['year'] = int(self._convert_date(meta['premiered'], '%Y-%m-%d', '%Y'))
-			except:
-				meta['year'] = ''
+            meta['year'] = self._convert_date(meta['premiered'], '%Y-%m-%d', '%Y')
+                   
         meta['trailer_url'] = md.get('trailer', '')
         meta['genre'] = md.get('genre', '')
         

@@ -43,7 +43,7 @@ class MetaContainer:
         settings_path = addon.getSetting('meta_folder_location')
         
         if settings_path:
-            self.path = settings_path
+            self.path = xbmc.translatePath(settings_path)
         else:
             self.path = xbmc.translatePath(path)
 
