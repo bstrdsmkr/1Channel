@@ -118,7 +118,7 @@ def SaveFav(type, name, url, img, year): #8888
 	# statement += ' name = "%s" AND url = "%s" AND year = "%s")'
 	# statement  = statement % (type, urllib.unquote_plus(name), url, year,
 							  # type, urllib.unquote_plus(name), url, year)
-	cursor.execute(statement, type, urllib.unquote_plus(name), url, year)
+	cursor.execute(statement, (type, urllib.unquote_plus(name), url, year))
 	db.commit()
 	db.close()
 
@@ -289,12 +289,12 @@ def Search(section, query):
 	pageurl += urllib.quote_plus(query)
 	pageurl += '&key=' + r
 	if section == 'tv':
-		xbmcplugin.setContent( int( sys.argv[1] ), 'tvshows' )
+		setView('tvshows', 'tvshows-view')
 		pageurl += '&search_section=2'
 		nextmode = '?mode=4000'
 		type = 'tvshow'
 	else:
-		xbmcplugin.setContent( int( sys.argv[1] ), 'movies' )
+		setView('movies', 'movies-view')
 		nextmode = '?mode=10'
 		type = 'movie'
 	html = '> >> <'
@@ -481,6 +481,8 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 	else: page = 2
 	if html.find('> >> <') > -1:
 		AddOption('Next Page >>', True, 3000, section=section, genre=genre, letter=letter, sort=sort, page=page)
+	if section == 'tv':  setView('tvshows', 'tvshows-view')
+	else: setView('movies', 'movies-view')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def TVShowSeasonList(url, title, year, update=''): #4000
@@ -538,11 +540,11 @@ def TVShowSeasonList(url, title, year, update=''): #4000
 											isFolder=True)
 				cnxn.commit()
 				num += 1
+		setView('seasons', 'seasons-view')
 		xbmcplugin.endOfDirectory(int(sys.argv[1]))
 		cnxn.close()
 
 def TVShowEpisodeList(season, imdbnum): #5000
-	xbmcplugin.setContent( int( sys.argv[1] ), 'episodes' )
 	cnxn = sqlite.connect( DB )
 	cnxn.text_factory = str
 	cursor = cnxn.cursor()
@@ -581,13 +583,14 @@ def TVShowEpisodeList(season, imdbnum): #5000
 				(sys.argv[0], BASE_URL + epurl, unicode_urlencode(title), img)
 		xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=listitem, 
 									isFolder=True)
+	setView('episodes', 'episodes-view')
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def BrowseFavorites(section): #8000
 	db = sqlite.connect( DB )
 	cursor = db.cursor()
-	if section == 'tv':	xbmcplugin.setContent( int( sys.argv[1] ), 'tvshows' )
-	else: xbmcplugin.setContent( int( sys.argv[1] ), 'movies' )
+	if section == 'tv':  setView('tvshows', 'tvshows-view')
+	else: setView('movies', 'movies-view')
 	if section == 'tv':
 		nextmode = '?mode=4000'
 		type = 'tvshow'
@@ -1003,6 +1006,22 @@ def get_dir_size(start_path):
 			total_size += os.path.getsize(fp)
 	print 'Calculated: %s' % total_size
 	return total_size
+
+def setView(content, viewType):
+	# set content type so library shows more views and info
+	if content:
+		xbmcplugin.setContent(int(sys.argv[1]), content)
+	if ADDON.get_setting('auto-view') == 'true':
+		xbmc.executebuiltin("Container.SetViewMode(%s)" % ADDON.get_setting(viewType) )
+
+	# set sort methods - probably we don't need all of them
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_UNSORTED )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_VIDEO_RATING )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_PROGRAM_COUNT )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_VIDEO_RUNTIME )
+	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_GENRE )
 
 def GetParams():
 	param=[]

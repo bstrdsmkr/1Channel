@@ -2,20 +2,20 @@
   
     <!-- Meta Data -->
     <string id="30600">Enable MetaData</string>
-	<string id="30601">		Set Meta Path</string>
-	<string id="30700">		Install Tv Show MetaData A-G</string>
-	<string id="30701">		Install Tv Show MetaData H-N</string>
-	<string id="30702">		Install Tv Show MetaData O-U</string>
-	<string id="30703">		Install Tv Show MetaData V-#123</string>
+	<string id="30601">       Set Meta Path</string>
+	<string id="30700">       Install Tv Show MetaData A-G</string>
+	<string id="30701">       Install Tv Show MetaData H-N</string>
+	<string id="30702">       Install Tv Show MetaData O-U</string>
+	<string id="30703">       Install Tv Show MetaData V-#123</string>
 
-	<string id="30710">		Install Movie MetaData A</string>
-	<string id="30711">		Install Movie MetaData B-C</string>
-	<string id="30712">		Install Movie MetaData D-E</string>
-	<string id="30713">		Install Movie MetaData F-G</string>
-	<string id="30714">		Install Movie MetaData H-J</string>
-	<string id="30715">		Install Movie MetaData K-M</string>
-	<string id="30716">		Install Movie MetaData N-R</string>
-	<string id="30717">		Install Movie MetaData S</string>
-	<string id="30718">		Install Movie MetaData T</string>
-	<string id="30719">		Install Movie MetaData U-#123</string>
+	<string id="30710">       Install Movie MetaData A</string>
+	<string id="30711">       Install Movie MetaData B-C</string>
+	<string id="30712">       Install Movie MetaData D-E</string>
+	<string id="30713">       Install Movie MetaData F-G</string>
+	<string id="30714">       Install Movie MetaData H-J</string>
+	<string id="30715">       Install Movie MetaData K-M</string>
+	<string id="30716">       Install Movie MetaData N-R</string>
+	<string id="30717">       Install Movie MetaData S</string>
+	<string id="30718">       Install Movie MetaData T</string>
+	<string id="30719">       Install Movie MetaData U-#123</string>
 </strings>

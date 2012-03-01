@@ -19,8 +19,15 @@
 	<setting type="action" label="30717" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-S-S.zip)"/>
 	<setting type="action" label="30718" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-T-T.zip)"/>
 	<setting type="action" label="30719" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-U-123.zip)"/>
-	
-	<setting id="last_search" type="text" visible="false"/>
 
-	</category>
+   </category>
+   <category label="Auto-View">
+	<setting id="auto-view" type="bool" label="Enable Automatic View" default="false"/>
+	<setting id="movies-view" type="number" label="Movies View" default="503" enable="!eq(-1,false)"/>
+	<setting id="tvshows-view" type="number" label="TV Shows View" default="503" enable="!eq(-2,false)"/>
+	<setting id="seasons-view" type="number" label="Seasons View" default="504" enable="!eq(-3,false)"/>
+	<setting id="episodes-view" type="number" label="Episodes View" default="504" enable="!eq(-4,false)"/>
+	<setting id="actors-view" type="number" label="Actors/Directors/Cast View" default="500" enable="!eq(-5,false)"/>
+	<setting id="default-view" type="number" label="Default View" default="50" enable="!eq(-5,false)"/>
+   </category>
 </settings>
