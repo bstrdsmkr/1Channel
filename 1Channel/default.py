@@ -82,29 +82,34 @@ def AddOption(text, isFolder, mode, letter=None, section=None, sort=None, genre=
 
 def unicode_urlencode(value): 
 	if isinstance(value, unicode): 
-		return urllib.quote_plus(value.encode("utf-8")) 
+		return urllib.quote(value.encode("utf-8"))
 	else: 
-		return urllib.quote_plus(value) 
+		return urllib.quote(value)
+
 
 def initDatabase():
 	print "Building 1channel Database"
 	if not os.path.isdir( os.path.dirname( DB ) ):
 		os.makedirs( os.path.dirname( DB ) )
 	db = sqlite.connect( DB )
-	cursor = db.cursor()
-	cursor.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents);')
-	cursor.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year);')
+	db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
+	db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
+	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
 #####Begin db upgrade code
-	try: cursor.execute('SELECT year FROM favorites')
-	except:
+	try: db.execute('SELECT year FROM favorites')
+	except: 
+		print 'Upgrading db...'
 		try:
-			cursor.execute('CREATE TEMPORARY TABLE favorites_backup (type,name,url,year)')
-			cursor.execute('INSERT INTO favorites_backup SELECT type,name,url FROM favorites')
-			cursor.execute('DROP TABLE favorites')
-			cursor.execute('CREATE TABLE favorites(type,name,url,year)')
-			cursor.execute('INSERT INTO favorites SELECT type,name,url FROM favorites_backup')
-			cursor.execute('DROP TABLE favorites_backup')
-		except: pass
+			with db:
+				db.execute('CREATE TABLE favoritesbackup (type,name,url)')
+				db.execute('INSERT INTO favoritesbackup SELECT type,name,url FROM favorites')
+				db.execute('DROP TABLE favorites')
+				db.execute('CREATE TABLE favorites(type,name,url)')
+				db.execute('INSERT INTO favorites SELECT type,name,url FROM favoritesbackup')
+				db.execute('DROP TABLE favoritesbackup')
+				db.execute('ALTER TABLE favorites ADD COLUMN year')
+				db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
+		except: print 'Failed to upgrade db'
 #####End db upgrade code
 	db.commit()
 	db.close()
@@ -114,11 +119,13 @@ def SaveFav(type, name, url, img, year): #8888
 	db = sqlite.connect( DB )
 	cursor = db.cursor()
 	statement  = 'INSERT INTO favorites (type, name, url, year) VALUES (?,?,?,?)'
-	# statement += ' WHERE NOT EXISTS (SELECT 1 FROM favorites WHERE type= "%s" AND'
-	# statement += ' name = "%s" AND url = "%s" AND year = "%s")'
-	# statement  = statement % (type, urllib.unquote_plus(name), url, year,
-							  # type, urllib.unquote_plus(name), url, year)
-	cursor.execute(statement, (type, urllib.unquote_plus(name), url, year))
+	try: 
+		cursor.execute(statement, (type, urllib.unquote_plus(name), url, year))
+		builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000)'
+		xbmc.executebuiltin(builtin)
+	except sqlite.IntegrityError: 
+		builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000)'
+		xbmc.executebuiltin(builtin)
 	db.commit()
 	db.close()
 
@@ -164,10 +171,13 @@ def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie =
 	return body
 
 def GetSources(url, title='', img='', update='', year=''): #10
-	url	  = urllib.unquote_plus(url)
-	title = urllib.unquote_plus(title)
+	url	  = urllib.unquote(url)
+	print 'Title befor unquote %s' % title
+	#title = urllib.unquote(title)
+	#title = title.decode('utf-8')
+	print 'Title is %s' % title
 	print 'Playing: %s' % url
-	net = Net(http_debug=True)
+	net = Net()
 	cookiejar = ADDON.get_profile()
 	cookiejar = os.path.join(cookiejar,'cookies')
 	html = net.http_GET(url).content
@@ -188,9 +198,11 @@ def GetSources(url, title='', img='', update='', year=''): #10
 			imdbnum = r.group(1)
 			metaget.update_meta('movie',title,imdb_id='',
 								new_imdb_id=imdbnum,year=year)
-	#find all sources and their info
+	titleregex = '<meta property="og:title" content="(.*?)">'
+	r = re.search(titleregex,html)
+	title = r.group(1)
 	sources = []
-	for version in re.finditer('<table[^\n]+?class="movie_version">(.*?)</table>',
+	for version in re.finditer('<table[^\n]+?class="movie_version(?: movie_version_alt)?">(.*?)</table>',
 								html, re.DOTALL|re.IGNORECASE):
 		for s in re.finditer('quality_(?!sponsored|unknown)(.*?)></span>.*?'+
 							 'url=(.*?)&(?:amp;)?domain=(.*?)&(?:amp;)?(.*?)'+
@@ -225,20 +237,19 @@ def GetSources(url, title='', img='', update='', year=''): #10
 				print 'Error while trying to resolve %s' % url
 
 	source = urlresolver.choose_source(sources)
-	if source: stream_url = source.resolve()
-	else: stream_url = ''
-	profile = ADDON.get_profile()
-	if not os.path.isdir(profile):
-		os.makedirs(profile)
-	mediafile = os.path.join(profile, 'temp.flv')
+	if source: 
+		stream_url = source.resolve()
+		playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+		playlist.clear()
+		listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
+		playlist.add(url=stream_url, listitem=listitem)
+		xbmc.Player().play(playlist)
 
-	playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-	listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
-	playlist.add(url=stream_url, listitem=listitem)
-	xbmc.Player().play(playlist)
-	playlist.clear()
-
+#	profile = ADDON.get_profile()
+#	if not os.path.isdir(profile):
+#		os.makedirs(profile)
 #	print 'Downloading %s' % stream_url
+#	mediafile = os.path.join(profile, 'temp.flv')
 #	t = pyaxel.Download(stream_url, 'c:/temp.flv', num_connections=8)
 #	t.start()
 #	playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
@@ -327,7 +338,7 @@ def Search(section, query):
 						if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
 							update = True
 					elif type == 'movie':
-						meta = metaget.get_meta(type,disptitle,year)
+						meta = metaget.get_meta(type, title, year=year)
 						if meta['imdb_id'] =='':
 							update = True
 						if meta['trailer_url']:
@@ -461,33 +472,36 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			else:
 				meta['cover_url'] = thumb
 
-			listitem = xbmcgui.ListItem(disptitle, iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
+			listitem = xbmcgui.ListItem(unicode(disptitle, 'utf-8'), iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
 			listitem.setInfo(type="Video", infoLabels=meta)
 			title = unicode_urlencode(title)
 			resurl = BASE_URL + resurl
 			liurl = sys.argv[0] + nextmode
-			liurl += '&title=' + title
+			liurl += '&title=' + urllib.quote(title)
 			liurl += '&url=' + resurl
+			liurl += '&img=' + thumb
 			if update: liurl += '&update=1'
+			print 'liurl is: %s' % liurl
 			runstring = 'RunScript(plugin.video.1channel,%s,?mode=8888&section=%s&title=%s&url=%s&year=%s)' %(sys.argv[1],section,title,resurl,year)
 			cm.append(('Add to Favorites', runstring))
 			cm.append(('Show Information', 'XBMC.Action(Info)'))
 			listitem.addContextMenuItems(cm, replaceItems=True)
 			try: listitem.setProperty('fanart_image', meta['backdrop_url'])
 			except: pass
+			print 'URL is %s' % liurl
 			xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=liurl, listitem=listitem, 
 						isFolder=True, totalItems=total)
 	if page is not None: page = int(page) + 1
 	else: page = 2
 	if html.find('> >> <') > -1:
 		AddOption('Next Page >>', True, 3000, section=section, genre=genre, letter=letter, sort=sort, page=page)
+	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 	if section == 'tv':  setView('tvshows', 'tvshows-view')
 	else: setView('movies', 'movies-view')
-	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def TVShowSeasonList(url, title, year, update=''): #4000
 	print 'Seasons for TV Show %s' % url
-	net = Net(http_debug=True)
+	net = Net()
 	cookiejar = ADDON.get_profile()
 	cookiejar = os.path.join(cookiejar,'cookies')
 	html = net.http_GET(url).content
@@ -562,7 +576,7 @@ def TVShowEpisodeList(season, imdbnum): #5000
 		title = urllib.unquote_plus(title)
 		name = re.search('/(tv|watch)-[0-9]+-(.+?)/season-', epurl).group(2)
 		name = re.sub('-',' ',name)
-		season = re.search('/season-([0-9]{1,3})-', epurl).group(1)
+		season = re.search('/season-([0-9]{1,4})-', epurl).group(1)
 		epnum = re.search('-episode-([0-9]{1,3})', epurl).group(1)
 		if META_ON == 'true':
 			try:

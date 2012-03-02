@@ -13,10 +13,18 @@
 - Made log message from resolver exceptions slightly more useful
 - RC1 - Fixed issue with last_search not being set on first run
 - RC1 - Fixed script error on startup due to meta path not being translated during make_dirs()
-- RC1 - Viewing sources for a movie or seasons for a tv show now updates metadata if it was found when searching by title
+- RC1 - Viewing sources for a movie or seasons for a tv show now updates metadata if it wasn't found when searching by title
 - RC1 - Upgrade favorites db if necessary
 - RC2 - Fix stupid mistake in save favorites code
 - RC2 - Merged Rogerthis' autoview pull request
+- RC3 - Fix image not being passed in when playing movie (caused script error during playback)
+- RC3 - Movie results were still passing year as part of title during meta lookup
+- RC3 - Fixed problem with db upgrade code
+- RC3 - Fixed adding favorites multiple times created multiple entries
+- RC3 - Added Notification when saving favorites
+- RC3 - Fix sources lost by implementing multi-part...
+- RC3 - Fix script error when canceling sources dialog
+- RC3 - Fix title display during playback (was all lower case)
 
 [B]Version 0.1.4[/B]
 - Fixed issue with weird encoding causing script errors
