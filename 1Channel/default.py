@@ -177,6 +177,12 @@ def GetSources(url, title='', img='', update='', year=''): #10
 	#title = title.decode('utf-8')
 	print 'Title is %s' % title
 	print 'Playing: %s' % url
+	videotype = None
+	match = re.search('tv-\d{1,10}-(.*)/season-(\d{1,4})-episode-(\d{1,4})', url, re.IGNORECASE | re.DOTALL)
+	if match:
+		videotype = 'tv'
+		season = int(match.group(2))
+		episode = int(match.group(3))	
 	net = Net()
 	cookiejar = ADDON.get_profile()
 	cookiejar = os.path.join(cookiejar,'cookies')
@@ -242,6 +248,7 @@ def GetSources(url, title='', img='', update='', year=''): #10
 		playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 		playlist.clear()
 		listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
+		if videotype == 'tv': listitem.setInfo('video', {'TVShowTitle': title, 'Season': season, 'Episode': episode } )		
 		playlist.add(url=stream_url, listitem=listitem)
 		xbmc.Player().play(playlist)
 
