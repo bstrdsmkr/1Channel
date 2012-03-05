@@ -30,4 +30,8 @@
 	<setting id="actors-view" type="number" label="Actors/Directors/Cast View" default="500" enable="!eq(-5,false)"/>
 	<setting id="default-view" type="number" label="Default View" default="50" enable="!eq(-5,false)"/>
    </category>
+   <category label="Miscellaneous">
+    <setting id="auto-watch" type="bool" label="Enable Auto-Watch" default="true"/>
+    <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="       Auto-Watch Percentage" default="2" enable="!eq(-1,false)"/>
+   </category>
 </settings>
