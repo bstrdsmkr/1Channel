@@ -170,7 +170,7 @@ def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie =
 	response.close()
 	return body
 
-def GetSources(url, title='', img='', update='', year=''): #10
+def GetSources(url, title='', img='', update='', year='', imdbnum='', video_type='', season='', episode=''): #10
 	url	  = urllib.unquote(url)
 	print 'Title befor unquote %s' % title
 	#title = urllib.unquote(title)
@@ -244,6 +244,35 @@ def GetSources(url, title='', img='', update='', year=''): #10
 		listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
 		playlist.add(url=stream_url, listitem=listitem)
 		xbmc.Player().play(playlist)
+		if ADDON.get_setting('auto-watch') == 'true':
+			Autowatch()
+            
+            
+def Autowatch():
+    #Begin auto-watch code
+    xbmc.executebuiltin("XBMC.Container.Refresh")
+    watched_values = [.7, .8, .9]
+    min_watched_percent = watched_values[int(ADDON.get_setting('watched-percent'))]
+    currentTime = 1
+    totalTime = 20
+    while(1):
+        if xbmc.Player().isPlayingVideo():
+            totalTime=xbmc.Player().getTotalTime()
+            currentTime=xbmc.Player().getTime()
+        else: 
+            if ((currentTime/totalTime) > min_watched_percent):
+                print '******** currentTime / totalTime : %s / %s = %s' % (currentTime, totalTime, currentTime/totalTime)
+                ChangeWatched(imdbnum, video_type, title, season, episode, year, watched=7,refresh=True)
+                break
+            elif currentTime > 30: #Essentially a timeout.  30 seconds without starting the video.
+                break
+        xbmc.sleep(1000)
+  
+def ChangeWatched(imdb_id, videoType, name, season, episode, year='', watched='', refresh=False):
+    metaget=metahandlers.MetaData(preparezip=prepare_zip)
+    metaget.change_watched(videoType, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
+    if refresh:
+        xbmc.executebuiltin("XBMC.Container.Refresh")
 
 #	profile = ADDON.get_profile()
 #	if not os.path.isdir(profile):
@@ -480,6 +509,8 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			liurl += '&title=' + urllib.quote(title)
 			liurl += '&url=' + resurl
 			liurl += '&img=' + thumb
+			liurl += '&imdbnum=' + meta['imdb_id']
+			liurl += '&videoType=' + type
 			if update: liurl += '&update=1'
 			print 'liurl is: %s' % liurl
 			runstring = 'RunScript(plugin.video.1channel,%s,?mode=8888&section=%s&title=%s&url=%s&year=%s)' %(sys.argv[1],section,title,resurl,year)
@@ -593,8 +624,8 @@ def TVShowEpisodeList(season, imdbnum): #5000
 		try: listitem.setProperty('fanart_image', meta['backdrop_url'])
 		except: pass
 		listitem.addContextMenuItems(cm)
-		url = '%s?mode=10&url=%s&title=%s&img=%s' % \
-				(sys.argv[0], BASE_URL + epurl, unicode_urlencode(title), img)
+		url = '%s?mode=10&url=%s&title=%s&img=%s&imdbnum=%s&videoType=episode&season=%s&episode=%s' % \
+				(sys.argv[0], BASE_URL + epurl, unicode_urlencode(title), img, imdbnum, season, epnum)
 		xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=listitem, 
 									isFolder=True)
 	setView('episodes', 'episodes-view')
@@ -644,6 +675,8 @@ def BrowseFavorites(section): #8000
 		liurl = sys.argv[0] + nextmode
 		liurl += '&title='  + title
 		liurl += '&url='	+ favurl
+		liurl += '&imdbnum=' + meta['imdb_id']
+		liurl += '&videoType=' + type
 		if update: liurl += '&update=1'
 		listitem = xbmcgui.ListItem(disptitle, iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
 		listitem.setInfo(type="Video", infoLabels=meta)
@@ -1092,7 +1125,7 @@ initDatabase()
 if mode==None: #Main menu
 	AddonMenu()
 elif mode==10: #Play Stream
-	GetSources(url,title,img,update)
+	GetSources(url,title,img,update, imdbnum=imdbnum, video_type=video_type, season=season, episode=episode)
 elif mode==250: #Play Trailer
 	PlayTrailer(url)
 elif mode==500: #Browsing options menu
