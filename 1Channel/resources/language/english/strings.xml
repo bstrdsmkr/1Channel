@@ -3,6 +3,10 @@
     <!-- Meta Data -->
     <string id="30600">Enable MetaData</string>
 	<string id="30601">       Set Meta Path</string>
+	<string id="30602">       Enable Fanart</string>
+	<string id="30603">       Use posters for TV shows</string>
+	<string id="30604">              Fallback if unavailable</string>
+
 	<string id="30700">       Install Tv Show MetaData A-G</string>
 	<string id="30701">       Install Tv Show MetaData H-N</string>
 	<string id="30702">       Install Tv Show MetaData O-U</string>

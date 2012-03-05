@@ -2,12 +2,17 @@
    <category label="Meta Data">
   	<setting id="use-meta" type="bool" label="30600" default="true"/>
 	<setting id="meta-path" type="action" label="30601" enable="!eq(-1,false)" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=9988)"/>
+	<setting id="enable-fanart" type="bool" label="30602" enable="!eq(-2,false)" default="true"/>
+	<setting id="use-posters" type="bool" label="30603" enable="!eq(-3,false)" default="false"/>
+	<setting id="posters-fallback" type="bool" label="30604" enable="!eq(-1,true)" default="true"/>
+
+   </category>
+  
+   <category label="Install Meta Data">
 	<setting type="action" label="30700" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-tvshow-A-G.zip)"/>
 	<setting type="action" label="30701" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-tvshow-H-N.zip)"/>
 	<setting type="action" label="30702" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-tvshow-O-U.zip)"/>
 	<setting type="action" label="30703" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-tvshow-V-123.zip)"/>
-
-	<setting type="sep" />
 
 	<setting type="action" label="30710" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-A-A.zip)"/>
 	<setting type="action" label="30711" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-B-C.zip)"/>
@@ -19,9 +24,9 @@
 	<setting type="action" label="30717" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-S-S.zip)"/>
 	<setting type="action" label="30718" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-T-T.zip)"/>
 	<setting type="action" label="30719" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=10000&title=MetaPack-movie-U-123.zip)"/>
-
    </category>
-   <category label="Auto-View">
+ 
+ <category label="Auto-View">
 	<setting id="auto-view" type="bool" label="Enable Automatic View" default="false"/>
 	<setting id="movies-view" type="number" label="Movies View" default="503" enable="!eq(-1,false)"/>
 	<setting id="tvshows-view" type="number" label="TV Shows View" default="503" enable="!eq(-2,false)"/>

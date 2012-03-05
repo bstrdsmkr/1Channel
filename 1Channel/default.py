@@ -32,9 +32,9 @@ import time
 
 from t0mm0.common.addon import Addon
 from t0mm0.common.net import Net
-from tempmeta import metahandlers
-from tempmeta import metacontainers
-from tempmeta import metapacks
+from metahandler import metahandlers
+from metahandler import metacontainers
+import metapacks
 
 try:
 	from sqlite3 import dbapi2 as sqlite
@@ -45,7 +45,12 @@ except:
 
 ADDON = Addon('plugin.video.1channel', sys.argv)
 DB = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
-META_ON = ADDON.get_setting('use-meta')
+
+META_ON = ADDON.get_setting('use-meta') == 'true'
+FANART_ON = ADDON.get_setting('enable-fanart') == 'true'
+USE_POSTERS = ADDON.get_setting('use-posters') == 'true'
+POSTERS_FALLBACK = ADDON.get_setting('posters-fallback') == 'true'
+
 AZ_DIRECTORIES = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y', 'Z']
 BASE_URL = 'http://www.1channel.ch'
 USER_AGENT = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3'
@@ -237,8 +242,9 @@ def GetSources(url, title='', img='', update='', year=''): #10
 				print 'Error while trying to resolve %s' % url
 
 	source = urlresolver.choose_source(sources)
-	if source: 
+	if source:
 		stream_url = source.resolve()
+		print 'Attempting to play url: %s' % stream_url
 		playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 		playlist.clear()
 		listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
@@ -332,29 +338,35 @@ def Search(section, query):
 				if year: disptitle = title +'('+year+')'
 				else: disptitle = title
 				update = False
-				if META_ON == 'true':
-					if type == 'tvshow':
-						meta = metaget.get_meta(type, title, year=year)
-						if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
-							update = True
-					elif type == 'movie':
-						meta = metaget.get_meta(type, title, year=year)
-						if meta['imdb_id'] =='':
-							update = True
-						if meta['trailer_url']:
-							url = meta['trailer_url']
-							url = re.sub('&feature=related','',url)
-							url = url.encode('base-64').strip()
-							runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
-							cm.append(('Watch Trailer', runstring))
+				img = thumb
 
-					if meta['cover_url'] in ('/images/noposter.jpg',''):
-						meta['cover_url'] = thumb
-				else:
-					meta['cover_url'] = thumb
+				if META_ON:
+					try:
+						if type == 'tvshow':
+							meta = metaget.get_meta(type, title, year=year)
+							if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
+								update = True
+						elif type == 'movie':
+							meta = metaget.get_meta(type, title, year=year)
+							if meta['imdb_id'] =='':
+								update = True
+							if meta['trailer_url']:
+								url = meta['trailer_url']
+								url = re.sub('&feature=related','',url)
+								url = url.encode('base-64').strip()
+								runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
+								cm.append(('Watch Trailer', runstring))
 
-				listitem = xbmcgui.ListItem(disptitle, iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
-				listitem.setInfo(type="Video", infoLabels=meta)
+						if type == 'tvshow'and not USE_POSTERS:
+							meta['cover_url'] = meta['banner_url']
+						if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
+							meta['cover_url'] = thumb
+						img = meta['cover_url']
+					except: update = True
+
+				listitem = xbmcgui.ListItem(disptitle, iconImage=img, thumbnailImage=img)
+				try: listitem.setInfo(type="Video", infoLabels=meta)
+				except: pass
 				title = unicode_urlencode(title)
 				runstring = 'RunScript(plugin.video.1channel,%s,?mode=8888&section=%s&title=%s&url=%s&year=%s)'\
 							%(sys.argv[1],section,title,BASE_URL+resurl,year)
@@ -447,33 +459,37 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			if year: disptitle = title +'('+year+')'
 			else: disptitle = title
 			update = False
+			img = thumb
 
-			if META_ON == 'true':
-				if type == 'tvshow':
-					meta = metaget.get_meta(type, title, year)
-					if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
-						meta = metaget.get_meta(type, title)
+			if META_ON:
+				try:
+					if type == 'tvshow':
+						meta = metaget.get_meta(type, title, year=year)
 						if meta['imdb_id'] =='' and meta['tvdb_id'] =='':
 							update = True
-				elif type == 'movie':
-					meta = metaget.get_meta(type,title,year)
-					if meta['imdb_id'] =='':
-						  update = True
-					if meta['trailer_url']:
-						url = meta['trailer_url']
-						url = re.sub('&feature=related','',url)
-						url = url.encode('base-64').strip()
-						runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
-						cm.append(('Watch Trailer', runstring))
-			
-				if meta['cover_url'] in ('/images/noposter.jpg',''):
-					meta['cover_url'] = thumb
 
-			else:
-				meta['cover_url'] = thumb
+					elif type == 'movie':
+						meta = metaget.get_meta(type,title,year=year)
+						if meta['imdb_id'] =='':
+							update = True
 
-			listitem = xbmcgui.ListItem(unicode(disptitle, 'utf-8'), iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
-			listitem.setInfo(type="Video", infoLabels=meta)
+						if meta['trailer_url']:
+							url = meta['trailer_url']
+							url = re.sub('&feature=related','',url)
+							url = url.encode('base-64').strip()
+							runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
+							cm.append(('Watch Trailer', runstring))
+					
+					if type == 'tvshow'and not USE_POSTERS:
+						meta['cover_url'] = meta['banner_url']
+					if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
+						meta['cover_url'] = thumb
+					img = meta['cover_url']
+				except: update = True
+
+			listitem = xbmcgui.ListItem(unicode(disptitle, 'latin1'), iconImage=img, thumbnailImage=img)
+			try: listitem.setInfo(type="Video", infoLabels=meta)
+			except: pass
 			title = unicode_urlencode(title)
 			resurl = BASE_URL + resurl
 			liurl = sys.argv[0] + nextmode
@@ -486,8 +502,9 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			cm.append(('Add to Favorites', runstring))
 			cm.append(('Show Information', 'XBMC.Action(Info)'))
 			listitem.addContextMenuItems(cm, replaceItems=True)
-			try: listitem.setProperty('fanart_image', meta['backdrop_url'])
-			except: pass
+			if FANART_ON:
+				try: listitem.setProperty('fanart_image', meta['backdrop_url'])
+				except: pass
 			print 'URL is %s' % liurl
 			xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=liurl, listitem=listitem, 
 						isFolder=True, totalItems=total)
@@ -527,7 +544,7 @@ def TVShowSeasonList(url, title, year, update=''): #4000
 	else:
 		season_container = seasons.group(1)
 		season_nums = re.compile('<a href=".+?">Season ([0-9]{1,2})').findall(season_container)
-		if imdbnum and META_ON == 'true': 
+		if imdbnum and META_ON: 
 			metaget.update_meta('tvshow', title, imdbnum, year=year)
 			season_meta = metaget.get_seasons(title, imdbnum, season_nums)
 			if update:
@@ -544,8 +561,9 @@ def TVShowSeasonList(url, title, year, update=''): #4000
 				except: temp['cover_url'] = ''
 				listitem = xbmcgui.ListItem(season_name, iconImage=temp['cover_url'], thumbnailImage=temp['cover_url'])
 				listitem.setInfo(type="Video", infoLabels=temp)
-				try: listitem.setProperty('fanart_image', temp['backdrop_url'])
-				except: pass
+				if FANART_ON:
+					try: listitem.setProperty('fanart_image', meta['backdrop_url'])
+					except: pass
 				season_name = unicode_urlencode(season_name).lower()
 				cursor.execute('INSERT or REPLACE into seasons (season,contents) VALUES(?,?);',
 								(season_name, eplist))
@@ -578,7 +596,7 @@ def TVShowEpisodeList(season, imdbnum): #5000
 		name = re.sub('-',' ',name)
 		season = re.search('/season-([0-9]{1,4})-', epurl).group(1)
 		epnum = re.search('-episode-([0-9]{1,3})', epurl).group(1)
-		if META_ON == 'true':
+		if META_ON:
 			try:
 				meta = metaget.get_episode_meta(name=name,imdb_id=imdbnum,season=season, episode=epnum)
 			except:
@@ -590,8 +608,9 @@ def TVShowEpisodeList(season, imdbnum): #5000
 		img = meta['cover_url']
 		listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
 		listitem.setInfo(type="Video", infoLabels=meta)
-		try: listitem.setProperty('fanart_image', meta['backdrop_url'])
-		except: pass
+		if FANART_ON:
+			try: listitem.setProperty('fanart_image', meta['backdrop_url'])
+			except: pass
 		listitem.addContextMenuItems(cm)
 		url = '%s?mode=10&url=%s&title=%s&img=%s' % \
 				(sys.argv[0], BASE_URL + epurl, unicode_urlencode(title), img)
@@ -619,36 +638,47 @@ def BrowseFavorites(section): #8000
 		year	  = row[3]
 		cm		  = []
 		meta	  = {}
-		disptitle = title +'('+year+')'
+		if year: disptitle = title +'('+year+')'
+		else:	 disptitle = title
 		update = False
+		img = ''
 
-		if META_ON == 'true':
-			if type == 'tvshow':
-				meta = metaget.get_meta(type,title,year)
-				if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
-					update = True
-			elif type == 'movie':
-				meta = metaget.get_meta(type,title,year)
-				if meta['imdb_id'] =='':
-					update = True
+		if META_ON:
+			try:
+				if type == 'tvshow':
+					try: meta = metaget.get_meta(type,title,year=year)
+					except: print 'Failed to get metadata for %s %s %s' %(type,title,year)
+					if meta['tvdb_id'] =='' and meta['imdb_id'] =='':
+						update = True
+				elif type == 'movie':
+					try: meta = metaget.get_meta(type,title,year=year)
+					except: print 'Failed to get metadata for %s %s %s' %(type,title,year)
+					if meta['imdb_id'] =='':
+						update = True
 
-				if meta['trailer_url']:
-					url = meta['trailer_url']
-					url = re.sub('&feature=related','',url)
-					url = url.encode('base-64').strip()
-					runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
-					cm.append(('Watch Trailer', runstring))
-		else:
-			meta['cover_url'] = ''
+					if meta['trailer_url']:
+						url = meta['trailer_url']
+						url = re.sub('&feature=related','',url)
+						url = url.encode('base-64').strip()
+						runstring = 'RunScript(plugin.video.1channel,%s,?mode=250&url=%s)' %(sys.argv[1],url)
+						cm.append(('Watch Trailer', runstring))
+
+				if type == 'tvshow'and not USE_POSTERS:
+					meta['cover_url'] = meta['banner_url']
+
+				img = meta['cover_url']
+			except: update = True
 
 		liurl = sys.argv[0] + nextmode
 		liurl += '&title='  + title
 		liurl += '&url='	+ favurl
 		if update: liurl += '&update=1'
-		listitem = xbmcgui.ListItem(disptitle, iconImage=meta['cover_url'], thumbnailImage=meta['cover_url'])
-		listitem.setInfo(type="Video", infoLabels=meta)
-		try: listitem.setProperty('fanart_image', meta['backdrop_url'])
+		listitem = xbmcgui.ListItem(disptitle, iconImage=img, thumbnailImage=img)
+		try: listitem.setInfo(type="Video", infoLabels=meta)
 		except: pass
+		if FANART_ON:
+			try: listitem.setProperty('fanart_image', meta['backdrop_url'])
+			except: pass
 		remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=7777&section=%s&title=%s&year=%s&url=%s)' %(sys.argv[1],section,title,year,favurl)
 		cm.append(('Remove from Favorites', remfavstring))
 		listitem.addContextMenuItems(cm)
@@ -699,7 +729,7 @@ def scan_by_letter(section, letter):
 			failed_attempts = 0
 			while failed_attempts < 4:
 				try: 
-					meta = metaget.get_meta(section,title,year)
+					meta = metaget.get_meta(section,title,year=year)
 					failed_attempts = 4
 				except: 
 					failed_attempts += 1

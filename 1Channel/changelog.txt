@@ -1,3 +1,8 @@
+[B]Version 0.1.6[/B]
+- Added option to disable Fanart
+- Added option to use banners for TV shows
+- Made falling back to posters optional if no banner is found
+
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results
 - Added option to delete favorites
