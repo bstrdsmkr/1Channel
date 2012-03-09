@@ -2,6 +2,14 @@
 - Added option to disable Fanart
 - Added option to use banners for TV shows
 - Made falling back to posters optional if no banner is found
+- Merged mr_blobby's changes to set info_labels for subtitles plugin
+- Merged ZPAnderson's changes to add auto-watched support
+- Added selectable themes
+- Converted mikey1234's graphics to theme
+- Added Glossy_Black theme by union1mc
+- Fixed Season level not showing fanart
+- If we fail to find episode information, fall back to the website label
+- Show season/episode numbers in episode view and playback
 
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results

@@ -36,6 +36,7 @@
 	<setting id="default-view" type="number" label="Default View" default="50" enable="!eq(-5,false)"/>
    </category>
    <category label="Miscellaneous">
+    <setting id="theme" type="enum" label="Theme" values="mikey1234|Glossy_Black" default="mikey1234"/>
     <setting id="auto-watch" type="bool" label="Enable Auto-Watch" default="true"/>
     <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="       Auto-Watch Percentage" default="2" enable="!eq(-1,false)"/>
    </category>
