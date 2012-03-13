@@ -20,14 +20,16 @@ class Player(xbmc.Player):
 		xbmc.Player.__init__(self)    
 		self._active = True
 		self._watched = False
+		self._playbackCompletedLock = threading.Event()
+		self._playbackCompletedLock.clear()
+		self._tracker = PositionTracker(self)
+		self._totalTime = 999999
 
 	def __del__(self):
 		addon.debug_log("\n\n\n\n\t\tGC'ing player\n\n\n")
 
 	def play(self, item):
 		assert not self.isPlaying(), 'Player is already playing a video'
-		self._reset()
-
 		xbmc.Player.play(self, item)
 		self._waitForPlaybackCompleted()
 		self._active = False
@@ -44,20 +46,22 @@ class Player(xbmc.Player):
 			self._totalTime = self.getTotalTime()
 			print '< onPlayBackStarted'
 
-			
 	def onPlayBackStopped(self):
 		if self._active:
-			try:
-				try:
-					print '> onPlayBackStopped'
-					self._tracker.onPlayBackStopped()
-				finally:
-					self._playbackCompletedLock.set()
-					print '< onPlayBackStopped'
-			except:
-				# Called on a separate thread -- log exceptions instead of raising them
-				print 'onPlayBackStopped catchall'
-			
+			print 'self._active: %s' % self._active
+			addon.log_debug('> onPlayBackEnded')
+			self._tracker.onPlayBackStopped()
+
+			playedTime = self._tracker.getLastPosition()
+			watched_values = [.7, .8, .9]
+			min_watched_percent = watched_values[int(addon.get_setting('watched-percent'))]
+			if ((playedTime/self._totalTime) > min_watched_percent):
+				print '******** playedTime / totalTime : %s / %s = %s' % (playedTime, self._totalTime, playedTime/self._totalTime)
+				self._watched = True
+
+			self._playbackCompletedLock.set()
+			print '< onPlayBackStopped'
+
 	def onPlayBackEnded(self):
 		if self._active:
 			print 'self._active: %s' % self._active
@@ -74,15 +78,6 @@ class Player(xbmc.Player):
 			self._playbackCompletedLock.set()
 			print '< onPlayBackEnded'
 
-
-	# Private -----------------------------------------------------------------
-
-	def _reset(self):
-		self._playbackCompletedLock = threading.Event()
-		self._playbackCompletedLock.clear()
-		self._tracker = PositionTracker(self)
-		self._totalTime = 1
-		
 	def _waitForPlaybackCompleted(self):
 		while not self._playbackCompletedLock.isSet():
 			#Addon.log_debug('Waiting for playback completed...')
@@ -90,55 +85,43 @@ class Player(xbmc.Player):
 
 # =============================================================================
 class PositionTracker(object):
-    """
-    Tracks the last position of the player. This is necessary because 
-    Player.getTime() is not valid after the callback to 
-    Player.onPlayBackStopped().  
-    """
-    
-    HISTORY_SECS = 5  # Number of seconds of history to keep around
+	"""
+	Tracks the last position of the player. This is necessary because 
+	Player.getTime() is not valid after the callback to 
+	Player.onPlayBackStopped().  
+	"""
 
-    def __init__(self, player):
-        self._player = player
-        self._lastPos = 0.0
-        self._tracker = BoundedEvictingQueue((1000/SLEEP_MILLIS) * self.HISTORY_SECS)
-        self._history = []
-        
-    def onPlayBackStarted(self):
-        #addon.log_debug('Starting position tracker...')
-        self._tracker = threading.Thread(
-            name='Position Tracker', 
-            target = self._trackPosition)
-        self._tracker.start()
-    
-    def onPlayBackStopped(self):
-        if self._tracker.isAlive():
-            print 'Position tracker stop called. Still alive = %s' % self._tracker.isAlive()
-        else:
-            print 'Position tracker thread already dead.'
+	HISTORY_SECS = 5  # Number of seconds of history to keep around
 
-    def onPlayBackEnded(self):
-        self.onPlayBackStopped()
-        
-    def getHistory(self, howFarBack):
-        """Returns a list of the TrackerSamples from 'howFarBack' seconds ago to."""
-        endPos = self._lastPos
-        startPos = endPos - howFarBack
-        slice = []
-        for sample in self._history:
-            if startPos <= sample.pos and sample.pos <= endPos:
-                slice.append(sample)
-        print 'Tracker history for %s secs = [%s] %s' % (howFarBack, len(slice), slice)
-        return slice
-    
-    def getLastPosition(self):
-        return self._lastPos
-    
-    def _trackPosition(self):
+	def __init__(self, player):
+		self._player = player
+		self._lastPos = 0.0
+		self._history = BoundedEvictingQueue((1000/SLEEP_MILLIS) * self.HISTORY_SECS)
+		self._tracker = threading.Thread(name='Position Tracker', target = self._trackPosition)
+		#self._tracker.isDaemon(True)
+
+	def onPlayBackStarted(self):
+		addon.log('Starting position tracker...')
+		self._tracker.start()
+
+	def onPlayBackStopped(self):
+		if self._tracker.isAlive():
+			print 'Position tracker stop called. Still alive = %s' % self._tracker.isAlive()
+		else:
+			print 'Position tracker thread already dead.'
+
+	def onPlayBackEnded(self):
+		self.onPlayBackStopped()
+
+	def getLastPosition(self):
+		return self._lastPos
+
+	def _trackPosition(self):
 		"""Method run in a separate thread. Tracks last position of player as long as it is playing"""
+		addon.log('Position tracker starting loop')
 		while self._player.isPlaying():
 			self._lastPos = self._player.getTime()
-			self._history.append(TrackerSample(time.time(), self._lastPos))
+			self._history.put(TrackerSample(time.time(), self._lastPos))
 			addon.log_debug('Tracker time = %s' % self._lastPos)
 			xbmc.sleep(SLEEP_MILLIS)
 		print 'Position tracker thread exiting with lastPos = %s' % self.getLastPosition()
