@@ -10,6 +10,8 @@
 - Fixed Season level not showing fanart
 - If we fail to find episode information, fall back to the website label
 - Show season/episode numbers in episode view and playback
+- Updated internal code to use t0mm0.common libraries
+- Implemented watched/unwatched support
 
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results
