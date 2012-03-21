@@ -415,7 +415,7 @@ def add_contextsearchmenu(title, type):
 			section = 'tv-shows'
 		else:
 			section = 'movies'
-			contextmenuitems.append(('Search tubeplus', 'XBMC.Container.Update(%s?mode=Search&section=%s&query=%s)' %('plugin://plugin.video.tubeplus/',section,title)))
+		contextmenuitems.append(('Search tubeplus', 'XBMC.Container.Update(%s?mode=Search&section=%s&query=%s)' %('plugin://plugin.video.tubeplus/',section,title)))
 	if os.path.exists(xbmc.translatePath("special://home/addons/")+'plugin.video.tvlinks'):
 		if type == 'tv':
 			contextmenuitems.append(('Search tvlinks', 'XBMC.Container.Update(%s?mode=Search&query=%s)' %('plugin://plugin.video.tvlinks/',title)))
