@@ -1,7 +1,7 @@
 <settings>
    <category label="Meta Data">
   	<setting id="use-meta" type="bool" label="30600" default="true"/>
-	<setting id="meta-path" type="action" label="30601" enable="!eq(-1,false)" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=9988)"/>
+	<setting id="meta-path" type="action" label="30601" enable="!eq(-1,false)" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=9988)" option="close"/>
 	<setting id="enable-fanart" type="bool" label="30602" enable="!eq(-2,false)" default="true"/>
 	<setting id="use-posters" type="bool" label="30603" enable="!eq(-3,false)" default="false"/>
 	<setting id="posters-fallback" type="bool" label="30604" enable="!eq(-1,true)" default="true"/>
