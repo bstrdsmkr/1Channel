@@ -406,6 +406,27 @@ def BrowseByGenreMenu(section=None, letter=None): #2000
 		addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort':'', 'genre': genre},   {'title':  genre})
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+def add_contextsearchmenu(title, type):
+	contextmenuitems = []
+	if os.path.exists(xbmc.translatePath("special://home/addons/")+'plugin.video.icefilms'):
+		contextmenuitems.append(('Search Icefilms', 'XBMC.Container.Update(%s?mode=555&url=%s&search=%s&nextPage=%s)' %('plugin://plugin.video.icefilms/','http://www.icefilms.info/',title,'1')))
+	if os.path.exists(xbmc.translatePath("special://home/addons/")+'plugin.video.tubeplus'):
+		if type == 'tv':
+			section = 'tv-shows'
+		else:
+			section = 'movies'
+			contextmenuitems.append(('Search tubeplus', 'XBMC.Container.Update(%s?mode=Search&section=%s&query=%s)' %('plugin://plugin.video.tubeplus/',section,title)))
+	if os.path.exists(xbmc.translatePath("special://home/addons/")+'plugin.video.tvlinks'):
+		if type == 'tv':
+			contextmenuitems.append(('Search tvlinks', 'XBMC.Container.Update(%s?mode=Search&query=%s)' %('plugin://plugin.video.tvlinks/',title)))
+	if os.path.exists(xbmc.translatePath("special://home/addons/")+'plugin.video.solarmovie'):
+		if type == 'tv':
+			section = 'tv-shows'
+		else:
+			section = 'movies'
+		contextmenuitems.append(('Search solarmovie', 'XBMC.Container.Update(%s?mode=Search&section=%s&query=%s)' %('plugin://plugin.video.solarmovie/',section,title)))
+	return contextmenuitems
+
 def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None): #3000
 	print 'Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % \
 			(section, genre, letter, sort, page)
@@ -444,7 +465,8 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			resurls.append(resurl)
 			# cm = []
 			runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
-			cm = [('Add to Favorites', runstring,)]
+			cm = add_contextsearchmenu(title, section)
+			cm.append(('Add to Favorites', runstring,))
 			cm.append(('Show Information', 'XBMC.Action(Info)',))
 			if year: disptitle = title +'('+year+')'
 			else: disptitle = title
