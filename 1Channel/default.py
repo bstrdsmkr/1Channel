@@ -336,7 +336,7 @@ def Search(section, query):
 				img = thumb
 				fanart = ''
 				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
-				cm.append(('Show Information', 'XBMC.Action(Info)',))
+                cm.append(('Show Information', 'XBMC.Action(Info)',))
 				cm.append(('Add to Favorites', runstring,))
 
 				if META_ON:
@@ -405,6 +405,27 @@ def BrowseByGenreMenu(section=None, letter=None): #2000
 		addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort':'', 'genre': genre},   {'title':  genre})
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+def add_contextsearchmenu(title, type):
+	contextmenuitems = []
+	if os.path.exists(xbmc.translatePath("special://home/addons/")+'plugin.video.icefilms'):
+		contextmenuitems.append(('Search Icefilms', 'XBMC.Container.Update(%s?mode=555&url=%s&search=%s&nextPage=%s)' %('plugin://plugin.video.icefilms/','http://www.icefilms.info/',title,'1')))
+	if os.path.exists(xbmc.translatePath("special://home/addons/")+'plugin.video.tubeplus'):
+		if type == 'tv':
+			section = 'tv-shows'
+		else:
+			section = 'movies'
+		contextmenuitems.append(('Search tubeplus', 'XBMC.Container.Update(%s?mode=Search&section=%s&query=%s)' %('plugin://plugin.video.tubeplus/',section,title)))
+	if os.path.exists(xbmc.translatePath("special://home/addons/")+'plugin.video.tvlinks'):
+		if type == 'tv':
+			contextmenuitems.append(('Search tvlinks', 'XBMC.Container.Update(%s?mode=Search&query=%s)' %('plugin://plugin.video.tvlinks/',title)))
+	if os.path.exists(xbmc.translatePath("special://home/addons/")+'plugin.video.solarmovie'):
+		if type == 'tv':
+			section = 'tv-shows'
+		else:
+			section = 'movies'
+		contextmenuitems.append(('Search solarmovie', 'XBMC.Container.Update(%s?mode=Search&section=%s&query=%s)' %('plugin://plugin.video.solarmovie/',section,title)))
+	return contextmenuitems
+
 def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None): #3000
 	print 'Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % \
 			(section, genre, letter, sort, page)
@@ -447,9 +468,9 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 		meta = {}
 		if resurl not in resurls:
 			resurls.append(resurl)
-			cm = []
 			runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
-			cm.append(('Add to Favorites', runstring,))
+			cm = add_contextsearchmenu(title, section)
+            cm.append(('Add to Favorites', runstring,))
 			cm.append(('Show Information', 'XBMC.Action(Info)',))
 			if year: disptitle = title +'('+year+')'
 			else: disptitle = title
@@ -483,7 +504,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 				except: pass
 			
 			meta['title'] = unicode(disptitle, 'latin1')
-			#addon.log_debug('Add directory called with: {mode:%s, title:%s, url:%s, img:%s, imdbnum:%s, videoType:%s} \nmeta=%s, \ncm=%s, \nfolder=%s, \nimg=%s, \nfanart=%s, \ntotal_items=%s'%(nextmode,title,BASE_URL + resurl,thumb,meta['imdb_id'],type,meta, cm, True, img, fanart,total))
+			addon.log_debug('Add directory called with: {mode:%s, title:%s, url:%s, img:%s, imdbnum:%s, videoType:%s} \nmeta=%s, \ncm=%s, \nfolder=%s, \nimg=%s, \nfanart=%s, \ntotal_items=%s'%(nextmode,title,BASE_URL + resurl,thumb,meta['imdb_id'],type,meta, cm, True, img, fanart,total))
 			addon.add_directory({'mode':nextmode, 'title':title, 'url':BASE_URL + resurl, 'img':thumb, 'imdbnum':meta['imdb_id'], 'videoType':type},
 								meta, cm, True, img, fanart, total_items=total, is_folder=folder)			
 	# if page: page = int(page) + 1
@@ -603,7 +624,6 @@ def TVShowEpisodeList(title, season, imdbnum, tvdbnum): #5000
 				else: label = 'Mark as unwatched'
 				if section == 'tv': type = 'tvshow'
 				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'], 'season':season, 'episode':epnum,  'video_type':'episode', 'year':year})
-				# addon.log('Runstring is: %s' % runstring)
 				cm.append((label, runstring,))
 			except:
 				meta['cover_url'] = ''
@@ -681,8 +701,6 @@ def BrowseFavorites(section): #8000
 				else: label = 'Mark as unwatched'
 				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':type, 'year':year})
 				cm.append((label, runstring))
-				
-				# if 
 
 				img = meta['cover_url']
 			# except: addon.log('Error while assigning meta data for %s %s %s'%(type,title,year))
@@ -1109,10 +1127,6 @@ print 'season: %s' 		% season
 print 'tvdbnum: %s' 	% tvdbnum
 print 'update: %s' 		% update
 
-def test(section, genre, letter, sort, page):
-	xbmc.executebuiltin('Container.Update(%s)' % addon.build_plugin_url({'mode':'GetFilteredResults', 'section':section, 'genre':'', 'letter':letter, 'sort':sort, 'page':page}))
-
-
 if mode=='main':
 	AddonMenu()
 elif mode=='GetSources':
@@ -1133,6 +1147,8 @@ elif mode=='TVShowEpisodeList':
 	TVShowEpisodeList(title, season, imdbnum, tvdbnum)
 elif mode=='GetSearchQuery':
 	GetSearchQuery(section)
+elif mode=='7000': # Enables Remote Search
+	Search(section, query)
 elif mode=='BrowseFavorites':
 	BrowseFavorites(section)
 elif mode=='SaveFav':
