@@ -1119,6 +1119,8 @@ elif mode=='TVShowEpisodeList':
 	TVShowEpisodeList(title, season, imdbnum, tvdbnum)
 elif mode=='GetSearchQuery':
 	GetSearchQuery(section)
+elif mode=='7000': # Enables Remote Search
+	Search(section, query)
 elif mode=='BrowseFavorites':
 	BrowseFavorites(section)
 elif mode=='SaveFav':
