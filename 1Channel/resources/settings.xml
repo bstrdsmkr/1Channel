@@ -36,8 +36,12 @@
 	<setting id="default-view" type="number" label="Default View" default="50" enable="!eq(-5,false)"/>
    </category>
    <category label="Miscellaneous">
-    <setting id="theme" type="enum" label="Theme" values="mikey1234|Glossy_Black" default="mikey1234"/>
-    <setting id="auto-watch" type="bool" label="Enable Auto-Watch" default="true"/>
-    <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="       Auto-Watch Percentage" default="2" enable="!eq(-1,false)"/>
-   </category>
+    <setting id="theme" type="enum" label="30800" values="mikey1234|Glossy_Black" default="mikey1234"/>
+    <setting id="auto-watch" type="bool" label="30801" default="true"/>
+    <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="30802" default="2" enable="!eq(-1,false)"/>
+	<setting id="tvshow-folder" type="folder" label="30803" default="special://userdata/addon_data/plugin.video.1channel/TVShows" />
+	<setting id="movie-folder"  type="folder" label="30804" default="special://userdata/addon_data/plugin.video.1channel/Movies" />
+	<setting id="auto-update-subscriptions" type="bool" label="30805" default="true"/>
+	<setting id="subscription-interval" type="enum" values="2h|5h|10h|15h|24h" label="30806" default="3" enable="!eq(-1,false)" />
+	</category>
 </settings>

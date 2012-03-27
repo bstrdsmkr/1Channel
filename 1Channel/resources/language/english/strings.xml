@@ -22,4 +22,12 @@
 	<string id="30717">       Install Movie MetaData S</string>
 	<string id="30718">       Install Movie MetaData T</string>
 	<string id="30719">       Install Movie MetaData U-#123</string>
+
+	<string id="30800">Theme</string>
+	<string id="30801">Enable Auto-Watch</string>
+	<string id="30802">       Auto-Watch Percentage</string>
+	<string id="30803">TV Show Folder:</string>
+	<string id="30804">Movie Folder:</string>
+	<string id="30805">Enable automatic subscription updates</string>
+	<string id="30806">Subscription update interval</string>
 </strings>

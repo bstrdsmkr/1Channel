@@ -9,6 +9,8 @@
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video</provides>
     </extension>
+    <extension point="xbmc.service" library="service.py" start="startup">
+	</extension>
     <extension point="xbmc.addon.metadata">
         <summary>Browse 1channel.ch</summary>
         <description>Play a wide selection of movies and TV shows from 1channel.ch</description>

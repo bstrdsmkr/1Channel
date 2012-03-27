@@ -12,6 +12,8 @@
 - Show season/episode numbers in episode view and playback
 - Updated internal code to use t0mm0.common libraries
 - Implemented watched/unwatched support
+- Added 'Add to Library' option
+- Added subscribe option for TV shows
 
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results
