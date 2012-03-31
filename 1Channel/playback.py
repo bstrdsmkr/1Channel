@@ -8,12 +8,26 @@ import xbmcgui
 from t0mm0.common.addon import Addon
 from metahandler import metahandlers
 
-import trace
+try:
+	from sqlite3 import dbapi2 as sqlite
+	print "Loading sqlite3 as DB engine"
+except:
+	from pysqlite2 import dbapi2 as sqlite
+	print "Loading pysqlite2 as DB engine"
 
 # Interval in millis to sleep when we're waiting around for 
 # async xbmc events to take complete
 SLEEP_MILLIS = 250
+DB = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
 addon = Addon('plugin.video.1channel', sys.argv)
+
+def format_time(seconds):
+	minutes,seconds = divmod(seconds, 60)
+	if minutes > 60:
+		hours,minutes = divmod(minutes, 60)
+		return "%02d:%02d:%02d" % (hours, minutes, seconds)
+	else:
+		return "%02d:%02d" % (minutes, seconds)
 
 # =============================================================================
 class Player(xbmc.Player):
@@ -22,7 +36,6 @@ class Player(xbmc.Player):
 		xbmc.Player.__init__(self)
 		self._playbackLock = threading.Event()
 		self._playbackLock.set()
-		# self._tracker = PositionTracker(self)
 		self._totalTime = 999999
 		self._lastPos = 0
 		self.imdbnum = imdbnum
@@ -41,6 +54,16 @@ class Player(xbmc.Player):
 		self._totalTime = self.getTotalTime()
 		self._tracker = threading.Thread(target=self._trackPosition)
 		self._tracker.start()
+		db = sqlite.connect(DB)
+		bookmark = db.execute('SELECT bookmark FROM bookmarks WHERE videotype=? AND title=? AND season=? AND episode=? AND year=?', (self.videotype, self.title, self.season, self.episode, self.year)).fetchone()
+		db.close()
+		bookmark = bookmark[0]-30
+		if bookmark and bookmark > 0:
+			question = 'Resume %s from %s?' %(self.title, format_time(bookmark))
+			resume = xbmcgui.Dialog()
+			resume = resume.yesno(self.title,question,'','','Start from beginning','Resume')
+			if resume: self.seekTime(bookmark)
+
 
 	def onPlayBackStopped(self):
 		addon.log('> onPlayBackStopped')
@@ -51,9 +74,19 @@ class Player(xbmc.Player):
 		min_watched_percent = watched_values[int(addon.get_setting('watched-percent'))]
 		addon.log('playedTime / totalTime : %s / %s = %s' % (playedTime, self._totalTime, playedTime/self._totalTime))
 		if ((playedTime/self._totalTime) > min_watched_percent):
-			self.ChangeWatched(self.imdbnum, self.videotype, self.title, self.season, self.episode, self.year, watched=7)
 			addon.log('Threshold met. Marking item as watched')
-		else: addon.log('Threshold not met. Not changing watched status')
+			self.ChangeWatched(self.imdbnum, self.videotype, self.title, self.season, self.episode, self.year, watched=7)
+			db = sqlite.connect(DB)
+			db.execute('DELETE FROM bookmarks WHERE videotype=? AND title=? AND season=? AND episode=? AND year=?', (self.videotype, self.title, self.season, self.episode, self.year))
+			db.commit()
+			db.close()
+		else:
+			addon.log('Threshold not met. Saving bookmark')
+			db = sqlite.connect(DB)
+			db.execute('INSERT OR REPLACE INTO bookmarks (videotype, title, season, episode, year, bookmark) VALUES(?,?,?,?,?,?)',
+					  (self.videotype, self.title, self.season, self.episode, self.year, playedTime))
+			db.commit()
+			db.close()
 
 	def onPlayBackEnded(self):
 		self.onPlayBackStopped()
@@ -69,121 +102,3 @@ class Player(xbmc.Player):
 	def ChangeWatched(self, imdb_id, videoType, name, season, episode, year='', watched='', refresh=False):
 		metaget=metahandlers.MetaData(False)
 		metaget.change_watched(videoType, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
-
-# =============================================================================
-# class PositionTracker(object):
-	# """
-	# Tracks the last position of the player. This is necessary because 
-	# Player.getTime() is not valid after the callback to 
-	# Player.onPlayBackStopped().  
-	# """
-
-	# HISTORY_SECS = 5  # Number of seconds of history to keep around
-
-	# def __init__(self, player):
-		# self._player = player
-		# self._history = BoundedEvictingQueue((1000/SLEEP_MILLIS) * self.HISTORY_SECS)
-		# self._tracker = KThread(name='Position Tracker', target = self._trackPosition)
-		# self._tracker.setDaemon(True)
-		# addon = Addon('plugin.video.1channel', sys.argv)
-
-	# def onPlayBackStarted(self):
-		# addon.log('Starting position tracker...')
-		# self._tracker.start()
-
-	# def onPlayBackStopped(self):
-		# if self._tracker.isAlive():
-			# addon.log('Position tracker stop called. Still alive = %s' % self._tracker.isAlive())
-		# else:
-			# addon.log('Position tracker thread already dead.')
-
-	# def onPlayBackEnded(self):
-		# self.onPlayBackStopped()
-
-	# def getLastPosition(self):
-		# return self._player._lastPos
-
-	# def _trackPosition(self):
-		# """Method run in a separate thread. Tracks last position of player as long as it is playing"""
-		# addon.log('Position tracker starting loop')
-		# while self._player.isPlaying():
-			# self._player._lastPos = self._player.getTime()
-			# self._history.put(TrackerSample(time.time(), self._player._lastPos))
-			# addon.log_debug('Tracker time = %s' % self._player._lastPos)
-			# xbmc.sleep(SLEEP_MILLIS)
-		# print 'Position tracker thread exiting with lastPos = %s' % self.getLastPosition()
-
-
-# =============================================================================
-# class TrackerSample(object):
-    
-    # def __init__(self, time, pos):
-        # self.time = time
-        # self.pos  = pos
-    
-    # def __repr__(self):
-        # return 'Sample {time = %s, pos = %s}' % (self.time, self.pos)
-
-# =============================================================================
-# class BoundedEvictingQueue(object):
-    # """
-    # Queue with a fixed size that evicts objects in FIFO order when capacity
-    # has been reached. 
-    # """
-
-    # def __init__(self, size):
-        # self._queue = Queue.Queue(size)
-        
-    # def empty(self):
-        # return self._queue.empty()
-    
-    # def qsize(self):
-        # return self._queue.qsize()
-    
-    # def full(self):
-        # return self._queue.full()
-    
-    # def put(self, item):
-        # if self._queue.full():
-            # self._queue.get()
-        # self._queue.put(item, False, None)
-        
-    # def get(self):
-        # return self._queue.get(False, None)
-
-# =============================================================================
-# class KThread(threading.Thread):
-	# """A subclass of threading.Thread, with a kill()
-	# method."""
-	# def __init__(self, *args, **keywords):
-		# threading.Thread.__init__(self, *args, **keywords)
-		# self.killed = False
-
-	# def start(self):
-		# """Start the thread."""
-		# self.__run_backup = self.run
-		# self.run = self.__run # Force the Thread to install our trace.
-		# threading.Thread.start(self)
-
-	# def __run(self):
-		# """Hacked run function, which installs the
-		# trace."""
-		# sys.settrace(self.globaltrace)
-		# self.__run_backup()
-		# self.run = self.__run_backup
-
-	# def globaltrace(self, frame, why, arg):
-		# if why == 'call':
-			# return self.localtrace
-		# else:
-			# return None
-
-	# def localtrace(self, frame, why, arg):
-		# if self.killed:
-			# if why == 'line':
-				# addon.log('Killing position tracker')
-				# raise SystemExit()
-		# return self.localtrace
-
-	# def kill(self):
-		# self.killed = True

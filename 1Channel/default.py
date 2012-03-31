@@ -27,7 +27,7 @@ import zipfile
 import xbmcgui
 import xbmcplugin
 import xbmc, xbmcvfs
-#import pyaxel
+import HTMLParser
 import time
 
 from t0mm0.common.addon import Addon
@@ -82,15 +82,17 @@ def unicode_urlencode(value):
 		return urllib.quote(value)
 
 def initDatabase():
-	print "Building 1channel Database"
+	addon.log('Building 1channel Database')
 	if not os.path.isdir(os.path.dirname(DB)):
 		os.makedirs(os.path.dirname(DB))
 	db = sqlite.connect(DB)
 	db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
 	db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
-	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
 	db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum)')
+	db.execute('CREATE TABLE IF NOT EXISTS bookmarks (videotype, title, season, episode, year, bookmark)')
+	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
 	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
+	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (videotype, title, season, episode, year)')
 	db.commit()
 	db.close()
 
@@ -153,8 +155,7 @@ def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie =
 
 def GetSources(url, title='', img='', year='', imdbnum=''): #10
 	url	  = urllib.unquote(url)
-	print 'Playing: %s' % url
-	print 'Year is: %s' % year
+	addon.log('Playing: %s' % url)
 
 	match = re.search('tv-\d{1,10}-(.*)/season-(\d{1,4})-episode-(\d{1,4})', url, re.IGNORECASE | re.DOTALL)
 	if match:
@@ -165,6 +166,7 @@ def GetSources(url, title='', img='', year='', imdbnum=''): #10
 		videotype = 'movie'
 		season  = ''
 		episode = ''
+
 	net = Net()
 	cookiejar = addon.get_profile()
 	cookiejar = os.path.join(cookiejar,'cookies')
@@ -177,12 +179,16 @@ def GetSources(url, title='', img='', year='', imdbnum=''): #10
 		adulturl = BASE_URL + r.group(1)
 		headers = {'Referer': url}
 		net.set_cookies(cookiejar)
-		html = net.http_GET(adulturl, headers=headers).content #.encode('utf-8', 'ignore')
+		html = net.http_GET(adulturl, headers=headers).content
 
-	titleregex = '<meta property="og:title" content="(.*?)">'
-	r = re.search(titleregex,html)
-	title = r.group(1)
 	sources = []
+	if META_ON and videotype=='movie' and not imdbnum:
+		imdbregex = 'mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"'
+		r = re.search(imdbregex, html)
+		if r:
+			imdbnum = r.group(1)
+			metaget.update_meta('movie',title,imdb_id='',
+								new_imdb_id=imdbnum,year=year)
 	for version in re.finditer('<table[^\n]+?class="movie_version(?: movie_version_alt)?">(.*?)</table>',
 								html, re.DOTALL|re.IGNORECASE):
 		for s in re.finditer('quality_(?!sponsored|unknown)(.*?)></span>.*?'+
@@ -214,35 +220,28 @@ def GetSources(url, title='', img='', year='', imdbnum=''): #10
 						hosted_media = urlresolver.HostedMediaFile(url=url, title=label)
 						sources.append(hosted_media)
 			except:
-				print 'Error while trying to resolve %s' % url
+				addon.log('Error while trying to resolve %s' % url)
 	source = urlresolver.choose_source(sources)
-	if source:
+	if source and not (source == 'False'):
 		stream_url = source.resolve()
-		print 'Attempting to play url: %s' % stream_url
+		addon.log('Attempting to play url: %s' % stream_url)
 		playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 		playlist.clear()
 		listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
 		if META_ON:
 			if videotype == 'episode':
-				try:
+				# try:
 					meta = metaget.get_episode_meta(title,imdbnum,season,episode)
 					tag = '%sx%s ' %(season,episode)
 					meta['title'] = tag + meta['title']
 					listitem.setInfo(type="Video", infoLabels=meta)
 					listitem.setInfo('video', {'TVShowTitle': title, 'Season': season, 'Episode': episode } )
-				except: print 'Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode)
+				# except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
 			elif videotype == 'movie':
-				if not imdbnum:
-					imdbregex = 'mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"'
-					r = re.search(imdbregex, html)
-					if r:
-						imdbnum = r.group(1)
-						metaget.update_meta('movie',title,imdb_id='',
-											new_imdb_id=imdbnum,year=year)
 				try:
-					meta = metaget.get_meta('movie', title, year=year)
+					meta = metaget.get_meta('movie', title.encode('utf-8'), year=year)
 					listitem.setInfo(type="Video", infoLabels=meta)
-				except: print 'Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode)
+				except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
 
 		addon.resolve_url(stream_url)
 		playlist.add(url=stream_url, listitem=listitem)
@@ -323,54 +322,61 @@ def Search(section, query):
 		resurls = []
 		for s in regex:
 			resurl,title,year,thumb = s.groups()
+			title = unicode(title, 'latin-1')
+			h = HTMLParser.HTMLParser()
+			title = h.unescape(title)
 			meta = {}
 			if resurl not in resurls:
 				resurls.append(resurl)
-				# cm = []
+				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title.encode('utf-8'), 'url':BASE_URL+resurl, 'year':year})
 				cm = add_contextsearchmenu(title, section)
+				cm.append(('Add to Favorites', runstring,))
+				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title.encode('utf-8'), 'img':thumb, 'year':year})
+				cm.append(('Add to Library', runstring,))
+				if video_type == 'tvshow':
+					runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title.encode('utf-8'), 'img':thumb, 'year':year})
+					cm.append(('Subscribe', runstring,))
+				cm.append(('Show Information', 'XBMC.Action(Info)',))
 				if year: disptitle = title +'('+year+')'
 				else: disptitle = title
 				img = thumb
 				fanart = ''
-				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
-				cm.append(('Show Information', 'XBMC.Action(Info)',))
-				cm.append(('Add to Favorites', runstring,))
-				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-				cm.append(('Add to Library', runstring,))
-				if video_type == 'tvshow':
-					runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-					cm.append(('Subscribe', runstring,))
+				meta['imdb_id'] = ''
 
 				if META_ON:
 					try:
-						meta = metaget.get_meta(video_type, title, year=year)
-						try:
-							if meta['trailer_url']:
-								url = meta['trailer_url']
-								url = re.sub('&feature=related','',url)
-								url = url.encode('base-64').strip()
-								runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
-								cm.append(('Watch Trailer', runstring,))
-						except: pass
+						if video_type == 'tvshow':
+							meta = metaget.get_meta(video_type, title)
+							if not (meta['imdb_id'] or meta['tvdb_id']):
+								meta = metaget.get_meta(video_type, title, year=year)
+						else: meta = metaget.get_meta(video_type, title, year=year)
+						if meta['trailer_url']:
+							url = meta['trailer_url']
+							url = re.sub('&feature=related','',url)
+							url = url.encode('base-64').strip()
+							runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
+							cm.append(('Watch Trailer', runstring,))
 						if meta['overlay'] == 6: label = 'Mark as watched'
 						else: label = 'Mark as unwatched'
 						runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
 						cm.append((label, runstring,))
-						if video_type == 'tvshow'and not USE_POSTERS:
+						
+						if video_type == 'tvshow' and not USE_POSTERS:
 							meta['cover_url'] = meta['banner_url']
 						if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
 							meta['cover_url'] = thumb
 						img = meta['cover_url']
-						if FANART_ON:
-							try: fanart = meta['backdrop_url']
-							except: pass
-					except: addon.log('Error assigning meta data for %s %s %s'%(video_type, title, year))
-				meta['title'] = unicode(disptitle, 'latin1')
-				resurl = BASE_URL + resurl
+					except: addon.log('Error assigning meta data for %s %s %s' %(video_type, title, year))
 
-				addon.add_item({'mode':nextmode, 'title':title, 'img':thumb, 'url':resurl, 'year':year},
-								meta, cm, True, img, fanart,
-								total_items=total, is_folder=folder)
+				if FANART_ON:
+					try: fanart = meta['backdrop_url']
+					except: pass
+				
+				meta['title'] = disptitle
+				# print title
+				addon.add_directory({'mode':nextmode, 'title':title.encode('utf-8'), 'url':BASE_URL + resurl, 'img':thumb, 'imdbnum':meta['imdb_id'], 'video_type':video_type, 'year':year},
+									meta, cm, True, img, fanart, total_items=total, is_folder=folder)			
+
 
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -465,16 +471,19 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 	resurls = []
 	for s in regex:
 		resurl,title,year,thumb = s.groups()
+		title = unicode(title, 'latin-1')
+		h = HTMLParser.HTMLParser()
+		title = h.unescape(title)
 		meta = {}
 		if resurl not in resurls:
 			resurls.append(resurl)
-			runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
+			runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title.encode('utf-8'), 'url':BASE_URL+resurl, 'year':year})
 			cm = add_contextsearchmenu(title, section)
 			cm.append(('Add to Favorites', runstring,))
-			runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
+			runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title.encode('utf-8'), 'img':thumb, 'year':year})
 			cm.append(('Add to Library', runstring,))
 			if video_type == 'tvshow':
-				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
+				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title.encode('utf-8'), 'img':thumb, 'year':year})
 				cm.append(('Subscribe', runstring,))
 			cm.append(('Show Information', 'XBMC.Action(Info)',))
 			if year: disptitle = title +'('+year+')'
@@ -485,7 +494,11 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 
 			if META_ON:
 				try:
-					meta = metaget.get_meta(video_type, title, year=year)
+					if video_type == 'tvshow':
+						meta = metaget.get_meta(video_type, title)
+						if not (meta['imdb_id'] or meta['tvdb_id']):
+							meta = metaget.get_meta(video_type, title, year=year)
+					else: meta = metaget.get_meta(video_type, title, year=year)
 					if meta['trailer_url']:
 						url = meta['trailer_url']
 						url = re.sub('&feature=related','',url)
@@ -508,14 +521,14 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 				try: fanart = meta['backdrop_url']
 				except: pass
 			
-			meta['title'] = unicode(disptitle, 'latin1')
-			# addon.log_debug('Add directory called with: {mode:%s, title:%s, url:%s, img:%s, imdbnum:%s, videoType:%s} \nmeta=%s, \ncm=%s, \nfolder=%s, \nimg=%s, \nfanart=%s, \ntotal_items=%s'%(nextmode,title,BASE_URL + resurl,thumb,meta['imdb_id'],type,meta, cm, True, img, fanart,total))
-			addon.add_directory({'mode':nextmode, 'title':title, 'url':BASE_URL + resurl, 'img':thumb, 'imdbnum':meta['imdb_id'], 'video_type':video_type},
+			meta['title'] = disptitle
+			# print title
+			addon.add_directory({'mode':nextmode, 'title':title.encode('utf-8'), 'url':BASE_URL + resurl, 'img':thumb, 'imdbnum':meta['imdb_id'], 'video_type':video_type, 'year':year},
 								meta, cm, True, img, fanart, total_items=total, is_folder=folder)			
 
 	if html.find('> >> <') > -1:
 		addon.add_directory({'mode':'GetFilteredResults', 'section':section, 'genre':genre, 'letter':letter, 'sort':sort, 'page':page},
-							{'title':'Next Page >>'}, (), False, img, fanart)
+							{'title':'Next Page >>'}, (), False, art('nextpage.png'), art('fanart.png'))
 
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 	if   video_type == 'tvshow': setView('tvshows', 'tvshows-view')
@@ -537,9 +550,10 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 		net.set_cookies(cookiejar)
 		html = net.http_GET(adulturl, headers=headers).content #.encode('utf-8', 'ignore')
 
-	cnxn = sqlite.connect( DB )
-	cnxn.text_factory = str
-	cursor = cnxn.cursor()
+	# cnxn = sqlite.connect( DB )
+	# cnxn.text_factory = str
+	# cursor = cnxn.cursor()
+	db = sqlite.connect( DB )
 
 	try:
 		new_imdb = re.search('mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"', html).group(1)
@@ -549,8 +563,6 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 	else:
 		season_container = seasons.group(1)
 		season_nums = re.compile('<a href=".+?">Season ([0-9]{1,2})').findall(season_container)
-		title = urllib.unquote(title)
-		title = unicode(title, 'latin1')
 		fanart = ''
 		imdbnum = old_imdb
 		if META_ON: 
@@ -562,7 +574,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 									new_imdb, year=year)
 				except: 
 					addon.log('Error while trying to update metadata with:')
-					addon.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s'%(title,old_imdb,old_tvdb,new_imdb, year))
+					# addon.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s'%(title,old_imdb,old_tvdb,new_imdb, year))
 				imdbnum = new_imdb
 
 			try: season_meta = metaget.get_seasons(title, imdbnum, season_nums)
@@ -587,27 +599,26 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 					temp['backdrop_url'] = ''
 				temp['title'] = season_name
 
-				# season_name = unicode_urlencode(season_name).lower()
+
 				addon.log('Season name: %s' %season_name)
-				cursor.execute('INSERT or REPLACE into seasons (season,contents) VALUES(?,?)',
+				db.execute('INSERT or REPLACE into seasons (season,contents) VALUES(?,?)',
 								(season_name, eplist))
 
 				addon.add_directory({'mode':'TVShowEpisodeList', 'season':season_name, 'imdbnum':imdbnum, 'title':title},
 									temp, img=temp['cover_url'], fanart=fanart,
 									total_items=len(seasonList), is_folder=True)
 
-				cnxn.commit()
+				db.commit()
 				num += 1
 		xbmcplugin.endOfDirectory(int(sys.argv[1]))
 		setView('seasons', 'seasons-view')
-		cnxn.close()
+		db.close()
 
-def TVShowEpisodeList(title, season, imdbnum, tvdbnum): #5000
-	cnxn = sqlite.connect( DB )
-	cnxn.text_factory = str
-	cursor = cnxn.cursor()
-	eplist = cursor.execute('SELECT contents FROM seasons WHERE season=?', (season,))
+def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
+	db = sqlite.connect( DB )
+	eplist = db.execute('SELECT contents FROM seasons WHERE season=?', (season,))
 	eplist = eplist.fetchone()[0]
+	db.close()
 	r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
 	episodes = re.finditer(r, eplist, re.DOTALL)
 	for ep in episodes:
@@ -617,44 +628,42 @@ def TVShowEpisodeList(title, season, imdbnum, tvdbnum): #5000
 		meta = {}
 		eptitle = re.sub('<[^<]+?>', '', eptitle.strip())
 		eptitle = re.sub('\s\s+' , ' ', eptitle)
-		title = urllib.unquote_plus(title.decode('utf-8'))
-		print 'Title is %s' % title
+
 		season = re.search('/season-([0-9]{1,4})-', epurl).group(1)
 		epnum = re.search('-episode-([0-9]{1,3})', epurl).group(1)
 		fanart = ''
 		if META_ON and imdbnum:
-			try:
-				showtitle = urllib.unquote(title.decode("utf-8"))
-				meta = metaget.get_episode_meta(showtitle,imdbnum,season,epnum)
+			# try:
+				meta = metaget.get_episode_meta(ShowTitle.decode('utf-8'),imdbnum,season,epnum)
 				if meta['overlay'] == 6: label = 'Mark as watched'
 				else: label = 'Mark as unwatched'
-				if section == 'tv': type = 'tvshow'
-				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'], 'season':season, 'episode':epnum,  'video_type':'episode', 'year':year})
+				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':ShowTitle, 'imdbnum':meta['imdb_id'], 'season':season, 'episode':epnum,  'video_type':'episode', 'year':year})
 				cm.append((label, runstring,))
-			except:
-				meta['cover_url'] = ''
-				meta['backdrop_url'] = ''
-				print 'Error getting metadata for %s season %s episode %s with imdbnum %s' % (showtitle,season,epnum,imdbnum)
+			# except:
+				# meta['cover_url'] = ''
+				# meta['backdrop_url'] = ''
+				# print 'Error getting metadata for %s season %s episode %s with imdbnum %s' % (ShowTitle,season,epnum,imdbnum)
 		else:
 			meta['cover_url'] = ''
 			meta['title'] = eptitle
 		img = meta['cover_url']
-		try:
-			if meta['title'] == showtitle:
-				meta['title'] = eptitle
-			else:
-				tag = '%sx%s ' %(season,epnum)
-				meta['title'] = tag + meta['title']
-		except: pass
+		# try:
+		# addon.log('meta[\'title\']: %s ShowTitle: %s Equivalent: %s' %(meta['title'],ShowTitle.decode('utf-8')),(meta['title'] == ShowTitle))
+		if meta['title'] == ShowTitle.decode('utf-8'):
+			meta['title'] = eptitle
+			addon.log('Episode title not found in metadata, using title from website')
+		else:
+			tag = '%sx%s ' %(season,epnum)
+			meta['title'] = tag + meta['title']
+		# except: pass
 		if not meta['title']: meta['title'] = eptitle
 
-		meta['TVShowTitle'] = title
+		meta['TVShowTitle'] = ShowTitle
 		if FANART_ON:
 			try: fanart =  meta['backdrop_url']
 			except: pass
 		url = BASE_URL + epurl
-		title = unicode_urlencode(eptitle)
-		addon.add_directory({'mode':'GetSources', 'url':url, 'imdbnum':imdbnum, 'title':title, 'img':img},
+		addon.add_directory({'mode':'GetSources', 'url':url, 'imdbnum':imdbnum, 'title':ShowTitle, 'img':img},
 						infolabels=meta, contextmenu_items=cm, context_replace=True, is_folder=False, img=img, fanart=fanart)
 
 	setView('episodes', 'episodes-view')
@@ -1092,86 +1101,82 @@ def setView(content, viewType):
 	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_GENRE )
 
 def AddToLibrary(video_type, url, title, img, year, imdbnum):
-	# try:
-		addon.log('Creating .strm for %s %s %s %s %s %s'%(video_type, url, title, img, year, imdbnum))
-		if video_type == 'tvshow': 
-			save_path = addon.get_setting('tvshow-folder')
-			save_path = xbmc.translatePath(save_path)
-			ShowTitle = title.strip()
-			# if year: ShowTitle = '%s(%s)'% (ShowTitle,year)
-			net = Net()
-			cookiejar = addon.get_profile()
-			cookiejar = os.path.join(cookiejar,'cookies')
-			html = net.http_GET(url).content
-			net.save_cookies(cookiejar)
-			adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
-			r = re.search(adultregex, html, re.DOTALL)
-			if r:
-				addon.log('Adult content url detected')
-				adulturl = BASE_URL + r.group(1)
-				headers = {'Referer': url}
-				net.set_cookies(cookiejar)
-				html = net.http_GET(adulturl, headers=headers).content #.encode('utf-8', 'ignore')
-			seasons = re.search('tv_container(.+?)<div class="clearer', html, re.DOTALL)
-			if not seasons: addon.log_error('No Seasons found for %s at %s' %(ShowTitle,url))
-			else:
-				season_container = seasons.group(1)
-				seasonList = season_container.split('<h2>')
-				for eplist in seasonList:
-					r = re.search('<a.+?>(.+?)</a>', eplist)
-					if r:
-						season = r.group(1)
-						r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
-						episodes = re.finditer(r, eplist, re.DOTALL)
-						for ep in episodes:
-							epurl, eptitle = ep.groups()
-							eptitle = re.sub('<[^<]+?>', '', eptitle.strip())
-							eptitle = re.sub('\s\s+' , ' ', eptitle)
+	addon.log('Creating .strm for %s %s %s %s %s %s'%(video_type, url, unicode(title,'utf-8'), img, year, imdbnum))
+	if video_type == 'tvshow': 
+		save_path = addon.get_setting('tvshow-folder')
+		save_path = xbmc.translatePath(save_path)
+		ShowTitle = unicode(title,'utf-8').strip()
+		net = Net()
+		cookiejar = addon.get_profile()
+		cookiejar = os.path.join(cookiejar,'cookies')
+		html = net.http_GET(url).content
+		net.save_cookies(cookiejar)
+		adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
+		r = re.search(adultregex, html, re.DOTALL)
+		if r:
+			addon.log('Adult content url detected')
+			adulturl = BASE_URL + r.group(1)
+			headers = {'Referer': url}
+			net.set_cookies(cookiejar)
+			html = net.http_GET(adulturl, headers=headers).content
+		seasons = re.search('tv_container(.+?)<div class="clearer', html, re.DOTALL)
+		if not seasons: addon.log_error('No Seasons found for %s at %s' %(ShowTitle,url))
+		else:
+			season_container = seasons.group(1)
+			seasonList = season_container.split('<h2>')
+			for eplist in seasonList:
+				r = re.search('<a.+?>(.+?)</a>', eplist)
+				if r:
+					season = r.group(1)
+					r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
+					episodes = re.finditer(r, eplist, re.DOTALL)
+					for ep in episodes:
+						epurl, eptitle = ep.groups()
+						eptitle = re.sub('<[^<]+?>', '', eptitle.strip())
+						eptitle = re.sub('\s\s+' , ' ', eptitle)
 
-							match = re.search('tv-\d{1,10}-.*/season-(\d{1,4})-episode-(\d{1,4})', epurl, re.IGNORECASE | re.DOTALL)
-							seasonnum = match.group(1)
-							epnum = match.group(2)
+						match = re.search('tv-\d{1,10}-.*/season-(\d{1,4})-episode-(\d{1,4})', epurl, re.IGNORECASE | re.DOTALL)
+						seasonnum = match.group(1)
+						epnum = match.group(2)
 
-							episode_path = os.path.join(ShowTitle,season)
-							episode_path = clean_path(episode_path)
-							episode_path = os.path.join(save_path,episode_path)
-							if not os.path.isdir(episode_path):
-								os.makedirs(episode_path)
-							filename = '%sx%s %s.strm' %(seasonnum,epnum,eptitle)
-							filename = clean_path(filename)
-							final_path = os.path.join(episode_path,filename)
-							playurl = BASE_URL + epurl
-							strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle, 'img':''})
-
+						episode_path = os.path.join(clean_filename(ShowTitle),season)
+						episode_path = os.path.join(save_path,episode_path)
+						if not os.path.isdir(episode_path):
+							try:    os.makedirs(episode_path)
+							except: addon.log('Failed to create directory %s' %episode_path)
+						filename = '%sx%s %s.strm' %(seasonnum,epnum,eptitle)
+						filename = clean_filename(filename)
+						final_path = os.path.join(episode_path,filename)
+						if len(final_path) >= 254: final_path = final_path[:251] +'.strm'
+						playurl = BASE_URL + epurl
+						strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle.encode('utf-8'), 'img':''})
+						try:
 							file = open(final_path,'w')
 							file.write(strm_string)
 							file.close()
-			builtin = "XBMC.Notification(Add to Library,Added '%s' to library,2000)" %ShowTitle
-			xbmc.executebuiltin(builtin)
+						except: addon.log('Failed to create .strm file: %s' %final_path)
 
-		elif video_type == 'movie' :
-			save_path = addon.get_setting('movie-folder')
-			save_path = xbmc.translatePath(save_path)
-			strm_string = addon.build_plugin_url({'mode':mode, 'url':url, 'imdbnum':imdbnum, 'title':title, 'img':img, 'year':year})
-			if year: title = '%s(%s)'% (title,year)
-			title = clean_path(title)
-			filename = '%s.strm' %title
-			final_path = os.path.join(save_path,title)
-			if not os.path.isdir(final_path):
-				os.makedirs(final_path)
-			final_path = os.path.join(final_path, filename)
-			file = open(final_path,'w')
-			file.write(strm_string)
-			file.close()
-			builtin = "XBMC.Notification(Add to Library,Added '%s' to library,2000)" %title
-			xbmc.executebuiltin(builtin)
-	# except:
-		# addon.log("Error while creating strm file for: %s" % title)
+	elif video_type == 'movie' :
+		save_path = addon.get_setting('movie-folder')
+		save_path = xbmc.translatePath(save_path)
+		strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':url, 'imdbnum':imdbnum, 'title':title, 'img':img, 'year':year})
+		if year: title = '%s(%s)'% (title,year)
+		filename = '%s.strm' %title
+		final_path = os.path.join(save_path,title)
+		final_path = xbmc.makeLegalFilename(final_path).decode('utf-8')
+		if not os.path.isdir(os.path.dirname(final_path)):
+			try:    os.makedirs(os.path.dirname(final_path))
+			except: addon.log('Failed to create directory %s' %final_path)
+		# try:
+		file = open(final_path,'w')
+		file.write(strm_string)
+		file.close()
+		# except: addon.log('Failed to create .strm file: %s' %final_path)
 
 def AddSubscription(url, title, img, year, imdbnum):
 	try:
 		db = sqlite.connect(DB)
-		db.execute('INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?,?,?,?,?)', (url, title, img, year, imdbnum))
+		db.execute('INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?,?,?,?,?)', (url, unicode(title,'utf-8'), img, year, imdbnum))
 		db.commit()
 		db.close()
 		AddToLibrary('tvshow', url, title, img, year, imdbnum)
@@ -1183,7 +1188,7 @@ def AddSubscription(url, title, img, year, imdbnum):
 
 def CancelSubscription(url, title, img, year, imdbnum):
 	db = sqlite.connect(DB)
-	db.execute('DELETE FROM subscriptions WHERE url=? AND title=? AND year=?', (url,title,year))
+	db.execute('DELETE FROM subscriptions WHERE url=? AND title=? AND year=?', (url,unicode(title,'utf-8'),year))
 	db.commit()
 	db.close()
 	xbmc.executebuiltin('Container.Refresh')
@@ -1191,7 +1196,7 @@ def CancelSubscription(url, title, img, year, imdbnum):
 def UpdateSubscriptions():
 	db = sqlite.connect(DB)
 	for sub in db.execute('SELECT * FROM subscriptions'):
-		AddToLibrary('tvshow',*sub)
+		AddToLibrary('tvshow',sub[0],sub[1].encode('utf-8'),sub[2],sub[3],sub[4])
 	db.close()
 
 def ManageSubscriptions():
@@ -1199,19 +1204,15 @@ def ManageSubscriptions():
 	db = sqlite.connect(DB)
 	for sub in db.execute('SELECT * FROM subscriptions'):
 		cm = []
-		runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'CancelSubscription', 'url':sub[0], 'title':sub[1], 'img':sub[2], 'year':sub[3], 'imdbnum':sub[4]})
+		runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'CancelSubscription', 'url':sub[0], 'title':sub[1].encode('utf-8'), 'img':sub[2], 'year':sub[3], 'imdbnum':sub[4]})
 		cm.append(('Cancel subscription', runstring,))
 		addon.add_item({'mode':'ManageSubscriptions'},{'title':sub[1]},cm,True,sub[2],art('fanart.png'))
+	db.close()
 	addon.end_of_directory()
 
-def is_safe(char):
-	if char.isalnum(): return True
-	if char in "_-.() \\": return True
-	return False
-
-def clean_path(path):
-	fixed_path = "".join([x for x in path if is_safe(x)])
-	return fixed_path
+def clean_filename(filename):
+	# filename = addon.unescape(filename)
+	return re.sub('[\\/:"*?<>|]+',' ',filename)
 
 initDatabase()
 
@@ -1293,6 +1294,8 @@ elif mode=='install_metapack':
 	install_metapack(title)
 elif mode=='AddToLibrary':
 	AddToLibrary(video_type, url, title, img, year, imdbnum)
+	builtin = "XBMC.Notification(Add to Library,Added '%s' to library,2000)" %title
+	xbmc.executebuiltin(builtin)
 elif mode=='UpdateSubscriptions':
 	UpdateSubscriptions()
 elif mode=='AddSubscription':
