@@ -8,9 +8,10 @@ def format_eta(seconds):
 	minutes,seconds = divmod(seconds, 60)
 	if minutes > 60:
 		hours,minutes = divmod(minutes, 60)
-		return "ETA: %02d:%02d:%02d " % (hours, minutes, seconds)
-	else:
-		return "ETA: %02d:%02d " % (minutes, seconds)
+		return "%02dh:%02dm:%02ds " % (hours, minutes, seconds)
+	elif seconds > 60:
+		return "%02dm:%02ds " % (minutes, seconds)
+	else: return "%ss" % seconds
 
 class AutoUpdater:             
 	def runProgram(self):
@@ -34,8 +35,8 @@ class AutoUpdater:
 					else: xbmc.log('1Channel: Service: Player is running, waiting until finished')
 				else:
 					eta = (self.last_run + seconds) - now
-					xbmc.log('1Channel: Service: Next update %s' % format_eta(eta))
-			xbmc.sleep(30000)
+					xbmc.log('1Channel: Service: Next update in %s' % format_eta(eta))
+			xbmc.sleep(1800000)
 
 xbmc.log('1Channel: Subscription service starting...')
 AutoUpdater().runProgram()

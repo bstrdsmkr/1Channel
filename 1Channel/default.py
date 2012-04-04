@@ -34,6 +34,8 @@ from t0mm0.common.addon import Addon
 from t0mm0.common.net import Net
 from metahandler import metahandlers
 from metahandler import metacontainers
+from operator import itemgetter, methodcaller
+
 import metapacks
 import playback
 
@@ -89,10 +91,10 @@ def initDatabase():
 	db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
 	db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
 	db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum)')
-	db.execute('CREATE TABLE IF NOT EXISTS bookmarks (videotype, title, season, episode, year, bookmark)')
+	db.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type, title, season, episode, year, bookmark)')
 	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
 	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
-	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (videotype, title, season, episode, year)')
+	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (video_type, title, season, episode, year)')
 	db.commit()
 	db.close()
 
@@ -159,11 +161,11 @@ def GetSources(url, title='', img='', year='', imdbnum=''): #10
 
 	match = re.search('tv-\d{1,10}-(.*)/season-(\d{1,4})-episode-(\d{1,4})', url, re.IGNORECASE | re.DOTALL)
 	if match:
-		videotype = 'episode'
+		video_type = 'episode'
 		season  = int(match.group(2))
 		episode = int(match.group(3))
 	else:
-		videotype = 'movie'
+		video_type = 'movie'
 		season  = ''
 		episode = ''
 
@@ -182,78 +184,127 @@ def GetSources(url, title='', img='', year='', imdbnum=''): #10
 		html = net.http_GET(adulturl, headers=headers).content
 
 	sources = []
-	if META_ON and videotype=='movie' and not imdbnum:
+	list = []
+	if META_ON and video_type=='movie' and not imdbnum:
 		imdbregex = 'mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"'
 		r = re.search(imdbregex, html)
 		if r:
 			imdbnum = r.group(1)
 			metaget.update_meta('movie',title,imdb_id='',
 								new_imdb_id=imdbnum,year=year)
+
+	if addon.get_setting('sorting-enabled')=='true':
+		sorts = [None,'host','verified','quality','views','multi-part']
+		if int(addon.get_setting('first-sort')) > 0:
+			this_sort = sorts[int(addon.get_setting('first-sort'))]
+			if addon.get_setting('first-sort-reversed')=='true':
+				this_sort = '-%s' %this_sort
+			sorting = [this_sort]
+			if int(addon.get_setting('second-sort')) > 0:
+				this_sort = sorts[int(addon.get_setting('second-sort'))]
+				if addon.get_setting('second-sort-reversed')=='true':
+					this_sort = '-%s' %this_sort
+				sorting.append(this_sort)
+				if int(addon.get_setting('third-sort')) > 0:
+					this_sort = sorts[int(addon.get_setting('third-sort'))]
+					if addon.get_setting('third-sort-reversed')=='true':
+						this_sort = '-%s' %this_sort
+					sorting.append(this_sort)
+					if int(addon.get_setting('fourth-sort')) > 0:
+						this_sort = sorts[int(addon.get_setting('fourth-sort'))]
+						if addon.get_setting('fourth-sort-fourth')=='true':
+							this_sort = '-%s' %this_sort
+						sorting.append(this_sort)
+						if int(addon.get_setting('fifth-sort')) > 0:
+							this_sort = sorts[int(addon.get_setting('fifth-sort'))]
+							if addon.get_setting('fifth-sort-reversed')=='true':
+								this_sort = '-%s' %this_sort
+							sorting.append(this_sort)
+	else: sorting = []
+
 	for version in re.finditer('<table[^\n]+?class="movie_version(?: movie_version_alt)?">(.*?)</table>',
 								html, re.DOTALL|re.IGNORECASE):
 		for s in re.finditer('quality_(?!sponsored|unknown)(.*?)></span>.*?'+
-							 'url=(.*?)&(?:amp;)?domain=(.*?)&(?:amp;)?(.*?)'+
-							 '"version_veiws">(.*?)</',
+ 							 'url=(.*?)&(?:amp;)?domain=(.*?)&(?:amp;)?(.*?)'+
+							 '"version_veiws"> ([\d]+) views</',
 							 version.group(1), re.DOTALL):
-			q, url, host,parts, views = s.groups()
-			r = '\[<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part [0-9]*)</a>\]'
-			additional_parts = re.findall(r, parts, re.DOTALL|re.IGNORECASE)
-			verified = s.group(0).find('star.gif') > -1
-			label = '[%s]  ' % q.upper()
-			label += host.decode('base-64')
-			if additional_parts: label += ' Part 1'
-			if verified: label += ' [verified]'
-			label += ' (%s)' % views.strip()
-			url = url.decode('base-64')
-			host = host.decode('base-64')
-			print 'Source found:\n quality %s\n url %s\n host %s\n views %s\n' % (q, url, host, views)
-			try:
-				hosted_media = urlresolver.HostedMediaFile(url=url, title=label)
-				sources.append(hosted_media)
+			q, url, host, parts, views = s.groups()
+			
+			item = {}
+			item['host'] = host.decode('base-64')
+			item['url'] = url.decode('base-64')
+			if urlresolver.HostedMediaFile(item['url']).valid_url():
+				item['verified'] = s.group(0).find('star.gif') > -1
+				item['quality'] = q.upper()
+				item['views'] = int(views)
+				r = '\[<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part [0-9]*)</a>\]'
+				additional_parts = re.findall(r, parts, re.DOTALL|re.IGNORECASE)
 				if additional_parts:
-					for part in additional_parts:
-						label = '     [%s]  ' % q.upper()
-						label += host
-						label += ' ' + part[1]
-						if verified: label += ' [verified]'
-						url = part[0].decode('base-64')
-						hosted_media = urlresolver.HostedMediaFile(url=url, title=label)
-						sources.append(hosted_media)
-			except:
-				addon.log('Error while trying to resolve %s' % url)
-	source = urlresolver.choose_source(sources)
-	if source and not (source == 'False'):
-		stream_url = source.resolve()
-		addon.log('Attempting to play url: %s' % stream_url)
-		playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-		playlist.clear()
-		listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
-		if META_ON:
-			if videotype == 'episode':
-				# try:
-					meta = metaget.get_episode_meta(title,imdbnum,season,episode)
-					tag = '%sx%s ' %(season,episode)
-					meta['title'] = tag + meta['title']
-					listitem.setInfo(type="Video", infoLabels=meta)
-					listitem.setInfo('video', {'TVShowTitle': title, 'Season': season, 'Episode': episode } )
-				# except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
-			elif videotype == 'movie':
-				try:
-					meta = metaget.get_meta('movie', title.encode('utf-8'), year=year)
-					listitem.setInfo(type="Video", infoLabels=meta)
-				except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
+					item['multi-part'] = True
+					item['parts'] = [part[0].decode('base-64') for part in additional_parts]
+				else: item['multi-part'] = False
+				list.append(item)
 
-		addon.resolve_url(stream_url)
-		playlist.add(url=stream_url, listitem=listitem)
-		player = playback.Player(imdbnum=imdbnum, videotype=videotype, title=title, season=season, episode=episode, year=year)
-		player.play(playlist)
-		while player._playbackLock.isSet():
-			addon.log('Main function. Playback lock set. Sleeping for 250.')
-			xbmc.sleep(250)
+			if sorting: list = multikeysort(list, sorting, functions={'host':rank_host})
+	if not list: addon.show_ok_dialog(['No sources were found for this item'], title='1Channel')
+	try:
+		if addon.get_setting('auto-play')=='false': raise escape
+		PlaySource(list[0]['url'], title, img, year, imdbnum, video_type, season, episode)
+	except:
+		for item in list:
+			addon.log(item)
+			label = '[%s] %s ' %(item['quality'],item['host'])
+			if item.has_key('parts'): label += ' part 1'
+			label = '%s (%s views)' %(label,item['views'])
+			if item['verified']: label = '[COLOR gold]%s[/COLOR]' %label
+			addon.add_directory({'mode':'PlaySource', 'url':item['url'], 'title':title,
+								 'img':img, 'year':year, 'imdbnum':imdbnum,
+								 'video_type':video_type, 'season':season, 'episode':episode},
+			infolabels={'title':label}, is_folder=False, img=img, fanart=art('fanart.png'))
+			if item['multi-part']:
+				partnum = 2
+				for part in item['parts']:
+					label = '[I]          [/I]%s part %s' %(item['host'],partnum)
+					partnum += 1
+					addon.add_directory({'mode':'PlaySource', 'url':part, 'title':title,
+										 'img':img, 'year':year, 'imdbnum':imdbnum,
+										 'video_type':video_type, 'season':season, 'episode':episode},
+					infolabels={'title':label}, is_folder=False, img=img, fanart=art('fanart.png'))
+			
+		addon.end_of_directory()
 
-def ChangeWatched(imdb_id, videoType, name, season, episode, year='', watched='', refresh=False):
+def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
+	stream_url = urlresolver.HostedMediaFile(url=url).resolve()
+	addon.log('Attempting to play url: %s' % stream_url)
+	playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+	playlist.clear()
+	listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
+	if META_ON:
+		if video_type == 'episode':
+			try:
+				meta = metaget.get_episode_meta(title,imdbnum,season,episode)
+				tag = '%sx%s ' %(season,episode)
+				meta['title'] = tag + meta['title']
+				meta['TVShowTitle'] = title
+				listitem.setInfo(type="Video", infoLabels=meta)
+				# listitem.setInfo('video', {'TVShowTitle': title, 'Season': season, 'Episode': episode } )
+			except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
+		elif video_type == 'movie':
+			try:
+				meta = metaget.get_meta('movie', title.encode('utf-8'), year=year)
+				listitem.setInfo(type="Video", infoLabels=meta)
+			except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
+	addon.resolve_url(stream_url)
+	playlist.add(url=stream_url, listitem=listitem)
+	player = playback.Player(imdbnum=imdbnum, video_type=video_type, title=title, season=season, episode=episode, year=year)
+	player.play(playlist)
+	while player._playbackLock.isSet():
+		addon.log('Main function. Playback lock set. Sleeping for 250.')
+		xbmc.sleep(250)
+
+def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
     metaget=metahandlers.MetaData(preparezip=prepare_zip)
-    metaget.change_watched(videoType, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
+    metaget.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
     if refresh:
         xbmc.executebuiltin("XBMC.Container.Refresh")
 
@@ -300,11 +351,13 @@ def Search(section, query):
 		nextmode = 'TVShowSeasonList'
 		video_type = 'tvshow'
 		folder = True
+
 	else:
 		setView('movies', 'movies-view')
 		nextmode = 'GetSources'
 		video_type = 'movie'
-		folder = False
+		folder = addon.get_setting('auto-play')=='false'
+
 	html = '> >> <'
 	page = 0
 
@@ -457,7 +510,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 		nextmode = 'GetSources'
 		section = 'movie'
 		video_type = 'movie'
-		folder = False
+		folder = addon.get_setting('auto-play')=='false'
 
 	html = GetURL(pageurl)
 
@@ -522,7 +575,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 				except: pass
 			
 			meta['title'] = disptitle
-			# print title
+
 			addon.add_directory({'mode':nextmode, 'title':title.encode('utf-8'), 'url':BASE_URL + resurl, 'img':thumb, 'imdbnum':meta['imdb_id'], 'video_type':video_type, 'year':year},
 								meta, cm, True, img, fanart, total_items=total, is_folder=folder)			
 
@@ -548,11 +601,8 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 		adulturl = BASE_URL + r.group(1)
 		headers = {'Referer': url}
 		net.set_cookies(cookiejar)
-		html = net.http_GET(adulturl, headers=headers).content #.encode('utf-8', 'ignore')
+		html = net.http_GET(adulturl, headers=headers).content
 
-	# cnxn = sqlite.connect( DB )
-	# cnxn.text_factory = str
-	# cursor = cnxn.cursor()
 	db = sqlite.connect( DB )
 
 	try:
@@ -570,8 +620,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 				addon.log('Imdb ID not recieved from title search, updating with new id of %s' % new_imdb)
 				try:
 					addon.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s'%(title,old_imdb,old_tvdb,new_imdb, year))
-					metaget.update_meta('tvshow', title, old_imdb, old_tvdb,
-									new_imdb, year=year)
+					metaget.update_meta('tvshow', title, old_imdb, old_tvdb, new_imdb)
 				except: 
 					addon.log('Error while trying to update metadata with:')
 					# addon.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s'%(title,old_imdb,old_tvdb,new_imdb, year))
@@ -599,7 +648,6 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 					temp['backdrop_url'] = ''
 				temp['title'] = season_name
 
-
 				addon.log('Season name: %s' %season_name)
 				db.execute('INSERT or REPLACE into seasons (season,contents) VALUES(?,?)',
 								(season_name, eplist))
@@ -621,6 +669,7 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
 	db.close()
 	r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
 	episodes = re.finditer(r, eplist, re.DOTALL)
+	folder = addon.get_setting('auto-play')=='false'
 	for ep in episodes:
 		cm = []
 		cm.append(('Show Information', 'XBMC.Action(Info)',))
@@ -633,29 +682,29 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
 		epnum = re.search('-episode-([0-9]{1,3})', epurl).group(1)
 		fanart = ''
 		if META_ON and imdbnum:
-			# try:
+			try:
 				meta = metaget.get_episode_meta(ShowTitle.decode('utf-8'),imdbnum,season,epnum)
 				if meta['overlay'] == 6: label = 'Mark as watched'
 				else: label = 'Mark as unwatched'
 				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':ShowTitle, 'imdbnum':meta['imdb_id'], 'season':season, 'episode':epnum,  'video_type':'episode', 'year':year})
 				cm.append((label, runstring,))
-			# except:
-				# meta['cover_url'] = ''
-				# meta['backdrop_url'] = ''
-				# print 'Error getting metadata for %s season %s episode %s with imdbnum %s' % (ShowTitle,season,epnum,imdbnum)
+			except:
+				meta['cover_url'] = ''
+				meta['backdrop_url'] = ''
+				meta['title'] = eptitle
+				addon.log('Error getting metadata for %s season %s episode %s with imdbnum %s' % (ShowTitle,season,epnum,imdbnum))
 		else:
 			meta['cover_url'] = ''
 			meta['title'] = eptitle
 		img = meta['cover_url']
-		# try:
-		# addon.log('meta[\'title\']: %s ShowTitle: %s Equivalent: %s' %(meta['title'],ShowTitle.decode('utf-8')),(meta['title'] == ShowTitle))
+
 		if meta['title'] == ShowTitle.decode('utf-8'):
 			meta['title'] = eptitle
 			addon.log('Episode title not found in metadata, using title from website')
 		else:
 			tag = '%sx%s ' %(season,epnum)
 			meta['title'] = tag + meta['title']
-		# except: pass
+
 		if not meta['title']: meta['title'] = eptitle
 
 		meta['TVShowTitle'] = ShowTitle
@@ -664,14 +713,13 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
 			except: pass
 		url = BASE_URL + epurl
 		addon.add_directory({'mode':'GetSources', 'url':url, 'imdbnum':imdbnum, 'title':ShowTitle, 'img':img},
-						infolabels=meta, contextmenu_items=cm, context_replace=True, is_folder=False, img=img, fanart=fanart)
+						infolabels=meta, contextmenu_items=cm, context_replace=True, is_folder=folder, img=img, fanart=fanart)
 
 	setView('episodes', 'episodes-view')
 	addon.end_of_directory()
 
 def BrowseFavorites(section): #8000
 	db = sqlite.connect( DB )
-	cursor = db.cursor()
 	if section == 'tv':  setView('tvshows', 'tvshows-view')
 	else: setView('movies', 'movies-view')
 	if section == 'tv':
@@ -682,8 +730,8 @@ def BrowseFavorites(section): #8000
 		nextmode = 'GetSources'
 		section  = 'movie'
 		type 	 = 'movie'
-		folder   = False
-	favs = cursor.execute('SELECT type, name, url, year FROM favorites WHERE type = ? ORDER BY name', (section,))
+		folder   = addon.get_setting('auto-play')=='false'
+	favs = db.execute('SELECT type, name, url, year FROM favorites WHERE type = ? ORDER BY name', (section,))
 	for row in favs:
 		title	  = row[1]
 		favurl	  = row[2]
@@ -726,7 +774,7 @@ def BrowseFavorites(section): #8000
 		remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' %(sys.argv[1],section,title,year,favurl)
 		cm.append(('Remove from Favorites', remfavstring))
 
-		addon.add_directory({'mode':nextmode, 'title':title, 'url':favurl, 'imdbnum':meta['imdb_id'], 'videoType':type, 'year':year},
+		addon.add_directory({'mode':nextmode, 'title':title, 'url':favurl, 'imdbnum':meta['imdb_id'], 'video_type':type, 'year':year},
 							meta, cm, True, img, fanart, is_folder=folder)	
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 	db.close()
@@ -1139,15 +1187,13 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 						seasonnum = match.group(1)
 						epnum = match.group(2)
 
-						episode_path = os.path.join(clean_filename(ShowTitle),season)
-						episode_path = os.path.join(save_path,episode_path)
-						if not os.path.isdir(episode_path):
-							try:    os.makedirs(episode_path)
-							except: addon.log('Failed to create directory %s' %episode_path)
 						filename = '%sx%s %s.strm' %(seasonnum,epnum,eptitle)
-						filename = clean_filename(filename)
-						final_path = os.path.join(episode_path,filename)
-						if len(final_path) >= 254: final_path = final_path[:251] +'.strm'
+						final_path = os.path.join(save_path, ShowTitle, season, filename)
+						final_path = xbmc.makeLegalFilename(final_path).decode('utf-8')
+						if not os.path.isdir(os.path.dirname(final_path)):
+							try:    os.makedirs(os.path.dirname(final_path))
+							except: addon.log('Failed to create directory %s' %final_path)
+
 						playurl = BASE_URL + epurl
 						strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle.encode('utf-8'), 'img':''})
 						try:
@@ -1162,7 +1208,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 		strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':url, 'imdbnum':imdbnum, 'title':title, 'img':img, 'year':year})
 		if year: title = '%s(%s)'% (title,year)
 		filename = '%s.strm' %title
-		final_path = os.path.join(save_path,title)
+		final_path = os.path.join(save_path,title,filename)
 		final_path = xbmc.makeLegalFilename(final_path).decode('utf-8')
 		if not os.path.isdir(os.path.dirname(final_path)):
 			try:    os.makedirs(os.path.dirname(final_path))
@@ -1214,6 +1260,50 @@ def clean_filename(filename):
 	# filename = addon.unescape(filename)
 	return re.sub('[\\/:"*?<>|]+',' ',filename)
 
+def multikeysort(items, columns, functions={}, getter=itemgetter):
+    """Sort a list of dictionary objects or objects by multiple keys bidirectionally.
+
+    Keyword Arguments:
+    items -- A list of dictionary objects or objects
+    columns -- A list of column names to sort by. Use -column to sort in descending order
+    functions -- A Dictionary of Column Name -> Functions to normalize or process each column value
+    getter -- Default "getter" if column function does not exist
+              operator.itemgetter for Dictionaries
+              operator.attrgetter for Objects
+    """
+    comparers = []
+    for col in columns:
+        column = col[1:] if col.startswith('-') else col
+        if not column in functions:
+            functions[column] = getter(column)
+        comparers.append((functions[column], 1 if column == col else -1))
+
+    def comparer(left, right):
+        for func, polarity in comparers:
+            result = cmp(func(left), func(right))
+            if result:
+                return polarity * result
+        else:
+            return 0
+    return sorted(items, cmp=comparer)
+
+def compose(inner_func, *outer_funcs):
+     """Compose multiple unary functions together into a single unary function"""
+     if not outer_funcs:
+         return inner_func
+     outer_func = compose(*outer_funcs)
+     return lambda *args, **kwargs: outer_func(inner_func(*args, **kwargs))
+
+def rank_host(source):
+	host = source['host']
+	ranking = addon.get_setting('host-rank').split(',')
+	host = host.lower()
+	for tier in ranking:
+		tier = tier.lower()
+		if host in tier.split('|'):
+			return ranking.index(tier) + 1
+	return 1000
+
 initDatabase()
 
 mode 		= addon.queries.get('mode', 	  None)
@@ -1234,28 +1324,14 @@ episode		= addon.queries.get('episode',    '')
 season 		= addon.queries.get('season', 	  '')
 tvdbnum 	= addon.queries.get('tvdbnum', 	  '')
 
-print 'mode: %s' 		% mode
-print 'section: %s' 	% section
-print 'genre: %s' 		% genre
-print 'letter: %s' 		% letter
-print 'sort: %s' 		% sort
-print 'url: %s' 		% url
-print 'title: %s' 		% title
-print 'img: %s' 		% img
-print 'season: %s' 		% season
-print 'query: %s' 		% query
-print 'page: %s' 		% page
-print 'imdbnum: %s' 	% imdbnum
-print 'year: %s' 		% year
-print 'video_type: %s' 	% video_type
-print 'episode: %s' 	% episode
-print 'season: %s' 		% season
-print 'tvdbnum: %s' 	% tvdbnum
+addon.log(addon.queries)
 
 if mode=='main':
 	AddonMenu()
 elif mode=='GetSources':
 	GetSources(url,title,img,year=year,imdbnum=imdbnum)
+elif mode=='PlaySource':
+	PlaySource(url, title, img, year, imdbnum, video_type, season, episode)
 elif mode=='PlayTrailer':
 	PlayTrailer(url)
 elif mode=='BrowseListMenu':
@@ -1282,7 +1358,7 @@ elif mode=='DeleteFav':
 	DeleteFav(section, title, url)
 	xbmc.executebuiltin('Container.Refresh')
 elif mode=='ChangeWatched':
-	ChangeWatched(imdb_id=imdbnum, videoType=video_type, name=title, season=season, episode=episode, year=year)
+	ChangeWatched(imdb_id=imdbnum, video_type=video_type, name=title, season=season, episode=episode, year=year)
 	xbmc.executebuiltin('Container.Refresh')
 elif mode=='9988': #Metahandler Settings
 	print "Metahandler Settings"

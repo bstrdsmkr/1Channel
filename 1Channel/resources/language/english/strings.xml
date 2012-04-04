@@ -30,4 +30,11 @@
 	<string id="30804">Movie Folder:</string>
 	<string id="30805">Enable automatic subscription updates</string>
 	<string id="30806">Subscription update interval</string>
+
+	<string id="30905">Auto-play</string>
+	<string id="30900">Enable sorting of sources</string>
+	<string id="30901">     Host Ranking (coma separated)</string>
+	<string id="30902">     Sort by:</string>
+	<string id="30903">          Reverse sort</string>
+	<string id="30904">     Then by:</string>
 </strings>

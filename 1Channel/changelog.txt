@@ -16,8 +16,15 @@
 - Added subscribe option for TV shows
 - B1 - Implemented bookmarking and resuming
 - B1 - Fixed path validation
-- B1 - Proper unicode support
-- B1 - Next Page now looks for theme icon and uses theme fanart
+- B2 - Proper unicode support
+- B2 - Next Page now looks for theme icon and uses theme fanart
+- B2 - Movies now create individual folders when added to library
+- B3 - Fixed bookmarked resume asking twice
+- B3 - Implemented source sorting
+- B3 - Fixed bad default value in theme setting
+- B3 - Sources now show in list instead of dialog
+- B3 - Verified sources now highlight in yellow
+- B3 - Implemented auto-play
 
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results

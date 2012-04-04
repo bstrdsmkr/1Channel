@@ -32,14 +32,15 @@ def format_time(seconds):
 # =============================================================================
 class Player(xbmc.Player):
 
-	def __init__(self, imdbnum, videotype, title, season, episode, year):
+	def __init__(self, imdbnum, video_type, title, season, episode, year):
 		xbmc.Player.__init__(self)
 		self._playbackLock = threading.Event()
 		self._playbackLock.set()
 		self._totalTime = 999999
 		self._lastPos = 0
+		self._sought = False
 		self.imdbnum = imdbnum
-		self.videotype = videotype
+		self.video_type = video_type
 		self.title = title
 		self.season = season
 		self.episode = episode
@@ -55,14 +56,14 @@ class Player(xbmc.Player):
 		self._tracker = threading.Thread(target=self._trackPosition)
 		self._tracker.start()
 		db = sqlite.connect(DB)
-		bookmark = db.execute('SELECT bookmark FROM bookmarks WHERE videotype=? AND title=? AND season=? AND episode=? AND year=?', (self.videotype, self.title, self.season, self.episode, self.year)).fetchone()
+		bookmark = db.execute('SELECT bookmark FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?', (self.video_type, self.title, self.season, self.episode, self.year)).fetchone()
 		db.close()
-		bookmark = bookmark[0]-30
-		if bookmark and bookmark > 0:
+		if not self._sought and bookmark[0] and bookmark[0]-30 > 0:
 			question = 'Resume %s from %s?' %(self.title, format_time(bookmark))
 			resume = xbmcgui.Dialog()
-			resume = resume.yesno(self.title,question,'','','Start from beginning','Resume')
+			resume = resume.yesno(self.title,'',question,'','Start from beginning','Resume')
 			if resume: self.seekTime(bookmark)
+			self._sought = True
 
 
 	def onPlayBackStopped(self):
@@ -75,16 +76,16 @@ class Player(xbmc.Player):
 		addon.log('playedTime / totalTime : %s / %s = %s' % (playedTime, self._totalTime, playedTime/self._totalTime))
 		if ((playedTime/self._totalTime) > min_watched_percent):
 			addon.log('Threshold met. Marking item as watched')
-			self.ChangeWatched(self.imdbnum, self.videotype, self.title, self.season, self.episode, self.year, watched=7)
+			self.ChangeWatched(self.imdbnum, self.video_type, self.title, self.season, self.episode, self.year, watched=7)
 			db = sqlite.connect(DB)
-			db.execute('DELETE FROM bookmarks WHERE videotype=? AND title=? AND season=? AND episode=? AND year=?', (self.videotype, self.title, self.season, self.episode, self.year))
+			db.execute('DELETE FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?', (self.video_type, self.title, self.season, self.episode, self.year))
 			db.commit()
 			db.close()
 		else:
 			addon.log('Threshold not met. Saving bookmark')
 			db = sqlite.connect(DB)
-			db.execute('INSERT OR REPLACE INTO bookmarks (videotype, title, season, episode, year, bookmark) VALUES(?,?,?,?,?,?)',
-					  (self.videotype, self.title, self.season, self.episode, self.year, playedTime))
+			db.execute('INSERT OR REPLACE INTO bookmarks (video_type, title, season, episode, year, bookmark) VALUES(?,?,?,?,?,?)',
+					  (self.video_type, self.title, self.season, self.episode, self.year, playedTime))
 			db.commit()
 			db.close()
 
@@ -99,6 +100,6 @@ class Player(xbmc.Player):
 			xbmc.sleep(SLEEP_MILLIS)
 		addon.log('Position tracker ending with lastPos = %s' % self._lastPos)
 
-	def ChangeWatched(self, imdb_id, videoType, name, season, episode, year='', watched='', refresh=False):
+	def ChangeWatched(self, imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
 		metaget=metahandlers.MetaData(False)
-		metaget.change_watched(videoType, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
+		metaget.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
