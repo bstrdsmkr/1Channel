@@ -155,7 +155,7 @@ def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie =
 	response.close()
 	return body
 
-def GetSources(url, title='', img='', year='', imdbnum=''): #10
+def GetSources(url, title, img, year, imdbnum, dialog): #10
 	url	  = urllib.unquote(url)
 	addon.log('Playing: %s' % url)
 
@@ -247,35 +247,56 @@ def GetSources(url, title='', img='', year='', imdbnum=''): #10
 
 			if sorting: list = multikeysort(list, sorting, functions={'host':rank_host})
 	if not list: addon.show_ok_dialog(['No sources were found for this item'], title='1Channel')
-	try:
-		if addon.get_setting('auto-play')=='false': raise escape
-		PlaySource(list[0]['url'], title, img, year, imdbnum, video_type, season, episode)
-	except:
+	if dialog and addon.get_setting('auto-play')=='false': 
+		sources = []
 		for item in list:
-			addon.log(item)
-			label = '[%s] %s ' %(item['quality'],item['host'])
-			if item.has_key('parts'): label += ' part 1'
-			label = '%s (%s views)' %(label,item['views'])
-			if item['verified']: label = '[COLOR gold]%s[/COLOR]' %label
-			addon.add_directory({'mode':'PlaySource', 'url':item['url'], 'title':title,
-								 'img':img, 'year':year, 'imdbnum':imdbnum,
-								 'video_type':video_type, 'season':season, 'episode':episode},
-			infolabels={'title':label}, is_folder=False, img=img, fanart=art('fanart.png'))
-			if item['multi-part']:
-				partnum = 2
-				for part in item['parts']:
-					label = '[I]          [/I]%s part %s' %(item['host'],partnum)
-					partnum += 1
-					addon.add_directory({'mode':'PlaySource', 'url':part, 'title':title,
-										 'img':img, 'year':year, 'imdbnum':imdbnum,
-										 'video_type':video_type, 'season':season, 'episode':episode},
-					infolabels={'title':label}, is_folder=False, img=img, fanart=art('fanart.png'))
-			
-		addon.end_of_directory()
+			try:
+				label = '[%s] %s ' %(item['quality'],item['host'])
+				if item.has_key('parts'): label += ' part 1'
+				label = '%s (%s views)' %(label,item['views'])
+				if item['verified']: label = '[COLOR gold]%s[/COLOR]' %label
+				hosted_media = urlresolver.HostedMediaFile(url=item['url'], title=label)
+				sources.append(hosted_media)
+				if item['multi-part']:
+					partnum = 2
+					for part in item['parts']:
+						label  = '     %s part %s' %(item['host'],partnum)
+						hosted_media = urlresolver.HostedMediaFile(url=item['parts'][partnum-2], title=label)
+						sources.append(hosted_media)
+						partnum += 1
+			except: addon.log('Error while trying to resolve %s' % url)
+		source = urlresolver.choose_source(sources).get_url()
+		PlaySource(source, title, img, year, imdbnum, video_type, season, episode)
+	else:
+		try:
+			if addon.get_setting('auto-play')=='false': raise escape #skips the next line and goes into the else clause
+			PlaySource(list[0]['url'], title, img, year, imdbnum, video_type, season, episode)
+		except:
+			for item in list:
+				addon.log(item)
+				label = '[%s] %s ' %(item['quality'],item['host'])
+				if item.has_key('parts'): label += ' part 1'
+				label = '%s (%s views)' %(label,item['views'])
+				if item['verified']: label = '[COLOR gold]%s[/COLOR]' %label
+				addon.add_directory({'mode':'PlaySource', 'url':item['url'], 'title':title,
+									 'img':img, 'year':year, 'imdbnum':imdbnum,
+									 'video_type':video_type, 'season':season, 'episode':episode},
+				infolabels={'title':label}, is_folder=False, img=img, fanart=art('fanart.png'))
+				if item['multi-part']:
+					partnum = 2
+					for part in item['parts']:
+						label = '[I]          [/I]%s part %s' %(item['host'],partnum)
+						partnum += 1
+						addon.add_directory({'mode':'PlaySource', 'url':part, 'title':title,
+											 'img':img, 'year':year, 'imdbnum':imdbnum,
+											 'video_type':video_type, 'season':season, 'episode':episode},
+						infolabels={'title':label}, is_folder=False, img=img, fanart=art('fanart.png'))
+				
+			addon.end_of_directory()
 
 def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
+	addon.log('Attempting to play url: %s' % url)
 	stream_url = urlresolver.HostedMediaFile(url=url).resolve()
-	addon.log('Attempting to play url: %s' % stream_url)
 	playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 	playlist.clear()
 	listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
@@ -1195,7 +1216,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 							except: addon.log('Failed to create directory %s' %final_path)
 
 						playurl = BASE_URL + epurl
-						strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle.encode('utf-8'), 'img':''})
+						strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle.encode('utf-8'), 'img':'', 'dialog':1})
 						try:
 							file = open(final_path,'w')
 							file.write(strm_string)
@@ -1205,7 +1226,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 	elif video_type == 'movie' :
 		save_path = addon.get_setting('movie-folder')
 		save_path = xbmc.translatePath(save_path)
-		strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':url, 'imdbnum':imdbnum, 'title':title, 'img':img, 'year':year})
+		strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':url, 'imdbnum':imdbnum, 'title':title, 'img':img, 'year':year, 'dialog':1})
 		if year: title = '%s(%s)'% (title,year)
 		filename = '%s.strm' %title
 		final_path = os.path.join(save_path,title,filename)
@@ -1323,13 +1344,14 @@ video_type  = addon.queries.get('video_type', '')
 episode		= addon.queries.get('episode',    '')
 season 		= addon.queries.get('season', 	  '')
 tvdbnum 	= addon.queries.get('tvdbnum', 	  '')
+dialog	 	= addon.queries.get('dialog', 	  '')
 
 addon.log(addon.queries)
 
 if mode=='main':
 	AddonMenu()
 elif mode=='GetSources':
-	GetSources(url,title,img,year=year,imdbnum=imdbnum)
+	GetSources(url,title,img,year,imdbnum,dialog)
 elif mode=='PlaySource':
 	PlaySource(url, title, img, year, imdbnum, video_type, season, episode)
 elif mode=='PlayTrailer':
