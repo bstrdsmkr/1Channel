@@ -38,7 +38,6 @@ from operator import itemgetter, methodcaller
 
 import metapacks
 import playback
-import captcha
 
 try:
 	from sqlite3 import dbapi2 as sqlite
