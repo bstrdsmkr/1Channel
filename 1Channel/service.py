@@ -32,11 +32,13 @@ class AutoUpdater:
 							xbmc.executebuiltin('UpdateLibrary(video)')
 							time.sleep(1)
 							self.last_run = now
+						else: xbmc.log('1Channel: Service: Library is updating. Skipping subscription update')
 					else: xbmc.log('1Channel: Service: Player is running, waiting until finished')
-				else:
-					eta = (self.last_run + seconds) - now
-					xbmc.log('1Channel: Service: Next update in %s' % format_eta(eta))
-			xbmc.sleep(1800000)
+			else:
+				xbmc.log('1Channel: Service: Auto-update disabled')
+				break
+			xbmc.sleep(1000)
+		xbmc.log('1Channel: Subscription service ending...')
 
 xbmc.log('1Channel: Subscription service starting...')
 AutoUpdater().runProgram()

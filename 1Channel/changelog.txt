@@ -25,6 +25,11 @@
 - B3 - Sources now show in list instead of dialog
 - B3 - Verified sources now highlight in yellow
 - B3 - Implemented auto-play
+- B4 - Implemented page skipping in Next Page context menu
+- B4 - Added temporary workaround for conflict between t0mm0.common and metahandlers
+- B4 - Implemented 8hr url cache
+- B4 - Added option to install locally downloaded metapack
+- B4 - Auto-play now tries the next source on error
 
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results

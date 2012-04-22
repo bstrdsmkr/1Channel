@@ -38,6 +38,7 @@ from operator import itemgetter, methodcaller
 
 import metapacks
 import playback
+import captcha
 
 try:
 	from sqlite3 import dbapi2 as sqlite
@@ -77,12 +78,6 @@ def art(file):
 	img = os.path.join(THEME_PATH, file)
 	return img
 
-def unicode_urlencode(value): 
-	if isinstance(value, unicode): 
-		return urllib.quote(value.encode("utf-8"))
-	else: 
-		return urllib.quote(value)
-
 def initDatabase():
 	addon.log('Building 1channel Database')
 	if not os.path.isdir(os.path.dirname(DB)):
@@ -92,9 +87,11 @@ def initDatabase():
 	db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
 	db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum)')
 	db.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type, title, season, episode, year, bookmark)')
+	db.execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
 	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
 	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
 	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (video_type, title, season, episode, year)')
+	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
 	db.commit()
 	db.close()
 
@@ -123,17 +120,30 @@ def DeleteFav(type, name, url): #7777
 	db.commit()
 	db.close()
 
-def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie = False, silent = False):
+def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie = False, silent = False, use_cache=True):
+	addon.log('Fetching URL: %s' % url)
+	db = sqlite.connect( DB )
+	now = time.time()
+	if use_cache:
+		limit = 60*60*8 #8 hours
+		cached = db.execute('SELECT * FROM url_cache WHERE url = ?', (url,)).fetchone()
+		if cached:
+			created = int(cached[2])
+			age = now - created
+			if age < limit:
+				addon.log('Returning cached result for %s' %url)
+				db.close()
+				return cached[1].encode('latin-1')
+			else: addon.log('Cache too old. Requesting from internet')
+		else: addon.log('No cached response. Requesting from internet')
+
 	if params: req = urllib2.Request(url, params)
-		# req.add_header('Content-type', 'application/x-www-form-urlencoded')
 	else: req = urllib2.Request(url)
 
 	req.add_header('User-Agent', USER_AGENT)
 	req.add_header('Host', 'www.1channel.ch')
 	if referrer: req.add_header('Referer', referrer)
 	if cookie: req.add_header('Cookie', cookie)
-
-	print 'Fetching URL: %s' % url
 	
 	try:
 		response = urllib2.urlopen(req, timeout=10)
@@ -147,12 +157,15 @@ def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie =
 
 	if save_cookie:
 		setcookie = response.info().get('Set-Cookie', None)
-		#print "Set-Cookie: %s" % repr(setcookie)
 		if setcookie:
 			setcookie = re.search('([^=]+=[^=;]+)', setcookie).group(1)
 			body = body + '<cookie>' + setcookie + '</cookie>'
 
 	response.close()
+	db.execute('INSERT OR REPLACE INTO url_cache (url,response,timestamp) VALUES(?,?,?)',
+				(url, body.decode('latin-1'), now))
+	db.commit()
+	db.close()
 	return body
 
 def GetSources(url, title, img, year, imdbnum, dialog): #10
@@ -247,8 +260,8 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
 
 			if sorting: list = multikeysort(list, sorting, functions={'host':rank_host})
 	if not list: addon.show_ok_dialog(['No sources were found for this item'], title='1Channel')
-	if dialog and addon.get_setting('auto-play')=='false': 
-		sources = []
+	if dialog and addon.get_setting('auto-play')=='false': #we're comming from a .strm file and can't create a directory so we have to pop a 
+		sources = []									   #dialog if auto-play isn't on
 		for item in list:
 			try:
 				label = '[%s] %s ' %(item['quality'],item['host'])
@@ -270,7 +283,11 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
 	else:
 		try:
 			if addon.get_setting('auto-play')=='false': raise escape #skips the next line and goes into the else clause
-			PlaySource(list[0]['url'], title, img, year, imdbnum, video_type, season, episode)
+			for source in list:
+				try:
+					PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode)
+					break #Playback was successful, break out of the loop
+				except: continue #Playback failed, try the next one
 		except:
 			for item in list:
 				addon.log(item)
@@ -385,7 +402,7 @@ def Search(section, query):
 	while html.find('> >> <') > -1 and page < 10:
 		page += 1
 		if page > 1: pageurl += '&page=%s' % page
-		html = GetURL(pageurl)
+		html = GetURL(pageurl, use_cache=False)
 
 		r = re.search('number_movies_result">([0-9,]+)', html)
 		if r: total = int(r.group(1).replace(',', ''))
@@ -424,6 +441,11 @@ def Search(section, query):
 							if not (meta['imdb_id'] or meta['tvdb_id']):
 								meta = metaget.get_meta(video_type, title, year=year)
 						else: meta = metaget.get_meta(video_type, title, year=year)
+
+						###Temporary work around. t0mm0.common isn't happy with the episode key being a str
+						try: meta['episode'] = int(meta['episode'])
+						except: pass
+
 						if meta['trailer_url']:
 							url = meta['trailer_url']
 							url = re.sub('&feature=related','',url)
@@ -507,6 +529,7 @@ def add_contextsearchmenu(title, type):
 		else:
 			section = 'movies'
 		contextmenuitems.append(('Search solarmovie', 'XBMC.Container.Update(%s?mode=Search&section=%s&query=%s)' %('plugin://plugin.video.solarmovie/',section,title)))
+
 	return contextmenuitems
 
 def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None): #3000
@@ -538,6 +561,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 	r = re.search('number_movies_result">([0-9,]+)', html)
 	if r: total = int(r.group(1).replace(',', ''))
 	else: total = 0
+	total_pages = total/24
 	total = min(total,24)
 
 	r = 'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
@@ -572,6 +596,11 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 						meta = metaget.get_meta(video_type, title)
 						if not (meta['imdb_id'] or meta['tvdb_id']):
 							meta = metaget.get_meta(video_type, title, year=year)
+
+					###Temporary work around. t0mm0.common isn't happy with the episode key being a str
+					try: meta['episode'] = int(meta['episode'])
+					except: pass
+
 					else: meta = metaget.get_meta(video_type, title, year=year)
 					if meta['trailer_url']:
 						url = meta['trailer_url']
@@ -601,10 +630,16 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 								meta, cm, True, img, fanart, total_items=total, is_folder=folder)			
 
 	if html.find('> >> <') > -1:
+		label = 'Skip to Page...'
+		command = addon.build_plugin_url({'mode':'PageSelect', 'pages':total_pages, 'section':section, 'genre':genre, 'letter':letter, 'sort':sort})
+		command = 'RunPlugin(%s)' %command
+		cm = [(label, command)]
+		meta = {'title':'Next Page >>'}
 		addon.add_directory({'mode':'GetFilteredResults', 'section':section, 'genre':genre, 'letter':letter, 'sort':sort, 'page':page},
-							{'title':'Next Page >>'}, (), False, art('nextpage.png'), art('fanart.png'))
+							meta, cm, True, art('nextpage.png'), art('fanart.png'), is_folder=True)
 
-	xbmcplugin.endOfDirectory(int(sys.argv[1]))
+	# xbmcplugin.endOfDirectory(int(sys.argv[1]))
+	addon.end_of_directory()
 	if   video_type == 'tvshow': setView('tvshows', 'tvshows-view')
 	elif video_type == 'movie' : setView('movies', 'movies-view')
 
@@ -767,7 +802,13 @@ def BrowseFavorites(section): #8000
 		if META_ON:
 			# try:
 				title = title.encode('ascii', 'ignore')
-				try: meta = metaget.get_meta(type,title,year=year)
+				try: 
+					meta = metaget.get_meta(type,title,year=year)
+
+					###Temporary work around. t0mm0.common isn't happy with the episode key being a str
+					try: meta['episode'] = int(meta['episode'])
+					except: pass
+
 				except: print 'Failed to get metadata for %s %s %s' %(type,title,year)
 
 				if 'trailer_url' in meta:
@@ -977,6 +1018,13 @@ def install_metapack(pack):
 	pack_url += '/d' + r.group(1) + '.zip'
 
 	complete = download_metapack(pack_url, zip, displayname=pack)
+	install_local_zip(zip)
+
+def install_local_zip(zip):
+	mc = metacontainers.MetaContainer()
+	work_path  = mc.work_path
+	cache_path = mc.cache_path
+
 	extract_zip(zip, work_path)
 	xbmc.sleep(5000)
 	copy_meta_contents(work_path, cache_path)
@@ -1168,7 +1216,7 @@ def setView(content, viewType):
 	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_PROGRAM_COUNT )
 	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_VIDEO_RUNTIME )
 	xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_GENRE )
-
+ 
 def AddToLibrary(video_type, url, title, img, year, imdbnum):
 	addon.log('Creating .strm for %s %s %s %s %s %s'%(video_type, url, unicode(title,'utf-8'), img, year, imdbnum))
 	if video_type == 'tvshow': 
@@ -1390,6 +1438,10 @@ elif mode=='ResolverSettings':
 	urlresolver.display_settings()
 elif mode=='install_metapack':
 	install_metapack(title)
+elif mode=='install_local_metapack':
+	dialog = xbmcgui.Dialog()
+	zip = dialog.browse(1, 'Metapack', 'files', '.zip', False, False)
+	install_local_zip(zip)
 elif mode=='AddToLibrary':
 	AddToLibrary(video_type, url, title, img, year, imdbnum)
 	builtin = "XBMC.Notification(Add to Library,Added '%s' to library,2000)" %title
@@ -1402,3 +1454,20 @@ elif mode=='ManageSubscriptions':
 	ManageSubscriptions()
 elif mode=='CancelSubscription':
 	CancelSubscription(url, title, img, year, imdbnum)
+elif mode=='PageSelect':
+	pages = int(addon.queries['pages'])
+	dialog = xbmcgui.Dialog()
+	options = []
+	for page in range(pages):
+		label = 'Page %s' % str(page+1)
+		options.append(label)
+	index = dialog.select('Skip to page', options)
+	url = addon.build_plugin_url({'mode':'GetFilteredResults', 'section':section, 'genre':genre, 'letter':letter, 'sort':sort, 'page':index+1})
+	builtin = 'Container.Update(%s)' %url
+	xbmc.executebuiltin(builtin)
+elif mode=='test':
+	solver = captcha.InputWindow(captcha = 'C:\DialogBack.png')
+	solution = solver.get()
+	if solution:
+		addon.log('Solution provided: %s' %solution)
+	else: addon.log('Dialog was canceled')
