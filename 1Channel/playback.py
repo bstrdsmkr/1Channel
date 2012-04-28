@@ -74,7 +74,9 @@ class Player(xbmc.Player):
 		watched_values = [.7, .8, .9]
 		min_watched_percent = watched_values[int(addon.get_setting('watched-percent'))]
 		addon.log('playedTime / totalTime : %s / %s = %s' % (playedTime, self._totalTime, playedTime/self._totalTime))
-		if ((playedTime/self._totalTime) > min_watched_percent):
+		if playedTime == 0 and self._totalTime == 999999:
+			raise PlaybackFailed('XBMC silently failed to start playback')
+		elif ((playedTime/self._totalTime) > min_watched_percent):
 			addon.log('Threshold met. Marking item as watched')
 			self.ChangeWatched(self.imdbnum, self.video_type, self.title, self.season, self.episode, self.year, watched=7)
 			db = sqlite.connect(DB)
@@ -103,3 +105,6 @@ class Player(xbmc.Player):
 	def ChangeWatched(self, imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
 		metaget=metahandlers.MetaData(False)
 		metaget.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
+
+class PlaybackFailed(Exception):
+	'''Raised to indicate that xbmc silently failed to play the stream'''

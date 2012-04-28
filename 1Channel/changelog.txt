@@ -30,6 +30,9 @@
 - B4 - Implemented 8hr url cache
 - B4 - Added option to install locally downloaded metapack
 - B4 - Auto-play now tries the next source on error
+- B4 - Playback now raises an error when XBMC silently fails to start playback
+- B5 - Implemented customized labeling
+- B5 - Fixed search function caching keys
 
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results

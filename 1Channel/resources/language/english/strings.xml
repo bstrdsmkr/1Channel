@@ -38,4 +38,20 @@
 	<string id="30902">     Sort by:</string>
 	<string id="30903">          Reverse sort</string>
 	<string id="30904">     Then by:</string>
+
+	<string id="31000">Base:</string>
+	<string id="31001">Title:</string>
+	<string id="31002">Year:</string>
+	<string id="31003">Subscribed:</string>
+	<string id="31004">Episodes:</string>
+
+	<string id="31110">Movies</string>
+	<string id="31100">Base:</string>
+	<string id="31101">Title:</string>
+	<string id="31102">Year:</string>
+	
+	<string id="32000">Source:</string>
+	<string id="32001">Verified Sources:</string>
+	<string id="32002">Subsequent parts:</string>
+
 </strings>
