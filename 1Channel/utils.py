@@ -6,7 +6,9 @@ from t0mm0.common.addon import Addon
 addon = Addon('plugin.video.1channel', sys.argv)
 
 def format_label_tvshow(info):
-	year = info['premiered'][:4]
+	if 'premiered' in info:
+		year = info['premiered'][:4]
+	else: year = ''
 	label = addon.get_setting('format-tvshow')
 	label = re.sub('\{t\}', info['title'], label)
 	label = re.sub('\{y\}', year, label)

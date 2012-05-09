@@ -377,12 +377,12 @@ def GetSearchQuery(section):
 def Search(section, query):
 	html = GetURL(BASE_URL, use_cache=False)
 	r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
-	pageurl = BASE_URL + '/index.php?search_keywords='
-	pageurl += urllib.quote_plus(query)
-	pageurl += '&key=' + r
+	search_url = BASE_URL + '/index.php?search_keywords='
+	search_url += urllib.quote_plus(query)
+	search_url += '&key=' + r
 	if section == 'tv':
 		setView('tvshows', 'tvshows-view')
-		pageurl += '&search_section=2'
+		search_url += '&search_section=2'
 		nextmode = 'TVShowSeasonList'
 		video_type = 'tvshow'
 		folder = True
@@ -402,7 +402,8 @@ def Search(section, query):
 
 	while html.find('> >> <') > -1 and page < 10:
 		page += 1
-		if page > 1: pageurl += '&page=%s' % page
+		if page > 1: pageurl = '%s&page=%s' %(search_url,page)
+		else: pageurl = search_url
 		html = GetURL(pageurl, use_cache=False)
 
 		r = re.search('number_movies_result">([0-9,]+)', html)
@@ -414,7 +415,7 @@ def Search(section, query):
 		resurls = []
 		for s in regex:
 			resurl,title,year,thumb = s.groups()
-			meta = {}
+			meta = {'title':title, 'year':year}
 			if resurl not in resurls:
 				resurls.append(resurl)
 				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title.encode('utf-8'), 'url':BASE_URL+resurl, 'year':year})
@@ -426,8 +427,7 @@ def Search(section, query):
 					runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title.encode('utf-8'), 'img':thumb, 'year':year})
 					cm.append(('Subscribe', runstring,))
 				cm.append(('Show Information', 'XBMC.Action(Info)',))
-				if year: disptitle = title +'('+year+')'
-				else: disptitle = title
+
 				img = thumb
 				fanart = ''
 				meta['imdb_id'] = ''
@@ -483,15 +483,16 @@ def AddonMenu():  #homescreen
 	print '1Channel menu'
 	addon.add_directory({'mode': 'BrowseListMenu', 'section': ''},   {'title':  'Movies'}, img=art('movies.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'BrowseListMenu', 'section': 'tv'}, {'title':  'TV shows'}, img=art('television.png'), fanart=art('fanart.png'))
-	addon.add_directory({'mode': 'ManageSubscriptions'}, {'title':  'Manage Subscriptions'}, img=art('subscriptions.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'ResolverSettings'},   {'title':  'Resolver Settings'}, img=art('settings.png'), fanart=art('fanart.png'))
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def BrowseListMenu(section=None): #500
-	print 'Browse Options'
+	addon.log('Browse Options')
 	addon.add_directory({'mode': 'BrowseAlphabetMenu', 'section': section},   {'title':  'A-Z'}, img=art('atoz.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'GetSearchQuery', 'section': section},   {'title':  'Search'}, img=art('search.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'BrowseFavorites', 'section': section},   {'title':  'Favourites'}, img=art('favourites.png'), fanart=art('fanart.png'))
+	if section=='tv':
+		addon.add_directory({'mode': 'ManageSubscriptions'}, {'title':  'Subscriptions'}, img=art('subscriptions.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'BrowseByGenreMenu', 'section': section},   {'title':  'Genres'}, img=art('genres.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'featured'},   {'title':  'Featured'}, img=art('featured.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'views'},   {'title':  'Most Popular'}, img=art('most_popular.png'), fanart=art('fanart.png'))
@@ -770,6 +771,8 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
 				meta['cover_url'] = ''
 				meta['backdrop_url'] = ''
 				meta['title'] = eptitle
+				meta['season'] = season
+				meta['episode'] = epnum
 				addon.log('Error getting metadata for %s season %s episode %s with imdbnum %s' % (ShowTitle,season,epnum,imdbnum))
 		else:
 			meta['cover_url'] = ''
@@ -800,13 +803,16 @@ def BrowseFavorites(section): #8000
 	else: setView('movies', 'movies-view')
 	if section == 'tv':
 		nextmode = 'TVShowSeasonList'
-		type = 'tvshow'
+		video_type = 'tvshow'
 		folder = True
+		subscriptions = db.execute('SELECT url FROM subscriptions').fetchall()
+		subscriptions = [row[0] for row in subscriptions]
 	else: 
 		nextmode = 'GetSources'
 		section  = 'movie'
-		type 	 = 'movie'
+		video_type 	 = 'movie'
 		folder   = addon.get_setting('auto-play')=='false'
+
 	favs = db.execute('SELECT type, name, url, year FROM favorites WHERE type = ? ORDER BY name', (section,))
 	for row in favs:
 		title	  = row[1]
@@ -814,22 +820,19 @@ def BrowseFavorites(section): #8000
 		year	  = row[3]
 		cm		  = []
 		meta	  = {}
-		if year: disptitle = title +'('+year+')'
-		else:	 disptitle = title
 		img = ''
 		fanart = ''
 
 		if META_ON:
-			# try:
-				title = title.encode('ascii', 'ignore')
+			try:
 				try: 
-					meta = metaget.get_meta(type,title,year=year)
+					meta = metaget.get_meta(video_type,title,year=year)
 
 					###Temporary work around. t0mm0.common isn't happy with the episode key being a str
-					try: meta['episode'] = int(meta['episode'])
-					except: pass
+					meta['episode'] = int(meta['episode'])
+					meta['rating'] = float(meta['rating'])
 
-				except: print 'Failed to get metadata for %s %s %s' %(type,title,year)
+				except:addon.log('Failed to get metadata for %s %s %s' %(video_type,title,year))
 
 				if 'trailer_url' in meta:
 					url = meta['trailer_url']
@@ -838,17 +841,23 @@ def BrowseFavorites(section): #8000
 					runstring = 'RunScript(plugin.video.1channel,%s,?mode=PlayTrailer&url=%s)' %(sys.argv[1],url)
 					cm.append(('Watch Trailer', runstring))
 
-				if type == 'tvshow'and not USE_POSTERS:
+				if video_type == 'tvshow'and not USE_POSTERS:
 					meta['cover_url'] = meta['banner_url']
 				
 				if meta['overlay'] == 6: label = 'Mark as watched'
 				else: label = 'Mark as unwatched'
-				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':type, 'year':year})
+				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
 				cm.append((label, runstring))
 
 				img = meta['cover_url']
-			# except: addon.log('Error while assigning meta data for %s %s %s'%(type,title,year))
-		meta['title'] = disptitle
+			except: addon.log('Error while assigning meta data for %s %s %s'%(video_type,title,year))
+
+		if video_type == 'tvshow':
+			if favurl in subscriptions:
+				meta['title'] = format_label_sub(meta).decode('utf-8')
+			else:
+				meta['title'] = format_label_tvshow(meta).decode('utf-8')
+		else: meta['title'] = format_label_movie(meta).decode('utf-8')
 
 		if FANART_ON:
 			try: fanart = meta['backdrop_url']
@@ -856,7 +865,7 @@ def BrowseFavorites(section): #8000
 		remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' %(sys.argv[1],section,title,year,favurl)
 		cm.append(('Remove from Favorites', remfavstring))
 
-		addon.add_directory({'mode':nextmode, 'title':title, 'url':favurl, 'imdbnum':meta['imdb_id'], 'video_type':type, 'year':year},
+		addon.add_directory({'mode':nextmode, 'title':title, 'url':favurl, 'imdbnum':meta['imdb_id'], 'video_type':video_type, 'year':year},
 							meta, cm, True, img, fanart, is_folder=folder)	
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 	db.close()
@@ -1279,6 +1288,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 						filename = '%sx%s %s.strm' %(seasonnum,epnum,eptitle)
 						final_path = os.path.join(save_path, ShowTitle, season, filename)
 						final_path = xbmc.makeLegalFilename(final_path).decode('utf-8')
+						final_path = final_path.replace(":","_")
 						if not os.path.isdir(os.path.dirname(final_path)):
 							try:    os.makedirs(os.path.dirname(final_path))
 							except: addon.log('Failed to create directory %s' %final_path)
@@ -1299,6 +1309,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 		filename = '%s.strm' %title
 		final_path = os.path.join(save_path,title,filename)
 		final_path = xbmc.makeLegalFilename(final_path).decode('utf-8')
+		final_path = final_path.replace(":","_")
 		if not os.path.isdir(os.path.dirname(final_path)):
 			try:    os.makedirs(os.path.dirname(final_path))
 			except: addon.log('Failed to create directory %s' %final_path)
@@ -1340,9 +1351,18 @@ def ManageSubscriptions():
 	db = sqlite.connect(DB)
 	for sub in db.execute('SELECT * FROM subscriptions'):
 		cm = []
+		meta = metaget.get_meta('tvshow',sub[1],year=sub[3])
+
+		###Temporary work around. t0mm0.common isn't happy with the episode key being a str
+		meta['episode'] = int(meta['episode'])
+		meta['rating'] = float(meta['rating'])
+
+		meta['title'] = format_label_sub(meta)
 		runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'CancelSubscription', 'url':sub[0], 'title':sub[1].encode('utf-8'), 'img':sub[2], 'year':sub[3], 'imdbnum':sub[4]})
 		cm.append(('Cancel subscription', runstring,))
-		addon.add_item({'mode':'ManageSubscriptions'},{'title':sub[1]},cm,True,sub[2],art('fanart.png'))
+		fanart = meta['backdrop_url'] or art('fanart.png')
+		img = meta['cover_url']
+		addon.add_item({'mode':'ManageSubscriptions'},meta,cm,True,img,fanart,is_folder=True)
 	db.close()
 	addon.end_of_directory()
 
