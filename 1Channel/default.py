@@ -147,7 +147,8 @@ def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie =
 	
 	try:
 		response = urllib2.urlopen(req, timeout=10)
-		body = response.read().decode('latin-1')
+		body = response.read()
+		body = unicode(body,'iso-8859-1')
 	except:
 		if not silent:
 			dialog = xbmcgui.Dialog()
@@ -162,9 +163,8 @@ def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie =
 			body = body + '<cookie>' + setcookie + '</cookie>'
 
 	response.close()
-	h = HTMLParser.HTMLParser()
-	body = h.unescape(body)
-	addon.log('Getting url. Unicode: %s' %isinstance(body, unicode))
+	# h = HTMLParser.HTMLParser()
+	# body = h.unescape(body)
 
 	db.execute('INSERT OR REPLACE INTO url_cache (url,response,timestamp) VALUES(?,?,?)',
 				(url, body, now))
@@ -300,7 +300,7 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
 				if item['multi-part']:
 					partnum = 2
 					for part in item['parts']:
-						label = format_label_source_parts(item, part_num)
+						label = format_label_source_parts(item, partnum)
 						partnum += 1
 						addon.add_directory({'mode':'PlaySource', 'url':part, 'title':title,
 											 'img':img, 'year':year, 'imdbnum':imdbnum,
@@ -764,8 +764,8 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
 				cm.append((label, runstring,))
 				
 				###Temporary work around. t0mm0.common isn't happy with the episode key being a str
-				meta['episode'] = int(meta['episode'])
-				meta['rating'] = float(meta['rating'])
+				# meta['episode'] = int(meta['episode'])
+				# meta['rating'] = float(meta['rating'])
 
 			except:
 				meta['cover_url'] = ''
@@ -776,7 +776,10 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
 				addon.log('Error getting metadata for %s season %s episode %s with imdbnum %s' % (ShowTitle,season,epnum,imdbnum))
 		else:
 			meta['cover_url'] = ''
+			meta['backdrop_url'] = ''
 			meta['title'] = eptitle
+			meta['season'] = season
+			meta['episode'] = epnum
 		img = meta['cover_url']
 
 		meta['TVShowTitle'] = ShowTitle
@@ -784,6 +787,7 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
 			meta['title'] = eptitle
 			addon.log('Episode title not found in metadata, using title from website')
 		if not meta['title']: meta['title'] = eptitle
+		addon.log(meta)
 		meta['title'] = format_tvshow_episode(meta)
 
 		if FANART_ON:
@@ -1288,7 +1292,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 						filename = '%sx%s %s.strm' %(seasonnum,epnum,eptitle)
 						final_path = os.path.join(save_path, ShowTitle, season, filename)
 						final_path = xbmc.makeLegalFilename(final_path).decode('utf-8')
-						final_path = final_path.replace(":","_")
+						# final_path = final_path.replace(":","_")
 						if not os.path.isdir(os.path.dirname(final_path)):
 							try:    os.makedirs(os.path.dirname(final_path))
 							except: addon.log('Failed to create directory %s' %final_path)
@@ -1309,7 +1313,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 		filename = '%s.strm' %title
 		final_path = os.path.join(save_path,title,filename)
 		final_path = xbmc.makeLegalFilename(final_path).decode('utf-8')
-		final_path = final_path.replace(":","_")
+		# final_path = final_path.replace(":","_")
 		if not os.path.isdir(os.path.dirname(final_path)):
 			try:    os.makedirs(os.path.dirname(final_path))
 			except: addon.log('Failed to create directory %s' %final_path)
@@ -1418,32 +1422,43 @@ def RefreshMetadata(video_type, old_title, imdb, alt_id, year, new_title=''):
 	metaget=metahandlers.MetaData()
 	if new_title: search_title = new_title
 	else: search_title = old_title
-	try:
-		search_meta = metaget.search_movies(search_title)
-		movie_list = ['Manual Search...']
-		for movie in search_meta:
-			if movie['year']: disptitle = '%s (%s)' %(movie['title'],movie['year'])
-			else: disptitle = movie['title']
-			movie_list.append(disptitle)
-		dialog = xbmcgui.Dialog()
-		index = dialog.select('Choose', movie_list)
+	# try:
+	if video_type =='tvshow':
+		api = metahandlers.TheTVDB()
+		results = api.get_matching_shows(search_title)
+		search_meta = []
+		for item in results:
+			option = {}
+			option['tvdb_id'] = item[0]
+			option['title']   = item[1]
+			option['imdb_id'] = item[2]
+			# option['year']	  = year
+			search_meta.append(option)
 
-		if index == 0:
-			RefreshMetadata_manual(video_type, old_title, imdb, alt_id, year)
-		if index > -1:
-			new_imdb_id = search_meta[index-1]['imdb_id']
-			if video_type =='tvshow':
-				new_tmdb_id = search_meta[index-1]['tmdb_id']
+	else: search_meta = metaget.search_movies(search_title)
+	print 'search_meta: %s' %search_meta
 
-				#Temporary work around for problem in metahandlers:
-				#'Error attempting to delete from cache table: no such column: year'
-				year = ''
+	option_list = ['Manual Search...']
+	for option in search_meta:
+		if 'year' in option: disptitle = '%s (%s)' %(option['title'],option['year'])
+		else: disptitle = option['title']
+		option_list.append(disptitle)
+	dialog = xbmcgui.Dialog()
+	index = dialog.select('Choose', option_list)
 
-			else: new_tmdb_id = ''
-			addon.log(search_meta[index-1])
-			meta = metaget.update_meta(video_type, old_title, imdb_id=imdb, tmdb_id=alt_id, new_imdb_id=new_imdb_id, new_tmdb_id=new_tmdb_id, year=year)
-			xbmc.executebuiltin('Container.Refresh')
-	except: RefreshMetadata_manual(video_type, old_title, imdb, alt_id, year)
+	if index == 0:
+		RefreshMetadata_manual(video_type, old_title, imdb, alt_id, year)
+	elif index > -1:
+		new_imdb_id = search_meta[index-1]['imdb_id']
+
+		#Temporary workaround for metahandlers problem:
+		#Error attempting to delete from cache table: no such column: year
+		if video_type =='tvshow': year = ''
+
+		addon.log(search_meta[index-1])
+		meta = metaget.update_meta(video_type, old_title, imdb, year=year)
+		xbmc.executebuiltin('Container.Refresh')
+	# except: RefreshMetadata_manual(video_type, old_title, imdb, alt_id, year)
 
 def RefreshMetadata_manual(video_type, old_title, imdb, alt_id, year):
 	keyboard = xbmc.Keyboard()
