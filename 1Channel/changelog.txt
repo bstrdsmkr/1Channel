@@ -34,6 +34,8 @@
 - B5 - Implemented customized labeling
 - B5 - Fixed search function caching keys
 - B6 - Moved Subscriptions menu to inside TV Shows menu
+- B7 - Merge Prono's patch to fix bookmark resuming
+- B7 - Merge Prono's patch to wait for subscriptions to finish updating before updating library
 
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results

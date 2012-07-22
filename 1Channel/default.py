@@ -1349,6 +1349,7 @@ def UpdateSubscriptions():
 	for sub in db.execute('SELECT * FROM subscriptions'):
 		AddToLibrary('tvshow',sub[0],sub[1].encode('utf-8'),sub[2],sub[3],sub[4])
 	db.close()
+	xbmc.executebuiltin('UpdateLibrary(video)')
 
 def ManageSubscriptions():
 	addon.add_item({'mode':'UpdateSubscriptions'}, {'title':'Update Subscriptions'})

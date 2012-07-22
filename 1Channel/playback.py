@@ -58,11 +58,11 @@ class Player(xbmc.Player):
 		db = sqlite.connect(DB)
 		bookmark = db.execute('SELECT bookmark FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?', (self.video_type, self.title, self.season, self.episode, self.year)).fetchone()
 		db.close()
-		if not self._sought and bookmark[0] and bookmark[0]-30 > 0:
-			question = 'Resume %s from %s?' %(self.title, format_time(bookmark))
+		if not self._sought and bookmark and bookmark[0] and bookmark[0]-30 > 0:
+			question = 'Resume %s from %s?' %(self.title, format_time(bookmark[0]))
 			resume = xbmcgui.Dialog()
 			resume = resume.yesno(self.title,'',question,'','Start from beginning','Resume')
-			if resume: self.seekTime(bookmark)
+			if resume: self.seekTime(bookmark[0])
 			self._sought = True
 
 
@@ -97,7 +97,10 @@ class Player(xbmc.Player):
 
 	def _trackPosition(self):
 		while self._playbackLock.isSet():
-			self._lastPos = self.getTime()
+			try:
+				self._lastPos = self.getTime()
+			except:
+				addon.log_debug('Error while trying to set playback time')
 			addon.log_debug('Inside Player. Tracker time = %s' % self._lastPos)
 			xbmc.sleep(SLEEP_MILLIS)
 		addon.log('Position tracker ending with lastPos = %s' % self._lastPos)

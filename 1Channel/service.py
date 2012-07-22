@@ -28,8 +28,7 @@ class AutoUpdater:
 						if xbmc.getCondVisibility('Library.IsScanningVideo') == False:      
 							xbmc.log('1Channel: Service: Updating subscriptions')
 							time.sleep(1)
-							xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=UpdateSubscriptions)') 
-							xbmc.executebuiltin('UpdateLibrary(video)')
+							xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=UpdateSubscriptions)')
 							time.sleep(1)
 							self.last_run = now
 						else: xbmc.log('1Channel: Service: Library is updating. Skipping subscription update')
