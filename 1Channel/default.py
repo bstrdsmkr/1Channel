@@ -415,7 +415,6 @@ def Search(section, query):
 		resurls = []
 		for s in regex:
 			resurl,title,year,thumb = s.groups()
-			meta = {'title':title, 'year':year}
 			if resurl not in resurls:
 				resurls.append(resurl)
 				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title.encode('utf-8'), 'url':BASE_URL+resurl, 'year':year})
@@ -430,37 +429,24 @@ def Search(section, query):
 
 				img = thumb
 				fanart = ''
-				meta['imdb_id'] = ''
+				meta = create_meta(video_type, title, year, img)
 
-				if META_ON:
-					try:
-						if video_type == 'tvshow':
-							meta = metaget.get_meta(video_type, title)
-							if not (meta['imdb_id'] or meta['tvdb_id']):
-								meta = metaget.get_meta(video_type, title, year=year)
-						else: meta = metaget.get_meta(video_type, title, year=year)
-
-						###Temporary work around. t0mm0.common isn't happy with the episode key being a str
-						meta['episode'] = int(meta['episode'])
-						meta['rating'] = float(meta['rating'])
-
-						if meta['trailer_url']:
-							url = meta['trailer_url']
-							url = re.sub('&feature=related','',url)
-							url = url.encode('base-64').strip()
-							runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
-							cm.append(('Watch Trailer', runstring,))
-						if meta['overlay'] == 6: label = 'Mark as watched'
-						else: label = 'Mark as unwatched'
-						runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
-						cm.append((label, runstring,))
-						
-						if video_type == 'tvshow' and not USE_POSTERS:
-							meta['cover_url'] = meta['banner_url']
-						if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
-							meta['cover_url'] = thumb
-						img = meta['cover_url']
-					except: addon.log('Error assigning meta data for %s %s %s' %(video_type, title, year))
+				if meta['trailer_url']:
+					url = meta['trailer_url']
+					url = re.sub('&feature=related','',url)
+					url = url.encode('base-64').strip()
+					runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
+					cm.append(('Watch Trailer', runstring,))
+				if meta['overlay'] == 6: label = 'Mark as watched'
+				else: label = 'Mark as unwatched'
+				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title.encode('utf-8'), 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
+				cm.append((label, runstring,))
+				
+				if video_type == 'tvshow' and not USE_POSTERS:
+					meta['cover_url'] = meta['banner_url']
+				if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
+					meta['cover_url'] = thumb
+				img = meta['cover_url']
 
 				if FANART_ON:
 					try: fanart = meta['backdrop_url']
@@ -577,7 +563,6 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 	resurls = []
 	for s in regex:
 		resurl,title,year,thumb = s.groups()
-		meta = {}
 		if resurl not in resurls:
 			addon.log(isinstance(title,unicode))
 			resurls.append(resurl)
@@ -593,44 +578,22 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 
 			img = thumb
 			fanart = ''
-			meta['imdb_id'] = ''
-
-			if META_ON:
-				# try:
-					if video_type == 'tvshow':
-						meta = metaget.get_meta(video_type, title.encode('utf-8'))
-						if not (meta['imdb_id'] or meta['tvdb_id']):
-							meta = metaget.get_meta(video_type, title.encode('utf-8'), year=year)
-						alt_id = meta['tvdb_id']
-
-						###Temporary work around. t0mm0.common isn't happy with the episode key being a str
-						meta['episode'] = int(meta['episode'])
-						meta['rating'] = float(meta['rating'])
-
-					else: #movie
-						meta = metaget.get_meta(video_type, title, year=year)
-						alt_id = meta['tmdb_id']
-
-					runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'], 'imdb':meta['imdb_id'], 'alt_id':alt_id, 'year':year})
-					runstring = 'RunPlugin(%s)'%runstring
-					cm.append(('Refresh Metadata', runstring))
-					if 'trailer_url' in meta:
-						url = meta['trailer_url']
-						url = re.sub('&feature=related','',url)
-						url = url.encode('base-64').strip()
-						runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
-						cm.append(('Watch Trailer', runstring,))
-					if meta['overlay'] == 6: label = 'Mark as watched'
-					else: label = 'Mark as unwatched'
-					runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title.encode('utf-8'), 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
-					cm.append((label, runstring,))
-					
-					if video_type == 'tvshow' and not USE_POSTERS:
-						meta['cover_url'] = meta['banner_url']
-					if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
-						meta['cover_url'] = thumb
-					img = meta['cover_url']
-				# except: addon.log('Error assigning meta data for %s %s %s' %(video_type, title, year))
+			
+			meta = create_meta(video_type, title, year, img)
+			
+			runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'], 'imdb':meta['imdb_id'], 'alt_id':alt_id, 'year':year})
+			runstring = 'RunPlugin(%s)'%runstring
+			cm.append(('Refresh Metadata', runstring))
+			if 'trailer_url' in meta:
+				url = meta['trailer_url']
+				url = re.sub('&feature=related','',url)
+				url = url.encode('base-64').strip()
+				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
+				cm.append(('Watch Trailer', runstring,))
+			if meta['overlay'] == 6: label = 'Mark as watched'
+			else: label = 'Mark as unwatched'
+			runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title.encode('utf-8'), 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
+			cm.append((label, runstring,))
 
 			if FANART_ON:
 				try: fanart = meta['backdrop_url']
@@ -823,38 +786,24 @@ def BrowseFavorites(section): #8000
 		favurl	  = row[2]
 		year	  = row[3]
 		cm		  = []
-		meta	  = {}
 		img = ''
 		fanart = ''
+		meta	  = create_meta(video_type, title, year, thumb = img)
 
-		if META_ON:
-			try:
-				try: 
-					meta = metaget.get_meta(video_type,title,year=year)
 
-					###Temporary work around. t0mm0.common isn't happy with the episode key being a str
-					meta['episode'] = int(meta['episode'])
-					meta['rating'] = float(meta['rating'])
+		if 'trailer_url' in meta:
+			url = meta['trailer_url']
+			url = re.sub('&feature=related','',url)
+			url = url.encode('base-64').strip()
+			runstring = 'RunScript(plugin.video.1channel,%s,?mode=PlayTrailer&url=%s)' %(sys.argv[1],url)
+			cm.append(('Watch Trailer', runstring))
 
-				except:addon.log('Failed to get metadata for %s %s %s' %(video_type,title,year))
+		if meta['overlay'] == 6: label = 'Mark as watched'
+		else: label = 'Mark as unwatched'
+		runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
+		cm.append((label, runstring))
 
-				if 'trailer_url' in meta:
-					url = meta['trailer_url']
-					url = re.sub('&feature=related','',url)
-					url = url.encode('base-64').strip()
-					runstring = 'RunScript(plugin.video.1channel,%s,?mode=PlayTrailer&url=%s)' %(sys.argv[1],url)
-					cm.append(('Watch Trailer', runstring))
-
-				if video_type == 'tvshow'and not USE_POSTERS:
-					meta['cover_url'] = meta['banner_url']
-				
-				if meta['overlay'] == 6: label = 'Mark as watched'
-				else: label = 'Mark as unwatched'
-				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
-				cm.append((label, runstring))
-
-				img = meta['cover_url']
-			except: addon.log('Error while assigning meta data for %s %s %s'%(video_type,title,year))
+		img = meta['cover_url']
 
 		if video_type == 'tvshow':
 			if favurl in subscriptions:
@@ -873,6 +822,34 @@ def BrowseFavorites(section): #8000
 							meta, cm, True, img, fanart, is_folder=folder)	
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 	db.close()
+
+def create_meta(video_type, title, year, thumb):
+	meta = {'title':title, 'year':year, 'imdb_id':'', 'overlay':''}
+	meta['imdb_id'] = ''
+	year = year or 0
+	if META_ON:
+		try:
+			if video_type == 'tvshow':
+				meta = metaget.get_meta(video_type, title.encode('utf-8'))
+				if not (meta['imdb_id'] or meta['tvdb_id']):
+					meta = metaget.get_meta(video_type, title.encode('utf-8'), year=year)
+				alt_id = meta['tvdb_id']
+
+				###Temporary work around. t0mm0.common isn't happy with the episode key being a str
+				meta['episode'] = int(meta['episode'])
+				meta['rating'] = float(meta['rating'])
+
+			else: #movie
+				meta = metaget.get_meta(video_type, title, year=year)
+				alt_id = meta['tmdb_id']
+
+			if video_type == 'tvshow' and not USE_POSTERS:
+				meta['cover_url'] = meta['banner_url']
+			if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
+				meta['cover_url'] = thumb
+			img = meta['cover_url']
+		except: addon.log('Error assigning meta data for %s %s %s' %(video_type, title, year))
+	return meta
 
 def scan_by_letter(section, letter):
 	print 'Building meta for %s letter %s' % (section,letter)
@@ -965,6 +942,40 @@ def extract_zip(src, dest):
 		else:                
 			print 'Extraction success!'
 			return True
+
+def create_meta_packs():
+	import shutil
+	global metaget
+	container = metacontainers.MetaContainer()
+	savpath = container.path
+	AZ_DIRECTORIES.append('123')
+	letters_completed = 0
+	letters_per_zip = 27
+	start_letter = ''
+	end_letter = ''
+
+	for type in ('tvshow','movie'):
+		for letter in AZ_DIRECTORIES:
+			if letters_completed == 0:
+				start_letter = letter
+				metaget.__del__()
+				shutil.rmtree(container.cache_path)
+				metaget=metahandlers.MetaData(preparezip=prepare_zip)
+
+			if letters_completed <= letters_per_zip:
+				scan_by_letter(type, letter)
+				letters_completed += 1
+
+			if (letters_completed == letters_per_zip
+				or letter == '123' or get_dir_size(container.cache_path) > (500*1024*1024)):
+				end_letter = letter
+				arcname = 'MetaPack-%s-%s-%s.zip' % (type, start_letter, end_letter)
+				arcname = os.path.join(savpath, arcname)
+				metaget.__del__()
+				zipdir(container.cache_path, arcname)
+				metaget=metahandlers.MetaData(preparezip=prepare_zip)
+				letters_completed = 0
+				xbmc.sleep(5000) 
 
 def create_meta_packs():
 	import shutil
@@ -1353,14 +1364,12 @@ def UpdateSubscriptions():
 
 def ManageSubscriptions():
 	addon.add_item({'mode':'UpdateSubscriptions'}, {'title':'Update Subscriptions'})
+	setView('tvshows', 'tvshows-view')
 	db = sqlite.connect(DB)
 	for sub in db.execute('SELECT * FROM subscriptions'):
 		cm = []
-		meta = metaget.get_meta('tvshow',sub[1],year=sub[3])
-
-		###Temporary work around. t0mm0.common isn't happy with the episode key being a str
-		meta['episode'] = int(meta['episode'])
-		meta['rating'] = float(meta['rating'])
+		# meta = metaget.get_meta('tvshow',sub[1],year=sub[3])
+		meta = create_meta('tvshow', sub[1], sub[3], '')
 
 		meta['title'] = format_label_sub(meta)
 		runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'CancelSubscription', 'url':sub[0], 'title':sub[1].encode('utf-8'), 'img':sub[2], 'year':sub[3], 'imdbnum':sub[4]})
