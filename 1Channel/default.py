@@ -489,7 +489,7 @@ def BrowseListMenu(section=None): #500
 
 def BrowseAlphabetMenu(section=None): #1000
 	print 'Browse by alphabet screen'
-	addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort':'alphabet', 'letter':'123'},   {'title':  '#123'}, img=art('#123.png'), fanart=art('fanart.png'))
+	addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort':'alphabet', 'letter':'123'},   {'title':  '#123'}, img=art('123.png'), fanart=art('fanart.png'))
 	for character in AZ_DIRECTORIES:
 		addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort':'alphabet', 'letter': character},   {'title':  character}, img=art(character+'.png'), fanart=art('fanart.png'))
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
