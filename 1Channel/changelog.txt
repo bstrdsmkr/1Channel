@@ -37,6 +37,9 @@
 - B7 - Merge Prono's patch to fix bookmark resuming
 - B7 - Merge Prono's patch to wait for subscriptions to finish updating before updating library
 - B7 - Unified metadata handling
+- B7 - Only mark TV Shows as watched if both season and episode are set
+- B7 - Fixed issues with metadata being turned off
+- B7 - Added option to execute SQL from search
 
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results

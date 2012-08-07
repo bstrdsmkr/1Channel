@@ -369,6 +369,11 @@ def GetSearchQuery(section):
 			if search_text == '!#create metapacks': create_meta_packs()
 			if search_text == '!#repair meta'	  : repair_missing_images()
 			if search_text == '!#install all meta': install_all_meta()
+			if search_text.startswith('!#sql'):
+				db = sqlite.connect(DB)
+				db.execute(search_text[5:])
+				db.commit()
+				db.close()
 		else:
 			Search(section, keyboard.getText())
 	else:
@@ -431,7 +436,7 @@ def Search(section, query):
 				fanart = ''
 				meta = create_meta(video_type, title, year, img)
 
-				if meta['trailer_url']:
+				if 'trailer_url' in meta:
 					url = meta['trailer_url']
 					url = re.sub('&feature=related','',url)
 					url = url.encode('base-64').strip()
@@ -441,12 +446,6 @@ def Search(section, query):
 				else: label = 'Mark as unwatched'
 				runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title.encode('utf-8'), 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
 				cm.append((label, runstring,))
-				
-				if video_type == 'tvshow' and not USE_POSTERS:
-					meta['cover_url'] = meta['banner_url']
-				if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
-					meta['cover_url'] = thumb
-				img = meta['cover_url']
 
 				if FANART_ON:
 					try: fanart = meta['backdrop_url']
@@ -461,9 +460,7 @@ def Search(section, query):
 
 				addon.add_directory({'mode':nextmode, 'title':title.encode('utf-8'), 'url':BASE_URL + resurl, 'img':thumb, 'imdbnum':meta['imdb_id'], 'video_type':video_type, 'year':year},
 									meta, cm, True, img, fanart, total_items=total, is_folder=folder)			
-
-
-	xbmcplugin.endOfDirectory(int(sys.argv[1]))
+	addon.end_of_directory()
 
 def AddonMenu():  #homescreen
 	print '1Channel menu'
@@ -583,7 +580,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			
 			runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'], 'imdb':meta['imdb_id'], 'alt_id':alt_id, 'year':year})
 			runstring = 'RunPlugin(%s)'%runstring
-			cm.append(('Refresh Metadata', runstring))
+			cm.append(('Refresh Metadata', runstring,))
 			if 'trailer_url' in meta:
 				url = meta['trailer_url']
 				url = re.sub('&feature=related','',url)
@@ -803,7 +800,7 @@ def BrowseFavorites(section): #8000
 		runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
 		cm.append((label, runstring))
 
-		img = meta['cover_url']
+		if META_ON: img = meta['cover_url']
 
 		if video_type == 'tvshow':
 			if favurl in subscriptions:
@@ -824,9 +821,10 @@ def BrowseFavorites(section): #8000
 	db.close()
 
 def create_meta(video_type, title, year, thumb):
+	try:    year = int(year)
+	except: year = 0
 	meta = {'title':title, 'year':year, 'imdb_id':'', 'overlay':''}
 	meta['imdb_id'] = ''
-	year = year or 0
 	if META_ON:
 		try:
 			if video_type == 'tvshow':
@@ -1374,8 +1372,12 @@ def ManageSubscriptions():
 		meta['title'] = format_label_sub(meta)
 		runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'CancelSubscription', 'url':sub[0], 'title':sub[1].encode('utf-8'), 'img':sub[2], 'year':sub[3], 'imdbnum':sub[4]})
 		cm.append(('Cancel subscription', runstring,))
-		fanart = meta['backdrop_url'] or art('fanart.png')
-		img = meta['cover_url']
+		if META_ON:
+			fanart = meta['backdrop_url']
+			img = meta['cover_url']
+		else:
+			fanart = art('fanart.png')
+			img = ''
 		addon.add_item({'mode':'ManageSubscriptions'},meta,cm,True,img,fanart,is_folder=True)
 	db.close()
 	addon.end_of_directory()
