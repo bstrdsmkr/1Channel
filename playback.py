@@ -33,7 +33,7 @@ def format_time(seconds):
 class Player(xbmc.Player):
 
 	def __init__(self, imdbnum, video_type, title, season, episode, year):
-		xbmc.Player.__init__(self)
+		xbmc.Player.__init__(self, xbmc.PLAYER_CORE_AUTO)
 		self._playbackLock = threading.Event()
 		self._playbackLock.set()
 		self._totalTime = 999999
