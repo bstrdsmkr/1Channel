@@ -578,7 +578,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 			
 			meta = create_meta(video_type, title, year, img)
 			
-			runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'], 'imdb':meta['imdb_id'], 'alt_id':alt_id, 'year':year})
+			runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'].encode('utf-8'), 'imdb':meta['imdb_id'], 'alt_id':alt_id, 'year':year})
 			runstring = 'RunPlugin(%s)'%runstring
 			cm.append(('Refresh Metadata', runstring,))
 			if 'trailer_url' in meta:
@@ -602,7 +602,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 					meta['title'] = format_label_sub(meta).decode('utf-8')
 				else:
 					meta['title'] = format_label_tvshow(meta).decode('utf-8')
-			else: meta['title'] = format_label_movie(meta).decode('utf-8')
+			else: meta['title'] = format_label_movie(meta)#.decode('utf-8')
 
 			addon.add_directory({'mode':nextmode, 'title':title.encode('utf-8'), 'url':BASE_URL + resurl, 'img':thumb, 'imdbnum':meta['imdb_id'], 'video_type':video_type, 'year':year},
 								meta, cm, True, img, fanart, total_items=total, is_folder=folder)			
