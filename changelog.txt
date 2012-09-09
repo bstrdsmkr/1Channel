@@ -40,6 +40,7 @@
 - B7 - Only mark TV Shows as watched if both season and episode are set
 - B7 - Fixed issues with metadata being turned off
 - B7 - Added option to execute SQL from search
+- B7 - Added support for remote MySQL databases
 
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results

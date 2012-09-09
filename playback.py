@@ -8,18 +8,36 @@ import xbmcgui
 from t0mm0.common.addon import Addon
 from metahandler import metahandlers
 
+addon = Addon('plugin.video.1channel', sys.argv)
 try:
-	from sqlite3 import dbapi2 as sqlite
-	print "Loading sqlite3 as DB engine"
+	db_name = 	 addon.get_setting('db_name')
+	db_user = 	 addon.get_setting('db_user')
+	db_pass = 	 addon.get_setting('db_pass')
+	db_address = addon.get_setting('db_address')
+
+	if  addon.get_setting('use_remote_db')=='true' and \
+		db_address is not None and \
+		db_user	   is not None and \
+		db_pass    is not None and \
+		db_name    is not None:
+		import mysql.connector as database
+		addon.log('Loading MySQL as DB engine')
+		DB = {'db':db_name, 'user':db_user, 'password':db_pass, 'host':db_address, 'buffered':True}
+	else:
+		addon.log('MySQL not enabled or not setup correctly')
+		raise ValueError('MySQL not enabled or not setup correctly')
 except:
-	from pysqlite2 import dbapi2 as sqlite
-	print "Loading pysqlite2 as DB engine"
+	try: 
+		from sqlite3 import dbapi2 as database
+		addon.log('Loading sqlite3 as DB engine')
+	except: 
+		from pysqlite2 import dbapi2 as database
+		addon.log('pysqlite2 as DB engine')
+	DB = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
 
 # Interval in millis to sleep when we're waiting around for 
 # async xbmc events to take complete
 SLEEP_MILLIS = 250
-DB = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
-addon = Addon('plugin.video.1channel', sys.argv)
 
 def format_time(seconds):
 	minutes,seconds = divmod(seconds, 60)
@@ -55,7 +73,7 @@ class Player(xbmc.Player):
 		self._totalTime = self.getTotalTime()
 		self._tracker = threading.Thread(target=self._trackPosition)
 		self._tracker.start()
-		db = sqlite.connect(DB)
+		db = database.connect(DB)
 		bookmark = db.execute('SELECT bookmark FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?', (self.video_type, self.title, self.season, self.episode, self.year)).fetchone()
 		db.close()
 		if not self._sought and bookmark and bookmark[0] and bookmark[0]-30 > 0:
@@ -79,13 +97,13 @@ class Player(xbmc.Player):
 		elif (((playedTime/self._totalTime) > min_watched_percent) and (self.video_type == 'movie' or (self.season and self.episode))):
 			addon.log('Threshold met. Marking item as watched')
 			self.ChangeWatched(self.imdbnum, self.video_type, self.title, self.season, self.episode, self.year, watched=7)
-			db = sqlite.connect(DB)
+			db = database.connect(DB)
 			db.execute('DELETE FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?', (self.video_type, self.title, self.season, self.episode, self.year))
 			db.commit()
 			db.close()
 		else:
 			addon.log('Threshold not met. Saving bookmark')
-			db = sqlite.connect(DB)
+			db = database.connect(DB)
 			db.execute('INSERT OR REPLACE INTO bookmarks (video_type, title, season, episode, year, bookmark) VALUES(?,?,?,?,?,?)',
 					  (self.video_type, self.title, self.season, self.episode, self.year, playedTime))
 			db.commit()

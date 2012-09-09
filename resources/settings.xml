@@ -81,5 +81,11 @@
     <setting id="theme" type="enum" label="30800" values="mikey1234|Glossy_Black" default="1"/>
     <setting id="auto-watch" type="bool" label="30801" default="true"/>
     <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="30802" default="2" enable="!eq(-1,false)"/>
+	<setting id="use_remote_db" type="bool" 	label="Use a remote MySQL DB" default="False"/>
+		<setting id="db_address" type="text" 	label="    Address"	enable="eq(-1,true)" default="" />
+		<setting id="db_port" 	 type="integer" label="    Port"		enable="eq(-2,true)" default="" />
+		<setting id="db_user" 	 type="text" 	label="    Username"	enable="eq(-3,true)" default="" />
+		<setting id="db_pass"	 type="text" 	label="    Password" 	enable="eq(-4,true)" default="" option="hidden"/>
+		<setting id="db_name"	 type="text" 	label="    Database" 	enable="eq(-5,true)" default="1channel" />
 	</category>
 </settings>

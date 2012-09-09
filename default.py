@@ -40,15 +40,33 @@ import metapacks
 import playback
 from utils import *
 
-try:
-	from sqlite3 import dbapi2 as sqlite
-	print "Loading sqlite3 as DB engine"
-except:
-	from pysqlite2 import dbapi2 as sqlite
-	print "Loading pysqlite2 as DB engine"
-
 addon = Addon('plugin.video.1channel', sys.argv)
-DB = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
+try:
+	DB_NAME = 	 addon.get_setting('db_name')
+	DB_USER = 	 addon.get_setting('db_user')
+	DB_PASS = 	 addon.get_setting('db_pass')
+	DB_ADDRESS = addon.get_setting('db_address')
+
+	if  addon.get_setting('use_remote_db')=='true' and \
+		DB_ADDRESS is not None and \
+		DB_USER	   is not None and \
+		DB_PASS    is not None and \
+		DB_NAME    is not None:
+		import mysql.connector as database
+		addon.log('Loading MySQL as DB engine')
+		DB = 'mysql'
+	else:
+		addon.log('MySQL not enabled or not setup correctly')
+		raise ValueError('MySQL not enabled or not setup correctly')
+except:
+	try: 
+		from sqlite3 import dbapi2 as database
+		addon.log('Loading sqlite3 as DB engine')
+	except: 
+		from pysqlite2 import dbapi2 as database
+		addon.log('pysqlite2 as DB engine')
+	DB = 'sqlite'
+	db_dir = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
 
 META_ON = addon.get_setting('use-meta') == 'true'
 FANART_ON = addon.get_setting('enable-fanart') == 'true'
@@ -80,55 +98,82 @@ def art(file):
 
 def initDatabase():
 	addon.log('Building 1channel Database')
-	if not os.path.isdir(os.path.dirname(DB)):
-		os.makedirs(os.path.dirname(DB))
-	db = sqlite.connect(DB)
-	db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
-	db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
-	db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum)')
-	db.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type, title, season, episode, year, bookmark)')
-	db.execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
-	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
-	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
-	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (video_type, title, season, episode, year)')
-	db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
+	if DB == 'mysql':
+		db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+		cur = db.cursor()
+		cur.execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER, contents TEXT)')
+		try: cur.execute('CREATE UNIQUE INDEX unique_sea ON seasons (season)')
+		except: pass
+		cur.execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url TEXT, year VARCHAR(10))')
+		cur.execute('CREATE TABLE IF NOT EXISTS subscriptions (url TEXT, title TEXT, img TEXT, year TEXT, imcurnum TEXT)')
+		cur.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type VARCHAR(10), title TEXT, season INTEGER, episode INTEGER, year TEXT, bookmark TEXT)')
+		cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url TEXT, response TEXT, timestamp TEXT)')
+		try: cur.execute('CREATE UNIQUE INDEX unique_sea ON url_cache (url)')
+		except: pass
+		try: cur.execute('CREATE UNIQUE INDEX unique_fav ON favorites (name, url)')
+		except: pass
+		try: cur.execute('CREATE UNIQUE INDEX unique_sub ON subscriptions (url, title, year)')
+		except: pass
+		try: cur.execute('CREATE UNIQUE INDEX unique_bmk ON bookmarks (video_type, title, season, episode, year)')
+		except: pass
+		try: cur.execute('CREATE UNIQUE INDEX unique_url ON url_cache (url)')
+		except: pass
+
+	else:
+		if not os.path.isdir(os.path.dirname(db_dir)):
+			os.makedirs(os.path.dirname(db_dir))
+		db = database.connect(db_dir)
+		db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
+		db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
+		db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum)')
+		db.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type, title, season, episode, year, bookmark)')
+		db.execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
+		db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
+		db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
+		db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (video_type, title, season, episode, year)')
+		db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
 	db.commit()
 	db.close()
 
-def SaveFav(type, name, url, img, year): #8888
-	addon.log('Saving Favorite type: %s name: %s url: %s img: %s year: %s' %(type, name, url, img, year))
-	if type != 'tv': type = 'movie'
-	db = sqlite.connect( DB )
+def SaveFav(fav_type, name, url, img, year): #8888
+	addon.log('Saving Favorite type: %s name: %s url: %s img: %s year: %s' %(fav_type, name, url, img, year))
+	if fav_type != 'tv': fav_type = 'movie'
+	if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+	else: db = database.connect( db_dir )
 	cursor = db.cursor()
 	statement  = 'INSERT INTO favorites (type, name, url, year) VALUES (?,?,?,?)'
 	try: 
-		cursor.execute(statement, (type, urllib.unquote_plus(unicode(name,'latin1')), url, year))
+		cursor.execute(statement, (fav_type, urllib.unquote_plus(unicode(name,'latin1')), url, year))
 		builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000)'
 		xbmc.executebuiltin(builtin)
-	except sqlite.IntegrityError: 
+	except database.IntegrityError: 
 		builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000)'
 		xbmc.executebuiltin(builtin)
 	db.commit()
 	db.close()
 
-def DeleteFav(type, name, url): #7777
+def DeleteFav(fav_type, name, url): #7777
 	if type != 'tv': type = 'movie'
 	print 'Deleting Fav: %s\n %s\n %s\n' % (type,name,url)
-	db = sqlite.connect( DB )
+	if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+	else: db = database.connect( db_dir )
 	cursor = db.cursor()
-	cursor.execute('DELETE FROM favorites WHERE type=? AND name=? AND url=?', (type, name, url))
+	cursor.execute('DELETE FROM favorites WHERE type=? AND name=? AND url=?', (fav_type, name, url))
 	db.commit()
 	db.close()
 
 def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie = False, silent = False, use_cache=True):
 	addon.log('Fetching URL: %s' % url)
-	db = sqlite.connect( DB )
+	if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+	else: db = database.connect( db_dir )
+	cur = db.cursor()
 	now = time.time()
 	if use_cache:
 		limit = 60*60*8 #8 hours
-		cached = db.execute('SELECT * FROM url_cache WHERE url = ?', (url,)).fetchone()
+		cur.execute('SELECT * FROM url_cache WHERE url = "%s"' %url)
+		cached = cur.fetchone()
 		if cached:
-			created = int(cached[2])
+			created = float(cached[2])
 			age = now - created
 			if age < limit:
 				addon.log('Returning cached result for %s' %url)
@@ -166,8 +211,10 @@ def GetURL(url, params = None, referrer = BASE_URL, cookie = None, save_cookie =
 	# h = HTMLParser.HTMLParser()
 	# body = h.unescape(body)
 
-	db.execute('INSERT OR REPLACE INTO url_cache (url,response,timestamp) VALUES(?,?,?)',
-				(url, body, now))
+	sql = "REPLACE INTO url_cache (url,response,timestamp) VALUES(%s,%s,%s)"
+	if DB == 'sqlite':
+		sql = 'INSERT OR ' + sql.replace('%s','?')
+	cur.execute(sql, (url, body, now))
 	db.commit()
 	db.close()
 	return body
@@ -370,7 +417,8 @@ def GetSearchQuery(section):
 			if search_text == '!#repair meta'	  : repair_missing_images()
 			if search_text == '!#install all meta': install_all_meta()
 			if search_text.startswith('!#sql'):
-				db = sqlite.connect(DB)
+				if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+				else: db = database.connect( db_dir )
 				db.execute(search_text[5:])
 				db.commit()
 				db.close()
@@ -391,8 +439,12 @@ def Search(section, query):
 		nextmode = 'TVShowSeasonList'
 		video_type = 'tvshow'
 		folder = True
-		db = sqlite.connect(DB)
-		subscriptions = db.execute('SELECT url FROM subscriptions').fetchall()
+		if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+		else: db = database.connect( db_dir )
+		cur = db.cursor()
+		cur.execute('SELECT url FROM subscriptions')
+		subscriptions = cur.fetchall()
+		print subscriptions
 		db.close()
 		subscriptions = [row[0] for row in subscriptions]
 
@@ -463,10 +515,11 @@ def Search(section, query):
 	addon.end_of_directory()
 
 def AddonMenu():  #homescreen
-	print '1Channel menu'
+	addon.log('Main Menu')
 	addon.add_directory({'mode': 'BrowseListMenu', 'section': ''},   {'title':  'Movies'}, img=art('movies.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'BrowseListMenu', 'section': 'tv'}, {'title':  'TV shows'}, img=art('television.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'ResolverSettings'},   {'title':  'Resolver Settings'}, img=art('settings.png'), fanart=art('fanart.png'))
+	# addon.add_directory({'mode': 'test'},   {'title':  'Test'}, img=art('settings.png'), fanart=art('fanart.png'))
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def BrowseListMenu(section=None): #500
@@ -536,8 +589,11 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 		nextmode = 'TVShowSeasonList'
 		video_type = 'tvshow'
 		folder = True
-		db = sqlite.connect(DB)
-		subscriptions = db.execute('SELECT url FROM subscriptions').fetchall()
+		if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+		else: db = database.connect( db_dir )
+		cur = db.cursor()
+		cur.execute('SELECT url FROM subscriptions')
+		subscriptions = cur.fetchall()
 		db.close()
 		subscriptions = [row[0] for row in subscriptions]
 
@@ -636,7 +692,15 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 		net.set_cookies(cookiejar)
 		html = net.http_GET(adulturl, headers=headers).content
 
-	db = sqlite.connect( DB )
+	sql = 'REPLACE into seasons (season,contents) VALUES(?,?)'
+	if DB == 'mysql':
+		sql = sql.replace('?','%s')
+		db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+	else:
+		sql = 'INSERT or ' + sql
+		db = database.connect( db_dir )
+	cur = db.cursor()
+	
 
 	try:
 		new_imdb = re.search('mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"', html).group(1)
@@ -683,8 +747,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 				temp['title'] = season_name
 
 				addon.log('Season name: %s' %season_name)
-				db.execute('INSERT or REPLACE into seasons (season,contents) VALUES(?,?)',
-								(season_name, eplist))
+				cur.execute(sql, (season_name, eplist))
 
 				addon.add_directory({'mode':'TVShowEpisodeList', 'season':season_name, 'imdbnum':imdbnum, 'title':title},
 									temp, img=temp['cover_url'], fanart=fanart,
@@ -697,9 +760,14 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 		db.close()
 
 def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
-	db = sqlite.connect( DB )
-	eplist = db.execute('SELECT contents FROM seasons WHERE season=?', (season,))
-	eplist = eplist.fetchone()[0]
+	sql = 'SELECT contents FROM seasons WHERE season=?'
+	if DB == 'mysql':
+		sql = sql.replace('?','%s')
+		db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+	else: db = database.connect( db_dir )
+	cur = db.cursor()
+	cur.execute(sql, (season,))
+	eplist = cur.fetchone()[0]
 	db.close()
 	r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
 	episodes = re.finditer(r, eplist, re.DOTALL)
@@ -761,15 +829,21 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
 	setView('episodes', 'episodes-view')
 	addon.end_of_directory()
 
-def BrowseFavorites(section): #8000
-	db = sqlite.connect( DB )
+def BrowseFavorites(section):
+	sql = 'SELECT type, name, url, year FROM favorites WHERE type = ? ORDER BY name'
+	if DB == 'mysql':
+		db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+		sql = sql.replace('?','%s')
+	else: db = database.connect( db_dir )
+	cur = db.cursor()
 	if section == 'tv':  setView('tvshows', 'tvshows-view')
 	else: setView('movies', 'movies-view')
 	if section == 'tv':
 		nextmode = 'TVShowSeasonList'
 		video_type = 'tvshow'
 		folder = True
-		subscriptions = db.execute('SELECT url FROM subscriptions').fetchall()
+		cur.execute('SELECT url FROM subscriptions')
+		subscriptions = cur.fetchall()
 		subscriptions = [row[0] for row in subscriptions]
 	else: 
 		nextmode = 'GetSources'
@@ -777,7 +851,8 @@ def BrowseFavorites(section): #8000
 		video_type 	 = 'movie'
 		folder   = addon.get_setting('auto-play')=='false'
 
-	favs = db.execute('SELECT type, name, url, year FROM favorites WHERE type = ? ORDER BY name', (section,))
+	cur.execute(sql, (section,))
+	favs = cur.fetchall()
 	for row in favs:
 		title	  = row[1]
 		favurl	  = row[2]
@@ -786,7 +861,6 @@ def BrowseFavorites(section): #8000
 		img = ''
 		fanart = ''
 		meta	  = create_meta(video_type, title, year, thumb = img)
-
 
 		if 'trailer_url' in meta:
 			url = meta['trailer_url']
@@ -823,30 +897,31 @@ def BrowseFavorites(section): #8000
 def create_meta(video_type, title, year, thumb):
 	try:    year = int(year)
 	except: year = 0
+	year = str(year)
 	meta = {'title':title, 'year':year, 'imdb_id':'', 'overlay':''}
 	meta['imdb_id'] = ''
 	if META_ON:
-		try:
-			if video_type == 'tvshow':
-				meta = metaget.get_meta(video_type, title.encode('utf-8'))
-				if not (meta['imdb_id'] or meta['tvdb_id']):
-					meta = metaget.get_meta(video_type, title.encode('utf-8'), year=year)
-				alt_id = meta['tvdb_id']
+		# try:
+		if video_type == 'tvshow':
+			meta = metaget.get_meta(video_type, title.encode('utf-8'))
+			if not (meta['imdb_id'] or meta['tvdb_id']):
+				meta = metaget.get_meta(video_type, title.encode('utf-8'), year=year)
+			alt_id = meta['tvdb_id']
 
-				###Temporary work around. t0mm0.common isn't happy with the episode key being a str
-				meta['episode'] = int(meta['episode'])
-				meta['rating'] = float(meta['rating'])
+			###Temporary work around. t0mm0.common isn't happy with the episode key being a str
+			meta['episode'] = int(meta['episode'])
+			meta['rating'] = float(meta['rating'])
 
-			else: #movie
-				meta = metaget.get_meta(video_type, title, year=year)
-				alt_id = meta['tmdb_id']
+		else: #movie
+			meta = metaget.get_meta(video_type, title, year=year)
+			alt_id = meta['tmdb_id']
 
-			if video_type == 'tvshow' and not USE_POSTERS:
-				meta['cover_url'] = meta['banner_url']
-			if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
-				meta['cover_url'] = thumb
-			img = meta['cover_url']
-		except: addon.log('Error assigning meta data for %s %s %s' %(video_type, title, year))
+		if video_type == 'tvshow' and not USE_POSTERS:
+			meta['cover_url'] = meta['banner_url']
+		if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
+			meta['cover_url'] = thumb
+		img = meta['cover_url']
+		# except: addon.log('Error assigning meta data for %s %s %s' %(video_type, title, year))
 	return meta
 
 def scan_by_letter(section, letter):
@@ -1130,8 +1205,9 @@ def format_eta(seconds):
 
 def repair_missing_images():
 	mc = metacontainers.MetaContainer()
-	dbcon = sqlite.connect(mc.videocache)
-	dbcur = dbcon.cursor()
+	if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+	else: db = database.connect( mc.videocache )
+	dbcur = db.cursor()
 	dp = xbmcgui.DialogProgress()
 	dp.create('Repairing Images', '', '', '')
 	for type in ('tvshow','movie'):
@@ -1326,35 +1402,38 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 		if not os.path.isdir(os.path.dirname(final_path)):
 			try:    os.makedirs(os.path.dirname(final_path))
 			except: addon.log('Failed to create directory %s' %final_path)
-		# try:
-		file = open(final_path,'w')
-		file.write(strm_string)
-		file.close()
-		# except: addon.log('Failed to create .strm file: %s' %final_path)
+		try:
+			file = open(final_path,'w')
+			file.write(strm_string)
+			file.close()
+		except: addon.log('Failed to create .strm file: %s' %final_path)
 
 def AddSubscription(url, title, img, year, imdbnum):
 	try:
-		db = sqlite.connect(DB)
+		if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+		else: db = database.connect( db_dir )
 		db.execute('INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?,?,?,?,?)', (url, unicode(title,'utf-8'), img, year, imdbnum))
 		db.commit()
 		db.close()
 		AddToLibrary('tvshow', url, title, img, year, imdbnum)
 		builtin = "XBMC.Notification(Subscribe,Subscribed to '%s',2000)" %title
 		xbmc.executebuiltin(builtin)
-	except sqlite.IntegrityError:
+	except database.IntegrityError:
 		builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000)" %title
 		xbmc.executebuiltin(builtin)
 	xbmc.executebuiltin('Container.Update')
 
 def CancelSubscription(url, title, img, year, imdbnum):
-	db = sqlite.connect(DB)
+	if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+	else: db = database.connect( db_dir )
 	db.execute('DELETE FROM subscriptions WHERE url=? AND title=? AND year=?', (url,unicode(title,'utf-8'),year))
 	db.commit()
 	db.close()
 	xbmc.executebuiltin('Container.Refresh')
 
 def UpdateSubscriptions():
-	db = sqlite.connect(DB)
+	if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+	else: db = database.connect( db_dir )
 	for sub in db.execute('SELECT * FROM subscriptions'):
 		AddToLibrary('tvshow',sub[0],sub[1].encode('utf-8'),sub[2],sub[3],sub[4])
 	db.close()
@@ -1363,8 +1442,12 @@ def UpdateSubscriptions():
 def ManageSubscriptions():
 	addon.add_item({'mode':'UpdateSubscriptions'}, {'title':'Update Subscriptions'})
 	setView('tvshows', 'tvshows-view')
-	db = sqlite.connect(DB)
-	for sub in db.execute('SELECT * FROM subscriptions'):
+	if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+	else: db = database.connect( db_dir )
+	cur = db.cursor()
+	cur.execute('SELECT * FROM subscriptions')
+	subs = cur.fetchall()
+	for sub in subs:
 		cm = []
 		# meta = metaget.get_meta('tvshow',sub[1],year=sub[3])
 		meta = create_meta('tvshow', sub[1], sub[3], '')
