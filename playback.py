@@ -10,19 +10,19 @@ from metahandler import metahandlers
 
 addon = Addon('plugin.video.1channel', sys.argv)
 try:
-	db_name = 	 addon.get_setting('db_name')
-	db_user = 	 addon.get_setting('db_user')
-	db_pass = 	 addon.get_setting('db_pass')
-	db_address = addon.get_setting('db_address')
+	DB_NAME = 	 addon.get_setting('db_name')
+	DB_USER = 	 addon.get_setting('db_user')
+	DB_PASS = 	 addon.get_setting('db_pass')
+	DB_ADDRESS = addon.get_setting('db_address')
 
 	if  addon.get_setting('use_remote_db')=='true' and \
-		db_address is not None and \
-		db_user	   is not None and \
-		db_pass    is not None and \
-		db_name    is not None:
+		DB_ADDRESS is not None and \
+		DB_USER	   is not None and \
+		DB_PASS    is not None and \
+		DB_NAME    is not None:
 		import mysql.connector as database
 		addon.log('Loading MySQL as DB engine')
-		DB = {'db':db_name, 'user':db_user, 'password':db_pass, 'host':db_address, 'buffered':True}
+		DB = 'mysql'
 	else:
 		addon.log('MySQL not enabled or not setup correctly')
 		raise ValueError('MySQL not enabled or not setup correctly')
@@ -33,7 +33,8 @@ except:
 	except: 
 		from pysqlite2 import dbapi2 as database
 		addon.log('pysqlite2 as DB engine')
-	DB = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
+	DB = 'sqlite'
+	db_dir = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
 
 # Interval in millis to sleep when we're waiting around for 
 # async xbmc events to take complete
@@ -63,6 +64,7 @@ class Player(xbmc.Player):
 		self.season = season
 		self.episode = episode
 		self.year = year
+
 		addon.log('Player created')
 
 	def __del__(self):
@@ -73,19 +75,27 @@ class Player(xbmc.Player):
 		self._totalTime = self.getTotalTime()
 		self._tracker = threading.Thread(target=self._trackPosition)
 		self._tracker.start()
-		db = database.connect(DB)
-		bookmark = db.execute('SELECT bookmark FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?', (self.video_type, self.title, self.season, self.episode, self.year)).fetchone()
+		sql = 'SELECT bookmark FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?'
+		if DB == 'mysql':
+			sql = sql.replace('?','%s')
+			db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+		else:
+			db = database.connect(DB)
+		cur = db.cursor()
+		cur.execute(sql, (self.video_type, self.title, self.season, self.episode, self.year))
+		bookmark = cur.fetchone()
 		db.close()
-		if not self._sought and bookmark and bookmark[0] and bookmark[0]-30 > 0:
-			question = 'Resume %s from %s?' %(self.title, format_time(bookmark[0]))
-			resume = xbmcgui.Dialog()
-			resume = resume.yesno(self.title,'',question,'','Start from beginning','Resume')
-			if resume: self.seekTime(bookmark[0])
-			self._sought = True
-
+		if bookmark:
+			bookmark = float(bookmark[0])
+			if not (self._sought and (bookmark-30 > 0)):
+				question = 'Resume %s from %s?' %(self.title, format_time(bookmark))
+				resume = xbmcgui.Dialog()
+				resume = resume.yesno(self.title,'',question,'','Start from beginning','Resume')
+				if resume: self.seekTime(bookmark)
+				self._sought = True
 
 	def onPlayBackStopped(self):
-		addon.log('> onPlayBackStopped')
+		addon.log('onPlayBackStopped')
 		self._playbackLock.clear()
 
 		playedTime = self._lastPos
@@ -97,15 +107,28 @@ class Player(xbmc.Player):
 		elif (((playedTime/self._totalTime) > min_watched_percent) and (self.video_type == 'movie' or (self.season and self.episode))):
 			addon.log('Threshold met. Marking item as watched')
 			self.ChangeWatched(self.imdbnum, self.video_type, self.title, self.season, self.episode, self.year, watched=7)
-			db = database.connect(DB)
-			db.execute('DELETE FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?', (self.video_type, self.title, self.season, self.episode, self.year))
+			sql = 'DELETE FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?'
+			if DB == 'mysql':
+				sql = sql.replace('?','%s')
+				db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+			else:
+				db = database.connect(db_dir)
+			cur = db.cursor()
+			cur.execute(sql, (self.video_type, self.title, self.season, self.episode, self.year))
 			db.commit()
 			db.close()
 		else:
 			addon.log('Threshold not met. Saving bookmark')
-			db = database.connect(DB)
-			db.execute('INSERT OR REPLACE INTO bookmarks (video_type, title, season, episode, year, bookmark) VALUES(?,?,?,?,?,?)',
-					  (self.video_type, self.title, self.season, self.episode, self.year, playedTime))
+			sql = 'REPLACE INTO bookmarks (video_type, title, season, episode, year, bookmark) VALUES(?,?,?,?,?,?)'
+			if DB == 'mysql':
+				sql = sql.replace('?','%s')
+				db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+			else:
+				sql = 'INSERT or ' + sql
+				db = database.connect(db_dir)
+			cur = db.cursor()
+			cur.execute(sql, (self.video_type, self.title, self.season,
+							  self.episode, self.year, playedTime))
 			db.commit()
 			db.close()
 
