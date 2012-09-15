@@ -41,6 +41,7 @@
 - B7 - Fixed issues with metadata being turned off
 - B7 - Added option to execute SQL from search
 - B7 - Added support for remote MySQL databases
+- B7 - Made library update after subscription run optional
 
 [B]Version 0.1.5[/B]
 - Fixed year missing from search results

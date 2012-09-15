@@ -11,6 +11,7 @@ def format_label_tvshow(info):
 	else: year = ''
 	title = info['title']
 	if isinstance(title, unicode):
+		print 'Converting unicode title'
 		title = title.encode('utf-8')
 	label = addon.get_setting('format-tvshow')
 	label = label.replace('{t}', title)

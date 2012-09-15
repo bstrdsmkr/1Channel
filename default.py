@@ -102,22 +102,13 @@ def initDatabase():
 	if DB == 'mysql':
 		db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
 		cur = db.cursor()
-		cur.execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER, contents TEXT)')
-		try: cur.execute('CREATE UNIQUE INDEX unique_sea ON seasons (season)')
-		except: pass
-		cur.execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url TEXT, year VARCHAR(10))')
-		cur.execute('CREATE TABLE IF NOT EXISTS subscriptions (url TEXT, title TEXT, img TEXT, year TEXT, imcurnum TEXT)')
-		cur.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type VARCHAR(10), title TEXT, season INTEGER, episode INTEGER, year TEXT, bookmark TEXT)')
-		cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url TEXT, response TEXT, timestamp TEXT)')
-		try: cur.execute('CREATE UNIQUE INDEX unique_sea ON url_cache (url)')
-		except: pass
-		try: cur.execute('CREATE UNIQUE INDEX unique_fav ON favorites (name, url)')
-		except: pass
-		try: cur.execute('CREATE UNIQUE INDEX unique_sub ON subscriptions (url, title, year)')
-		except: pass
+		cur.execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
+		cur.execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
+		cur.execute('CREATE TABLE IF NOT EXISTS subscriptions (url VARCHAR(255) UNIQUE, title TEXT, img TEXT, year TEXT, imdbnum TEXT)')
+		cur.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type VARCHAR(10), title VARCHAR(255), season INTEGER, episode INTEGER, year VARCHAR(10), bookmark VARCHAR(10))')
+		cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response TEXT, timestamp TEXT)')
+
 		try: cur.execute('CREATE UNIQUE INDEX unique_bmk ON bookmarks (video_type, title, season, episode, year)')
-		except: pass
-		try: cur.execute('CREATE UNIQUE INDEX unique_url ON url_cache (url)')
 		except: pass
 
 	else:
@@ -1487,9 +1478,13 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 
 def AddSubscription(url, title, img, year, imdbnum):
 	try:
-		if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+		sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?,?,?,?,?)'
+		if DB == 'mysql':
+			db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+			sql = sql.replace('?','%s')
 		else: db = database.connect( db_dir )
-		db.execute('INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?,?,?,?,?)', (url, unicode(title,'utf-8'), img, year, imdbnum))
+		cur = db.cursor()
+		cur.execute(sql, (url, unicode(title,'utf-8'), img, year, imdbnum))
 		db.commit()
 		db.close()
 		AddToLibrary('tvshow', url, title, img, year, imdbnum)
@@ -1517,7 +1512,8 @@ def UpdateSubscriptions():
 	for sub in subs:
 		AddToLibrary('tvshow',sub[0],sub[1],sub[2],sub[3],sub[4])
 	db.close()
-	xbmc.executebuiltin('UpdateLibrary(video)')
+	if addon.get_setting('library-update') == 'true':
+		xbmc.executebuiltin('UpdateLibrary(video)')
 
 def ManageSubscriptions():
 	addon.add_item({'mode':'UpdateSubscriptions'}, {'title':'Update Subscriptions'})

@@ -2,7 +2,7 @@
   
     <!-- Meta Data -->
     <string id="30600">Enable MetaData</string>
-	<string id="30601">       Set Meta Path</string>
+	<string id="30601">       MetaData Settings...</string>
 	<string id="30602">       Enable Fanart</string>
 	<string id="30603">       Use posters for TV shows</string>
 	<string id="30604">              Fallback if unavailable</string>
@@ -31,6 +31,7 @@
 	<string id="30804">Movie Folder:</string>
 	<string id="30805">Enable automatic subscription updates</string>
 	<string id="30806">Subscription update interval</string>
+	<string id="30807">Update library afterward?</string>
 
 	<string id="30905">Auto-play</string>
 	<string id="30900">Enable sorting of sources</string>
