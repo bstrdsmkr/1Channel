@@ -147,6 +147,7 @@ class Player(xbmc.Player):
 		addon.log('Position tracker ending with lastPos = %s' % self._lastPos)
 
 	def ChangeWatched(self, imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
+		# print "Change Watched: ", imdb_id, video_type, name, season, episode, year
 		metaget=metahandlers.MetaData(False)
 		metaget.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
 

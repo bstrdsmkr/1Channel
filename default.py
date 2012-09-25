@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-sys.stdout.encoding = 'utf-8'
+# sys.stdout.encoding = 'utf-8'
 
 import re
 import os
@@ -345,8 +345,8 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
 def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
 	addon.log('Attempting to play url: %s' % url)
 	stream_url = urlresolver.HostedMediaFile(url=url).resolve()
-	playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-	playlist.clear()
+	# playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+	# playlist.clear()
 	listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
 	if META_ON:
 		if video_type == 'episode':
@@ -363,9 +363,9 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
 				listitem.setInfo(type="Video", infoLabels=meta)
 			except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
 	addon.resolve_url(stream_url)
-	playlist.add(url=stream_url, listitem=listitem)
+	# playlist.add(url=stream_url, listitem=listitem)
 	player = playback.Player(imdbnum=imdbnum, video_type=video_type, title=title, season=season, episode=episode, year=year)
-	player.play(playlist)
+	player.play(stream_url, listitem)
 	while player._playbackLock.isSet():
 		xbmc.sleep(250)
 
