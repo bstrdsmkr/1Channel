@@ -1463,11 +1463,12 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 
 						playurl = BASE_URL + epurl
 						strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle, 'img':'', 'dialog':1})
-						try:
-							file = open(final_path,'w')
-							file.write(strm_string)
-							file.close()
-						except: addon.log('Failed to create .strm file: %s' %final_path)
+						if not os.path.isfile(final_path):
+							try:
+								file = open(final_path,'w')
+								file.write(strm_string)
+								file.close()
+							except: addon.log('Failed to create .strm file: %s' %final_path)
 
 	elif video_type == 'movie' :
 		save_path = addon.get_setting('movie-folder')
@@ -1481,11 +1482,12 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 		if not os.path.isdir(os.path.dirname(final_path)):
 			try:    os.makedirs(os.path.dirname(final_path))
 			except: addon.log('Failed to create directory %s' %final_path)
-		try:
-			file = open(final_path,'w')
-			file.write(strm_string)
-			file.close()
-		except: addon.log('Failed to create .strm file: %s' %final_path)
+		if not os.path.isfile(final_path):
+			try:
+				file = open(final_path,'w')
+				file.write(strm_string)
+				file.close()
+			except: addon.log('Failed to create .strm file: %s' %final_path)
 
 def AddSubscription(url, title, img, year, imdbnum):
 	try:
