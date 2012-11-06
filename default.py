@@ -495,8 +495,19 @@ def Search(section, query):
 					else:
 						meta['title'] = format_label_tvshow(meta)
 
-				addon.add_directory({'mode':nextmode, 'title':title, 'url':BASE_URL + resurl, 'img':thumb, 'imdbnum':meta['imdb_id'], 'video_type':video_type, 'year':year},
-									meta, cm, True, img, fanart, total_items=total, is_folder=folder)			
+				listitem = xbmcgui.ListItem(meta['title'], iconImage=img, 
+								thumbnailImage=img)
+				listitem.setInfo('video', meta)
+				listitem.setProperty('fanart_image', fanart)
+				listitem.addContextMenuItems(cm)
+				queries = {'mode':nextmode, 'title':title, 'url':BASE_URL + resurl,
+						   'img':thumb, 'imdbnum':meta['imdb_id'],
+						   'video_type':video_type, 'year':year}
+				li_url = addon.build_plugin_url(queries)
+				xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, 
+											isFolder=folder, totalItems=total)	
+				# addon.add_directory({'mode':nextmode, 'title':title, 'url':BASE_URL + resurl, 'img':thumb, 'imdbnum':meta['imdb_id'], 'video_type':video_type, 'year':year},
+									# meta, cm, True, img, fanart, total_items=total, is_folder=folder)			
 	addon.end_of_directory()
 
 def AddonMenu():  #homescreen
@@ -659,7 +670,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 					   'video_type':video_type, 'year':year}
 			li_url = addon.build_plugin_url(queries)
 			xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, 
-										isFolder=folder, totalItems=total)		
+										isFolder=folder, totalItems=total)	
 
 	if html.find('> >> <') > -1:
 		label = 'Skip to Page...'
