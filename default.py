@@ -145,8 +145,8 @@ def SaveFav(fav_type, name, url, img, year): #8888
 	db.close()
 
 def DeleteFav(fav_type, name, url): #7777
-	if type != 'tv': type = 'movie'
-	print 'Deleting Fav: %s\n %s\n %s\n' % (type,name,url)
+	if fav_type != 'tv': fav_type = 'movie'
+	print 'Deleting Fav: %s\n %s\n %s\n' % (fav_type,name,url)
 	if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
 	else: db = database.connect( db_dir )
 	cursor = db.cursor()
