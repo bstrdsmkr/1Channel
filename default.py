@@ -150,7 +150,7 @@ def DeleteFav(fav_type, name, url): #7777
     if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
     else: db = database.connect( db_dir )
     cursor = db.cursor()
-    cursor.execute('DELETE FROM favorites WHERE type=? AND name=? AND url=?', (fav_type, name, url))
+    cursor.execute('DELETE FROM favorites WHERE type=%s AND name=%s AND url=%s', (fav_type, name, url))
     db.commit()
     db.close()
 
