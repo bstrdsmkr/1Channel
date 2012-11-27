@@ -98,7 +98,7 @@ class Player(xbmc.Player):
 		addon.log('onPlayBackStopped')
 		self._playbackLock.clear()
 
-		playedTime = self._lastPos
+		playedTime = int(self._lastPos)
 		watched_values = [.7, .8, .9]
 		min_watched_percent = watched_values[int(addon.get_setting('watched-percent'))]
 		addon.log('playedTime / totalTime : %s / %s = %s' % (playedTime, self._totalTime, playedTime/self._totalTime))

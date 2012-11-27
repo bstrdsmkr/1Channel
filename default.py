@@ -512,6 +512,7 @@ def Search(section, query):
 
 def AddonMenu():  #homescreen
 	addon.log('Main Menu')
+	initDatabase()
 	addon.add_directory({'mode': 'BrowseListMenu', 'section': ''},   {'title':  'Movies'}, img=art('movies.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'BrowseListMenu', 'section': 'tv'}, {'title':  'TV shows'}, img=art('television.png'), fanart=art('fanart.png'))
 	addon.add_directory({'mode': 'ResolverSettings'},   {'title':  'Resolver Settings'}, img=art('settings.png'), fanart=art('fanart.png'))
@@ -536,13 +537,13 @@ def BrowseListMenu(section=None): #500
 
 def BrowseAlphabetMenu(section=None): #1000
 	addon.log('Browse by alphabet screen')
-	# addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort':'alphabet', 'letter':'123'},   {'title':  '#123'}, img=art('123.png'), fanart=art('fanart.png'))
-	queries = {'mode': 'GetByLetter', 'video_type': section, 'letter': '#'}
-	addon.add_directory(queries, {'title':  '#123'}, img=art('#.png'), fanart=art('fanart.png'))
+	addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort':'alphabet', 'letter':'123'},   {'title':  '#123'}, img=art('123.png'), fanart=art('fanart.png'))
+	# queries = {'mode': 'GetByLetter', 'video_type': section, 'letter': '#'}
+	# addon.add_directory(queries, {'title':  '#123'}, img=art('#.png'), fanart=art('fanart.png'))
 	for character in AZ_DIRECTORIES:
-		# addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort':'alphabet', 'letter': character},   {'title':  character}, img=art(character+'.png'), fanart=art('fanart.png'))
-		queries = {'mode': 'GetByLetter', 'section': section, 'letter': character}
-		addon.add_directory(queries, {'title':  character}, img=art(character+'.png'), fanart=art('fanart.png'))
+		addon.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort':'alphabet', 'letter': character},   {'title':  character}, img=art(character+'.png'), fanart=art('fanart.png'))
+		# queries = {'mode': 'GetByLetter', 'section': section, 'letter': character}
+		# addon.add_directory(queries, {'title':  character}, img=art(character+'.png'), fanart=art('fanart.png'))
 	xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def BrowseByGenreMenu(section=None, letter=None): #2000
@@ -1034,7 +1035,8 @@ def create_meta(video_type, title, year, thumb):
 			if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
 				meta['cover_url'] = thumb
 			img = meta['cover_url']
-		except: addon.log('Error assigning meta data for %s %s %s' %(video_type, title, year))
+		# except: addon.log('Error assigning meta data for %s %s %s' %(video_type, title, year))
+		except: print 'Error assigning meta data for %s %s %s' %(video_type, title, year)
 	return meta
 
 def scan_by_letter(section, letter):
@@ -1207,7 +1209,7 @@ def install_metapack(pack):
 	net.save_cookies(cookiejar)
 	name = re.sub('-', r'\\\\u002D', pack)
 
-	r = '"name": "%s".*?"id": "([^\s]*?)".*?"secure_prefix":"(.*?)",' % name
+	r = '"id": "([^\s]*?)", "modal_image_width": 0, "thumbnails": "", "caption_html": "", "has_hdvideo": false, "orig_mlist_name": "", "name": "%s".*?"secure_prefix": "(.+?)",' % name
 	r = re.search(r,html)
 	pack_url  = 'http://i.minus.com'
 	pack_url += r.group(2)
@@ -1710,8 +1712,6 @@ def migrate_to_mysql():
 	ret = dialog.yesno('Migration Complete', ln1, ln2, ln3, yes, no)
 	if ret:
 		os.remove(db_dir)
-
-initDatabase()
 
 mode 		= addon.queries.get('mode', 	  None)
 section 	= addon.queries.get('section',    '')
