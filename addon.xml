@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.1channel" version="0.1.6" name="1Channel" provider-name="Bstrdsmkr">
+<addon id="plugin.video.1channel" version="1.0.0" name="1Channel" provider-name="Bstrdsmkr">
     <requires>
         <import addon="xbmc.python" version="2.0"/>
         <import addon="script.module.urlresolver"  version="0.0.1"/>

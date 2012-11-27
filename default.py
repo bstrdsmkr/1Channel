@@ -15,8 +15,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-# sys.stdout.encoding = 'utf-8'
-
 import re
 import os
 import string
@@ -620,8 +618,8 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         resurl,title,year,thumb = s.groups()
         if resurl not in resurls:
             resurls.append(resurl)
-            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
             cm = add_contextsearchmenu(title, section)
+            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
             cm.append(('Add to Favorites', runstring,))
             runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
             cm.append(('Add to Library', runstring,))
@@ -731,7 +729,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
                     addon.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s'%(title,old_imdb,old_tvdb,new_imdb, year))
                 imdbnum = new_imdb
 
-                season_meta = metaget.get_seasons(title, imdbnum, season_nums)
+            season_meta = metaget.get_seasons(title, imdbnum, season_nums)
 
         seasonList = season_container.split('<h2>')
         num = 0
@@ -766,10 +764,6 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
                                         isFolder=True, 
                                         totalItems=len(seasonList))
-
-                # addon.add_directory({'mode':'TVShowEpisodeList', 'season':number, 'imdbnum':imdbnum, 'title':title},
-                                    # temp, img=temp['cover_url'], fanart=fanart,
-                                    # total_items=len(seasonList), is_folder=True)
 
                 num += 1
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -1509,7 +1503,8 @@ def AddSubscription(url, title, img, year, imdbnum):
 def CancelSubscription(url, title, img, year, imdbnum):
     if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
     else: db = database.connect( db_dir )
-    db.execute('DELETE FROM subscriptions WHERE url=? AND title=? AND year=?', (url,unicode(title,'utf-8'),year))
+    db_cur = db.cursor()
+    db_cur.execute('DELETE FROM subscriptions WHERE url=%s AND title=%s AND year=%s', (url,unicode(title,'utf-8'),year))
     db.commit()
     db.close()
     xbmc.executebuiltin('Container.Refresh')
@@ -1535,20 +1530,35 @@ def ManageSubscriptions():
     cur.execute('SELECT * FROM subscriptions')
     subs = cur.fetchall()
     for sub in subs:
-        cm = []
-        # meta = metaget.get_meta('tvshow',sub[1],year=sub[3])
         meta = create_meta('tvshow', sub[1], sub[3], '')
-
         meta['title'] = format_label_sub(meta)
+
+        cm = add_contextsearchmenu(meta['title'], 'tv')
         runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'CancelSubscription', 'url':sub[0], 'title':sub[1], 'img':sub[2], 'year':sub[3], 'imdbnum':sub[4]})
         cm.append(('Cancel subscription', runstring,))
+        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':'tv', 'title':sub[1], 'url':sub[0], 'year':sub[3]})
+        cm.append(('Add to Favorites', runstring,))
+        cm.append(('Show Information', 'XBMC.Action(Info)',))
+
         if META_ON:
             fanart = meta['backdrop_url']
             img = meta['cover_url']
         else:
             fanart = art('fanart.png')
             img = ''
-        addon.add_item({'mode':'ManageSubscriptions'},meta,cm,True,img,fanart,is_folder=True)
+
+        # addon.add_item({'mode':'ManageSubscriptions'},meta,cm,True,img,fanart,is_folder=True)
+        listitem = xbmcgui.ListItem(meta['title'], iconImage=img, 
+                thumbnailImage=img)
+        listitem.setInfo('video', meta)
+        listitem.setProperty('fanart_image', fanart)
+        listitem.addContextMenuItems(cm)
+        queries = {'mode':'TVShowSeasonList', 'title':sub[1], 'url':sub[0],
+                   'img':img, 'imdbnum':meta['imdb_id'],
+                   'video_type':'tvshow', 'year':sub[3]}
+        li_url = addon.build_plugin_url(queries)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, 
+                                    isFolder=True, totalItems=len(subs))	
     db.close()
     addon.end_of_directory()
 
@@ -1614,7 +1624,7 @@ def RefreshMetadata(video_type, old_title, imdb, alt_id, year, new_title=''):
             option['tvdb_id'] = item[0]
             option['title']   = item[1]
             option['imdb_id'] = item[2]
-            # option['year']	  = year
+            option['year']	  = year
             search_meta.append(option)
 
     else: search_meta = metaget.search_movies(search_title)
