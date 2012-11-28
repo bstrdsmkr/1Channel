@@ -128,10 +128,13 @@ def initDatabase():
 def SaveFav(fav_type, name, url, img, year): #8888
     addon.log('Saving Favorite type: %s name: %s url: %s img: %s year: %s' %(fav_type, name, url, img, year))
     if fav_type != 'tv': fav_type = 'movie'
-    if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
-    else: db = database.connect( db_dir )
-    cursor = db.cursor()
     statement  = 'INSERT INTO favorites (type, name, url, year) VALUES (%s,%s,%s,%s)'
+    if DB == 'mysql':
+        db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+    else:
+        db = database.connect( db_dir )
+        statement = statement.replace("%s","?")
+    cursor = db.cursor()
     try: 
         cursor.execute(statement, (fav_type, urllib.unquote_plus(unicode(name,'latin1')), url, year))
         builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000)'
@@ -145,10 +148,14 @@ def SaveFav(fav_type, name, url, img, year): #8888
 def DeleteFav(fav_type, name, url): #7777
     if fav_type != 'tv': fav_type = 'movie'
     print 'Deleting Fav: %s\n %s\n %s\n' % (fav_type,name,url)
-    if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
-    else: db = database.connect( db_dir )
+    sql_del = 'DELETE FROM favorites WHERE type=%s AND name=%s AND url=%s'
+    if DB == 'mysql':
+        db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+    else:
+        db = database.connect( db_dir )
+        sql_del = sql_del.replace('%s','?')
     cursor = db.cursor()
-    cursor.execute('DELETE FROM favorites WHERE type=%s AND name=%s AND url=%s', (fav_type, name, url))
+    cursor.execute(sql_del, (fav_type, name, url))
     db.commit()
     db.close()
 
