@@ -497,7 +497,7 @@ def Search(section, query):
                                 thumbnailImage=img)
                 listitem.setInfo('video', meta)
                 listitem.setProperty('fanart_image', fanart)
-                listitem.addContextMenuItems(cm)
+                listitem.addContextMenuItems(cm, replaceItems=True)
                 queries = {'mode':nextmode, 'title':title, 'url':BASE_URL + resurl,
                            'img':thumb, 'imdbnum':meta['imdb_id'],
                            'video_type':video_type, 'year':year}
@@ -663,7 +663,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
                             thumbnailImage=img)
             listitem.setInfo('video', meta)
             listitem.setProperty('fanart_image', fanart)
-            listitem.addContextMenuItems(cm)
+            listitem.addContextMenuItems(cm, replaceItems=True)
             queries = {'mode':nextmode, 'title':title, 'url':BASE_URL + resurl,
                        'img':thumb, 'imdbnum':meta['imdb_id'],
                        'video_type':video_type, 'year':year}
@@ -988,7 +988,7 @@ def GetByLetter(letter, section):
                         thumbnailImage=meta['cover_url'])
         listitem.setInfo('video', meta)
         listitem.setProperty('fanart_image', fanart)
-        listitem.addContextMenuItems(cm)
+        listitem.addContextMenuItems(cm, replaceItems=True)
         url = '%s/%s' %(BASE_URL,resurl)
         queries = {'mode':nextmode, 'title':title, 'url':url,
                    'img':meta['cover_url'], 'imdbnum':meta['imdb_id'],
@@ -1551,7 +1551,7 @@ def ManageSubscriptions():
                 thumbnailImage=img)
         listitem.setInfo('video', meta)
         listitem.setProperty('fanart_image', fanart)
-        listitem.addContextMenuItems(cm)
+        listitem.addContextMenuItems(cm, replaceItems=True)
         queries = {'mode':'TVShowSeasonList', 'title':sub[1], 'url':sub[0],
                    'img':img, 'imdbnum':meta['imdb_id'],
                    'video_type':'tvshow', 'year':sub[3]}
