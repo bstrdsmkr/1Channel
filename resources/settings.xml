@@ -39,7 +39,7 @@
    <category label="Library Integration">
 	<setting id="tvshow-folder" type="folder" label="30803" default="special://userdata/addon_data/plugin.video.1channel/TVShows" />
 	<setting id="movie-folder"  type="folder" label="30804" default="special://userdata/addon_data/plugin.video.1channel/Movies" />
-	<setting id="auto-update-subscriptions" type="bool" label="30805" default="true"/>
+	<setting id="auto-update-subscriptions" type="bool" label="30805" default="false"/>
 	<setting id="subscription-interval" type="enum" values="2h|5h|10h|15h|24h" label="30806" default="3" enable="!eq(-1,false)" />
 	<setting id="library-update" type="bool" label="30807" default="true" enable="eq(-2,true)"/>
    </category>
