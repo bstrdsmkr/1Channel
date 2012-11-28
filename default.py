@@ -131,7 +131,7 @@ def SaveFav(fav_type, name, url, img, year): #8888
     if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
     else: db = database.connect( db_dir )
     cursor = db.cursor()
-    statement  = 'INSERT INTO favorites (type, name, url, year) VALUES (?,?,?,?)'
+    statement  = 'INSERT INTO favorites (type, name, url, year) VALUES (%s,%s,%s,%s)'
     try: 
         cursor.execute(statement, (fav_type, urllib.unquote_plus(unicode(name,'latin1')), url, year))
         builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000)'
@@ -1483,10 +1483,9 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 
 def AddSubscription(url, title, img, year, imdbnum):
     try:
-        sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?,?,?,?,?)'
+        sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (%s,%s,%s,%s,%s)'
         if DB == 'mysql':
             db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
-            sql = sql.replace('?','%s')
         else: db = database.connect( db_dir )
         cur = db.cursor()
         cur.execute(sql, (url, unicode(title,'utf-8'), img, year, imdbnum))

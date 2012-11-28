@@ -1,4 +1,14 @@
-[B]Version 0.1.6[/B]
+[B]Version 1.0.0[/B]
+- Fixed problems deleting favorites
+- Fixed Error in listing search results
+- Fixed error when saving long decimal values for playback resume
+- Subscriptions now only write to files if they don't already exist
+- Selecting items in subscriptions view now redirects to their season lists (instead of doing nothing)
+- Metadata now correctly populated in subscriptions view
+- Playback no longer creates a playlist, just plays the resolved source directly
+- Minor internal code clean up
+
+[B]Version 0.1.6[/B] (Not released)
 - Added option to disable Fanart
 - Added option to use banners for TV shows
 - Made falling back to posters optional if no banner is found
