@@ -740,6 +740,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 
         seasonList = season_container.split('<h2>')
         num = 0
+        cur = db.cursor()
         for eplist in seasonList:
             temp = {}
             temp['cover_url'] = ''
@@ -755,11 +756,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
 
                 label = 'Season %s' %number
                 temp['title'] = label
-
-                cur = db.cursor()
                 cur.execute(sql, (number,eplist))
-                cur.close()
-                db.commit()
                 
                 listitem = xbmcgui.ListItem(label, iconImage=temp['cover_url'],
                                             thumbnailImage=temp['cover_url'])
@@ -773,6 +770,8 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
                                         totalItems=len(seasonList))
 
                 num += 1
+        cur.close()
+        db.commit()
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
         setView('seasons', 'seasons-view')
         db.close()
