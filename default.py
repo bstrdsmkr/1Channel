@@ -371,7 +371,8 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
     # playlist.add(url=stream_url, listitem=listitem)
     player = playback.Player(imdbnum=imdbnum, video_type=video_type, title=title, season=season, episode=episode, year=year)
     player.play(stream_url, listitem)
-    while player._playbackLock.isSet():
+    while player._playbackLock:
+        player._trackPosition()
         xbmc.sleep(250)
 
 def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):

@@ -53,8 +53,7 @@ class Player(xbmc.Player):
 
 	def __init__(self, imdbnum, video_type, title, season, episode, year):
 		xbmc.Player.__init__(self, xbmc.PLAYER_CORE_AUTO)
-		self._playbackLock = threading.Event()
-		self._playbackLock.set()
+		self._playbackLock = True
 		self._totalTime = 999999
 		self._lastPos = 0
 		self._sought = False
@@ -73,14 +72,12 @@ class Player(xbmc.Player):
 	def onPlayBackStarted(self):
 		addon.log('Beginning Playback')
 		self._totalTime = self.getTotalTime()
-		self._tracker = threading.Thread(target=self._trackPosition)
-		self._tracker.start()
 		sql = 'SELECT bookmark FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?'
 		if DB == 'mysql':
 			sql = sql.replace('?','%s')
 			db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
 		else:
-			db = database.connect(DB)
+			db = database.connect(db_dir)
 		cur = db.cursor()
 		cur.execute(sql, (self.video_type, self.title, self.season, self.episode, self.year))
 		bookmark = cur.fetchone()
@@ -96,7 +93,7 @@ class Player(xbmc.Player):
 
 	def onPlayBackStopped(self):
 		addon.log('onPlayBackStopped')
-		self._playbackLock.clear()
+		self._playbackLock = False
 
 		playedTime = int(self._lastPos)
 		watched_values = [.7, .8, .9]
@@ -137,13 +134,11 @@ class Player(xbmc.Player):
 		addon.log('onPlayBackEnded')
 
 	def _trackPosition(self):
-		while self._playbackLock.isSet():
-			try:
-				self._lastPos = self.getTime()
-			except:
-				addon.log_debug('Error while trying to set playback time')
-			addon.log_debug('Inside Player. Tracker time = %s' % self._lastPos)
-			xbmc.sleep(SLEEP_MILLIS)
+		try:
+			self._lastPos = self.getTime()
+		except:
+			addon.log_debug('Error while trying to set playback time')
+		addon.log_debug('Inside Player. Tracker time = %s' % self._lastPos)
 		addon.log('Position tracker ending with lastPos = %s' % self._lastPos)
 
 	def ChangeWatched(self, imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
