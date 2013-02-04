@@ -965,6 +965,12 @@ def BrowseFavorites_Website(section):
 		video_type = 'tvshow'
 		nextmode = 'TVShowSeasonList'
 		folder = True
+		if DB == 'mysql':
+			db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+		else: db = database.connect( db_dir )
+		cur = db.cursor()
+		cur.execute('SELECT url FROM subscriptions')
+		subscriptions = cur.fetchall()
 	else:
 		video_type = 'movie'
 		nextmode = 'GetSources'
@@ -974,7 +980,43 @@ def BrowseFavorites_Website(section):
 	regex = re.compile(pattern, re.IGNORECASE|re.DOTALL)
 	for item in regex.finditer(html):
 		link,thumb,title,delete = item.groups()
+		meta = create_meta(video_type, title, year, thumb)
+
+		cm = add_contextsearchmenu(title, section)
+		runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+link, 'year':year})
+		cm.append(('Add to Library', runstring,))
+		if video_type == 'tvshow':
+			runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+link, 'title':title, 'img':thumb, 'year':year})
+			cm.append(('Subscribe', runstring,))
+		cm.append(('Show Information', 'XBMC.Action(Info)',))
+		runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'], 'imdb':meta['imdb_id'], 'alt_id':alt_id, 'year':year})
+		runstring = 'RunPlugin(%s)'%runstring
+		cm.append(('Refresh Metadata', runstring,))
+		if 'trailer_url' in meta:
+			url = meta['trailer_url']
+			url = re.sub('&feature=related','',url)
+			url = url.encode('base-64').strip()
+			runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
+			cm.append(('Watch Trailer', runstring,))
+		if meta['overlay'] == 6: label = 'Mark as watched'
+		else: label = 'Mark as unwatched'
+		runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
+		cm.append((label, runstring,))
+
+		if FANART_ON:
+				try:	fanart = meta['backdrop_url']
+				except: fanart = art('fanart.png')
+		if video_type == 'tvshow':
+			lookup_url = BASE_URL + link
+			if lookup_url in subscriptions:
+				meta['title'] = format_label_sub(meta)
+			else:
+				meta['title'] = format_label_tvshow(meta)
+		else: meta['title'] = format_label_movie(meta)
 		listitem = xbmcgui.ListItem(title, iconImage=thumb, thumbnailImage=thumb)
+		listitem.setInfo('video', meta)
+		listitem.setProperty('fanart_image', fanart)
+		listitem.addContextMenuItems(cm, replaceItems=True)
 		url = '%s/%s' %(BASE_URL,link)
 		queries = {'mode':nextmode, 'title':title, 'url':url,
 				   'img':thumb, 'video_type':video_type}
