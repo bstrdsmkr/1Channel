@@ -1602,7 +1602,7 @@ def AddSubscription(url, title, img, year, imdbnum):
             db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
         else: db = database.connect( db_dir )
         cur = db.cursor()
-        cur.execute(sql, (url, unicode(title,'utf-8'), img, year, imdbnum))
+        cur.execute(sql, (url, title, img, year, imdbnum))
         db.commit()
         db.close()
         AddToLibrary('tvshow', url, title, img, year, imdbnum)
