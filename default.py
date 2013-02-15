@@ -313,7 +313,7 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
                     sorting.append(this_sort)
                     if int(addon.get_setting('fourth-sort')) > 0:
                         this_sort = sorts[int(addon.get_setting('fourth-sort'))]
-                        if addon.get_setting('fourth-sort-fourth')=='true':
+                        if addon.get_setting('fourth-sort-reversed')=='true':
                             this_sort = '-%s' %this_sort
                         sorting.append(this_sort)
                         if int(addon.get_setting('fifth-sort')) > 0:
