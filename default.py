@@ -88,8 +88,8 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
 prepare_zip = False
 metaget=metahandlers.MetaData(preparezip=prepare_zip)
 
-if not os.path.isdir(addon.get_profile()):
-     os.makedirs(addon.get_profile())
+if not xbmcvfs.exists(addon.get_profile()):
+     xbmcvfs.makedirs(addon.get_profile())
 
 
 def art(file):
@@ -112,8 +112,8 @@ def initDatabase():
         except: pass
 
     else:
-        if not os.path.isdir(os.path.dirname(db_dir)):
-            os.makedirs(os.path.dirname(db_dir))
+        if not xbmcvfs.exists(os.path.dirname(db_dir)):
+            xbmcvfs.makedirs(os.path.dirname(db_dir))
         db = database.connect(db_dir)
         db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
         db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
@@ -1610,9 +1610,9 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 
                         playurl = BASE_URL + epurl
                         strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle, 'img':'', 'dialog':1})
-                        if not os.path.isfile(final_path):
+                        if not xbmcvfs.exists(final_path):
                             try:
-                                file = open(final_path,'w')
+                                file = xbmcvfs.File(final_path,'w')
                                 file.write(strm_string)
                                 file.close()
                             except: addon.log('Failed to create .strm file: %s' %final_path)
@@ -1626,12 +1626,12 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
         final_path = os.path.join(save_path,title,filename)
         final_path = xbmc.makeLegalFilename(final_path)
         # final_path = final_path.replace(":","_")
-        if not os.path.isdir(os.path.dirname(final_path)):
-            try:    os.makedirs(os.path.dirname(final_path))
+        if not xbmcvfs.exists(os.path.dirname(final_path)):
+            try:    xbmcvfs.makedirs(os.path.dirname(final_path))
             except: addon.log('Failed to create directory %s' %final_path)
-        if not os.path.isfile(final_path):
+        if not xbmcvfs.exists(final_path):
             try:
-                file = open(final_path,'w')
+                file = xbmcvfs.File(final_path,'w')
                 file.write(strm_string)
                 file.close()
             except: addon.log('Failed to create .strm file: %s' %final_path)
@@ -1699,8 +1699,12 @@ def ManageSubscriptions():
         cm.append(('Show Information', 'XBMC.Action(Info)',))
 
         if META_ON:
-            fanart = meta['backdrop_url']
-            img = meta['cover_url']
+            try:
+                fanart = meta['backdrop_url']
+                img = meta['cover_url']
+             except:
+                fanart = art('fanart.png')
+                img = ''
         else:
             fanart = art('fanart.png')
             img = ''

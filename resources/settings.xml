@@ -89,7 +89,7 @@
 		<setting id="db_pass"	 type="text" 	label="    Password" 	enable="eq(-4,true)" default="" option="hidden"/>
 		<setting id="db_name"	 type="text" 	label="    Database" 	enable="eq(-5,true)" default="1channel" />
 		<setting id="migrateDB"  type="action"  label="    Migrate local DB..." enable="eq(-6,true)" action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=migrateDB)" />
-	</category>
+    </category>
 
 	<category label="Website Integration">
 		<setting id="site_enabled"	type="bool" 	label="Enabled" default="False"/>

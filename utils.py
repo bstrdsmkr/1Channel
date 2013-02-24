@@ -2,6 +2,8 @@ import sys
 import re
 import os
 
+# from functools import wraps
+
 from t0mm0.common.addon import Addon
 
 addon = Addon('plugin.video.1channel', sys.argv)
@@ -91,15 +93,14 @@ def format_label_source_parts(info, part_num):
 	if info['verified']: label = format_label_source_verified(label)
 	return label
 
-import cProfile
+# import cProfile
 
-def profiled(func):
-	def wrapper(*args, **kwargs):
-		datafn = func.__name__ + ".profile" # Name the data file sensibly
-		datapath = os.path.join(addon.get_profile(), datafn)
-		prof = cProfile.Profile()
-		retval = prof.runcall(func, *args, **kwargs)
-		prof.dump_stats(datapath)
-		return retval
-
-	return wrapper
+# def profiled(func):
+	# def wrapper(*args, **kwargs):
+		# datafn = func.__name__ + ".profile" # Name the data file sensibly
+		# datapath = os.path.join(addon.get_profile(), datafn)
+		# prof = cProfile.Profile()
+		# retval = prof.runcall(func, *args, **kwargs)
+		# prof.dump_stats(datapath)
+		# return retval
+	# return wrapper
