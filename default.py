@@ -374,7 +374,8 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
                     PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode)
                     addon.log('Playing from 331')
                     break #Playback was successful, break out of the loop
-                except: continue #Playback failed, try the next one
+                except:  #Playback failed, try the next one
+                    addon.log('%s source failed. Trying next source...' %source['host']) 
         except:
             for item in list:
                 addon.log(item)
@@ -1702,7 +1703,7 @@ def ManageSubscriptions():
             try:
                 fanart = meta['backdrop_url']
                 img = meta['cover_url']
-             except:
+            except:
                 fanart = art('fanart.png')
                 img = ''
         else:
