@@ -138,8 +138,6 @@ class Player(xbmc.Player):
 			self._lastPos = self.getTime()
 		except:
 			addon.log_debug('Error while trying to set playback time')
-		addon.log_debug('Inside Player. Tracker time = %s' % self._lastPos)
-		addon.log('Position tracker ending with lastPos = %s' % self._lastPos)
 
 	def ChangeWatched(self, imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
 		# print "Change Watched: ", imdb_id, video_type, name, season, episode, year

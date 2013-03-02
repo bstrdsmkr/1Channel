@@ -368,7 +368,7 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
         addon.log('Playing from 324')
     else:
         try:
-            if addon.get_setting('auto-play')=='false': raise escape #skips the next line and goes into the else clause
+            if addon.get_setting('auto-play')=='false': raise #skips the next line and goes into the else clause
             for source in list:
                 try:
                     PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode)
@@ -400,8 +400,6 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
 def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
     addon.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
-    # playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-    # playlist.clear()
     listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
     if META_ON:
         if video_type == 'episode':
@@ -417,8 +415,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
                 meta['title'] = format_label_movie(movie)
                 listitem.setInfo(type="Video", infoLabels=meta)
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
-    addon.resolve_url(stream_url)
-    # playlist.add(url=stream_url, listitem=listitem)
+    # addon.resolve_url(stream_url)
     player = playback.Player(imdbnum=imdbnum, video_type=video_type, title=title, season=season, episode=episode, year=year)
     player.play(stream_url, listitem)
     while player._playbackLock:
@@ -898,7 +895,6 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
             meta['title'] = eptitle
             addon.log('Episode title not found in metadata, using title from website')
         if not meta['title']: meta['title'] = eptitle
-        addon.log(meta)
         meta['title'] = format_tvshow_episode(meta)
 
         if FANART_ON:
