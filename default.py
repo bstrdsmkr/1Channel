@@ -400,22 +400,27 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
 def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
     addon.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
-    listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
     if META_ON:
         if video_type == 'episode':
             try:
                 meta = metaget.get_episode_meta(title,imdbnum,season,episode)
                 meta['TVShowTitle'] = title
                 meta['title'] = format_tvshow_episode(meta)
+                try: img = meta['cover_url']
+                except: img = ''
+                listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
                 listitem.setInfo(type="Video", infoLabels=meta)
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
         elif video_type == 'movie':
             try:
                 meta = metaget.get_meta('movie', title, year=year)
                 meta['title'] = format_label_movie(movie)
+                try: img = meta['cover_url']
+                except: img = ''
+                listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
                 listitem.setInfo(type="Video", infoLabels=meta)
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
-    # addon.resolve_url(stream_url)
+    addon.resolve_url(stream_url)
     player = playback.Player(imdbnum=imdbnum, video_type=video_type, title=title, season=season, episode=episode, year=year)
     player.play(stream_url, listitem)
     while player._playbackLock:
