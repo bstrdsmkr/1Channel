@@ -414,7 +414,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
         elif video_type == 'movie':
             try:
                 meta = metaget.get_meta('movie', title, year=year)
-                meta['title'] = format_label_movie(movie)
+                meta['title'] = format_label_movie(meta)
                 try: img = meta['cover_url']
                 except: img = ''
                 listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
