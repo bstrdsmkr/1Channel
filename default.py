@@ -1604,12 +1604,11 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
                         seasonnum = match.group(1)
                         epnum = match.group(2)
 
-                        filename = '%sx%s %s.strm' %(seasonnum,epnum,eptitle)
+                        filename = 'S%sE%s.strm' %(seasonnum,epnum)
                         final_path = os.path.join(save_path, ShowTitle, season, filename)
                         final_path = xbmc.makeLegalFilename(final_path)
-                        # final_path = final_path.replace(":","_")
-                        if not os.path.isdir(os.path.dirname(final_path)):
-                            try:    os.makedirs(os.path.dirname(final_path))
+                        if not xbmcvfs.exists(os.path.dirname(final_path)):
+                            try: xbmcvfs.makedirs(os.path.dirname(final_path))
                             except: addon.log('Failed to create directory %s' %final_path)
 
                         playurl = BASE_URL + epurl
