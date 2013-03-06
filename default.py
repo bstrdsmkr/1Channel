@@ -420,9 +420,11 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
                 listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
                 listitem.setInfo(type="Video", infoLabels=meta)
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
-    addon.resolve_url(stream_url)
+    # addon.resolve_url(stream_url)
+    listitem.setPath(stream_url)
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
     player = playback.Player(imdbnum=imdbnum, video_type=video_type, title=title, season=season, episode=episode, year=year)
-    player.play(stream_url, listitem)
+    # player.play(stream_url, listitem)
     while player._playbackLock:
         player._trackPosition()
         xbmc.sleep(250)
