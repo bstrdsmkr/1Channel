@@ -1604,7 +1604,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
                         seasonnum = match.group(1)
                         epnum = match.group(2)
 
-                        filename = 'S%sE%s.strm' %(seasonnum,epnum)
+                        filename = '%s S%sE%s.strm' %(ShowTitle,seasonnum,epnum)
                         final_path = os.path.join(save_path, ShowTitle, season, filename)
                         final_path = xbmc.makeLegalFilename(final_path)
                         if not xbmcvfs.exists(os.path.dirname(final_path)):
@@ -1628,9 +1628,8 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
         filename = '%s.strm' %title
         final_path = os.path.join(save_path,title,filename)
         final_path = xbmc.makeLegalFilename(final_path)
-        # final_path = final_path.replace(":","_")
         if not xbmcvfs.exists(os.path.dirname(final_path)):
-            try:    xbmcvfs.makedirs(os.path.dirname(final_path))
+            try:    xbmcvfs.mkdirs(os.path.dirname(final_path))
             except: addon.log('Failed to create directory %s' %final_path)
         if not xbmcvfs.exists(final_path):
             try:
@@ -1681,9 +1680,28 @@ def UpdateSubscriptions():
     if addon.get_setting('library-update') == 'true':
         xbmc.executebuiltin('UpdateLibrary(video)')
 
+def CleanupSubscriptions():
+    addon.log('Cleaning up dead subscriptions')
+    if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+    else: db = database.connect( db_dir )
+    cur = db.cursor()
+    cur.execute('SELECT * FROM subscriptions')
+    subs = cur.fetchall()
+    to_clean = []
+    for sub in subs:
+        meta = metaget.get_meta('tvshow', sub[1], year=sub[3])
+        if meta['status'] == 'Ended':
+            to_clean.append(sub[0])
+            addon.log('Selecting %s  for removal' %sub[1])
+    if to_clean:
+        to_clean = zip(to_clean)
+        cur.executemany('DELETE FROM subscriptions WHERE url=%s', to_clean)
+        db.commit()
+    db.close()
 
 def ManageSubscriptions():
     addon.add_item({'mode':'UpdateSubscriptions'}, {'title':'Update Subscriptions'})
+    addon.add_item({'mode':'CleanupSubscriptions'}, {'title':'Clean Up Subscriptions'})
     setView('tvshows', 'tvshows-view')
     if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
     else: db = database.connect( db_dir )
@@ -1991,12 +2009,16 @@ elif mode=='AddToLibrary':
     xbmc.executebuiltin(builtin)
 elif mode=='UpdateSubscriptions':
     UpdateSubscriptions()
+    if addon.getSetting('cleanup-subscriptions')=='true':
+        CleanupSubscriptions()
 elif mode=='AddSubscription':
     AddSubscription(url, title, img, year, imdbnum)
 elif mode=='ManageSubscriptions':
     ManageSubscriptions()
 elif mode=='CancelSubscription':
     CancelSubscription(url, title, img, year, imdbnum)
+elif mode=='CleanupSubscriptions':
+    CleanupSubscriptions()
 elif mode=='PageSelect':
     pages = int(addon.queries['pages'])
     dialog = xbmcgui.Dialog()

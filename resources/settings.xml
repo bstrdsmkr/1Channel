@@ -42,7 +42,8 @@
 	<setting id="auto-update-subscriptions" type="bool" label="30805" default="false"/>
 	<setting id="subscription-interval" type="enum" values="2h|5h|10h|15h|24h" label="30806" default="3" enable="!eq(-1,false)" />
 	<setting id="library-update" type="bool" label="30807" default="true" enable="eq(-2,true)"/>
-   </category>
+	<setting id="cleanup-subscriptions" type="bool" label="30808" default="true" enable="eq(-3,true)"/>
+    </category>
 
    <category label="Sources">
 	<setting id="auto-play" type="bool" label="30905" default="false"/>

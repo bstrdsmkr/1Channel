@@ -32,6 +32,7 @@
 	<string id="30805">Enable automatic subscription updates</string>
 	<string id="30806">       Subscription update interval</string>
 	<string id="30807">       Update library afterward?</string>
+	<string id="30808">       Clean Up subscriptions for ended shows</string>
 
 	<string id="30905">Auto-play</string>
 	<string id="30900">Enable sorting of sources</string>
