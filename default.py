@@ -85,11 +85,11 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport', 
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
-prepare_zip = False
+prepare_zip = True
 metaget=metahandlers.MetaData(preparezip=prepare_zip)
 
 if not xbmcvfs.exists(addon.get_profile()):
-     xbmcvfs.makedirs(addon.get_profile())
+     xbmcvfs.mkdirs(addon.get_profile())
 
 
 def art(file):
@@ -113,7 +113,7 @@ def initDatabase():
 
     else:
         if not xbmcvfs.exists(os.path.dirname(db_dir)):
-            xbmcvfs.makedirs(os.path.dirname(db_dir))
+            xbmcvfs.mkdirs(os.path.dirname(db_dir))
         db = database.connect(db_dir)
         db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
         db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
@@ -1186,63 +1186,38 @@ def create_meta(video_type, title, year, thumb):
     return meta
 
 def scan_by_letter(section, letter):
-    print 'Building meta for %s letter %s' % (section,letter)
+    import traceback
+    addon.log('Building meta for %s letter %s' % (section,letter))
     pDialog = xbmcgui.DialogProgress()
-    ret = pDialog.create('Scanning Metadata')
-    url = BASE_URL + '/?'
-    if section == 'tvshow': url += 'tv'
-    url += '&letter=' + letter
-    url += '&sort=alphabet'
-    html = '> >> <'
-    total = 1
-    page = 1
-    items = 0
-    percent = 0
-    r = 'class="index_item.+?href=".+?" title="Watch (.+?)(?:\(|">)([0-9]{4})?'
-    while html.find('> >> <') > -1:
-        failed_attempts = 0
-        if page == 1:
-            while failed_attempts < 4:
-                try: 
-                    html = GetURL(url)
-                    failed_attempts = 4
-                except: 
-                    failed_attempts += 1
-                    if failed_attempts == 4:
-                        html = '> >> <'
-                        failed_attempts = 0
-            url += '&page=%s'
-        else:
-            while failed_attempts < 4:
-                try: 
-                    html = GetURL(url % page)
-                    failed_attempts = 4
-                except: 
-                    failed_attempts += 1
-                    if failed_attempts == 4:
-                        html = '> >> <'
-        regex = re.finditer(r, html, re.DOTALL)
-        for s in regex:
-            title,year = s.groups()
-            failed_attempts = 0
-            while failed_attempts < 4:
-                try: 
-                    meta = metaget.get_meta(section,title,year=year)
-                    failed_attempts = 4
-                except: 
-                    failed_attempts += 1
-                    if failed_attempts == 4:
-                        print 'Failed retrieving metadata for %s %s %s' %(section, title, year)
-            pattern = re.search('number_movies_result">([0-9,]+)', html)
-            if pattern: total = int(pattern.group(1).replace(',', ''))
-            items += 1
-            percent = 100*items
-            percent = percent/total
-            pDialog.update(percent,'Scanning metadata for %s' % letter, title)
-            if (pDialog.iscanceled()): break
-        if (pDialog.iscanceled()): break
-        page += 1
-    if (pDialog.iscanceled()): return
+    ret = pDialog.create('Scanning %s Letter %s' %(section,letter))
+    if section == 'tvshow': url = BASE_URL + '/alltvshows.php'
+    else: url = BASE_URL + '/allmovies.php'
+    html = GetURL(url)
+
+    pattern = '%s</h2>(.+?)(?:<h2>|<div class="clearer">)' %letter
+    flags = re.I|re.DOTALL
+    container = re.search(pattern, html, re.S).group(1)
+    item_pattern = re.compile('<a.+?>(.+?)</a> \[ (\d{4}) \]</div>')
+    for item in item_pattern.finditer(container):
+        title,year = item.groups()
+        success = False
+        attempts_remaining = 4
+        while attempts_remaining and not success:
+            pDialog.update(0,'%s (%s)' %(title,year))
+            try:
+                meta = metaget.get_meta(section, title, year=year)
+                success = True
+            except Exception, e:
+                attempts_remaining -= 1
+                line1 = '%s (%s)' %(title,year)
+                line2 = 'Failed: %s  attempts remaining' %attempts_remaining
+                line3 = str(e)
+                pDialog.update(0, line1, line2, line3)
+                traceback.print_exc()
+            if pDialog.iscanceled(): break
+        if pDialog.iscanceled(): break
+    return
+
 
 def zipdir(basedir, archivename):
     from contextlib import closing
@@ -1282,7 +1257,7 @@ def create_meta_packs():
     global metaget
     container = metacontainers.MetaContainer()
     savpath = container.path
-    AZ_DIRECTORIES.append('123')
+    AZ_DIRECTORIES.append('#')
     letters_completed = 0
     letters_per_zip = 27
     start_letter = ''
@@ -1608,7 +1583,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
                         final_path = os.path.join(save_path, ShowTitle, season, filename)
                         final_path = xbmc.makeLegalFilename(final_path)
                         if not xbmcvfs.exists(os.path.dirname(final_path)):
-                            try: xbmcvfs.makedirs(os.path.dirname(final_path))
+                            try: xbmcvfs.mkdirs(os.path.dirname(final_path))
                             except: addon.log('Failed to create directory %s' %final_path)
 
                         playurl = BASE_URL + epurl
