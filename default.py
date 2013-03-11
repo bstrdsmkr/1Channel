@@ -1195,7 +1195,6 @@ def scan_by_letter(section, letter):
     html = GetURL(url)
 
     pattern = '%s</h2>(.+?)(?:<h2>|<div class="clearer">)' %letter
-    flags = re.I|re.DOTALL
     container = re.search(pattern, html, re.S).group(1)
     item_pattern = re.compile('<a.+?>(.+?)</a> \[ (\d{4}) \]</div>')
     for item in item_pattern.finditer(container):
