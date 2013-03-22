@@ -90,6 +90,34 @@ def format_label_source_parts(info, part_num):
     if info['verified']: label = format_label_source_verified(label)
     return label
 
+class TextBox:
+	# constants
+	WINDOW = 10147
+	CONTROL_LABEL = 1
+	CONTROL_TEXTBOX = 5
+
+	def __init__( self, *args, **kwargs):
+		# activate the text viewer window
+		xbmc.executebuiltin( "ActivateWindow(%d)" % ( self.WINDOW, ) )
+		# get window
+		self.window = xbmcgui.Window( self.WINDOW )
+		# give window time to initialize
+		xbmc.sleep( 100 )
+
+
+	def setControls( self ):
+		#get header, text
+		heading, text = self.message
+		# set heading
+		self.window.getControl( self.CONTROL_LABEL ).setLabel( "%s - %s" % ( heading, ADDON_NAME, ) )
+		# set text
+		self.window.getControl( self.CONTROL_TEXTBOX ).setText( text )
+
+   	def show(self, heading, text):
+		# set controls
+
+		self.message = heading, text
+		self.setControls()
 
 # import cProfile
 

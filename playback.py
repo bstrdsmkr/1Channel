@@ -52,7 +52,7 @@ def format_time(seconds):
 class Player(xbmc.Player):
 
     def __init__(self, imdbnum, video_type, title, season, episode, year):
-        xbmc.Player.__init__(self, xbmc.PLAYER_CORE_AUTO)
+        xbmc.Player.__init__(self)
         self._playbackLock = True
         self._totalTime = 999999
         self._lastPos = 0
@@ -69,6 +69,12 @@ class Player(xbmc.Player):
     def __del__(self):
         addon.log("\n\n\n\n\t\tGC'ing player\n\n\n")
 
+    # def play(self, *args, **kwargs):
+        # xbmc.Player.play(self, *args, **kwargs)
+        # xbmc.sleep(1000)
+        # while not self.isPlayingVideo():
+            # xbmc.sleep(SLEEP_MILLIS)
+    
     def onPlayBackStarted(self):
         addon.log('Beginning Playback')
         self._totalTime = self.getTotalTime()
@@ -90,6 +96,7 @@ class Player(xbmc.Player):
                 resume = resume.yesno(self.title,'',question,'','Start from beginning','Resume')
                 if resume: self.seekTime(bookmark)
                 self._sought = True
+
 
     def onPlayBackStopped(self):
         addon.log('onPlayBackStopped')

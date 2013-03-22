@@ -21,7 +21,7 @@ import string
 import sys
 import urllib2
 import urllib
-import urlresolver
+# import urlresolver
 import zipfile
 import xbmcgui
 import xbmcplugin
@@ -85,7 +85,7 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport', 
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
-prepare_zip = True
+prepare_zip = False
 metaget=metahandlers.MetaData(preparezip=prepare_zip)
 
 if not xbmcvfs.exists(addon.get_profile()):
@@ -350,6 +350,13 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
     if not list: addon.show_ok_dialog(['No sources were found for this item'], title='1Channel')
     if dialog and addon.get_setting('auto-play')=='false': #we're comming from a .strm file and can't create a directory so we have to pop a 
         sources = []                                       #dialog if auto-play isn't on
+        path = xbmc.getInfoLabel('ListItem.FileNameAndPath')
+        tbn = xbmc.getCacheThumbName(path)
+        path = xbmc.translatePath(os.path.join('special://Thumbnails', tbn[0], tbn))
+
+        print "|||||||||||||||||||"
+        print "Thumb path: %s" %path
+        print "|||||||||||||||||||"
         for item in list:
             try:
                 label = format_label_source(item)
@@ -365,17 +372,31 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
             except: addon.log('Error while trying to resolve %s' % url)
         source = urlresolver.choose_source(sources).get_url()
         PlaySource(source, title, img, year, imdbnum, video_type, season, episode)
-        addon.log('Playing from 324')
     else:
         try:
             if addon.get_setting('auto-play')=='false': raise #skips the next line and goes into the else clause
-            for source in list:
-                try:
-                    PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode)
-                    addon.log('Playing from 331')
-                    break #Playback was successful, break out of the loop
-                except:  #Playback failed, try the next one
-                    addon.log('%s source failed. Trying next source...' %source['host']) 
+            dlg = xbmcgui.DialogProgress()
+            line1 = 'Trying Sources...'
+            dlg.create('1Channel', line1)
+            total = len(list)
+            count = 1
+            success = False
+            while not (success or dlg.iscanceled() or xbmc.abortRequested):
+                for source in list:
+                    if dlg.iscanceled(): return
+                    percent = int((count*100)/total)
+                    label = format_label_source(source)
+                    dlg.update(percent, line1, label)
+                    try:
+                        PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode)
+                        dlg.close()
+                        success = True
+                        break #Playback was successful, break out of the loop
+                    except Exception, e:  #Playback failed, try the next one
+                        dlg.update(percent, line1, label, str(e))
+                        addon.log('%s source failed. Trying next source...' %source['host']) 
+                        addon.log(str(e))
+                        count += 1
         except:
             for item in list:
                 addon.log(item)
@@ -420,14 +441,23 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
                 listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
                 listitem.setInfo(type="Video", infoLabels=meta)
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
-    # addon.resolve_url(stream_url)
-    listitem.setPath(stream_url)
-    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
-    player = playback.Player(imdbnum=imdbnum, video_type=video_type, title=title, season=season, episode=episode, year=year)
-    # player.play(stream_url, listitem)
+
+    # player = playback.Player(imdbnum=imdbnum, video_type=video_type, title=title, season=season, episode=episode, year=year)
+    if addon.get_setting('auto-play')=='true':
+        # return player,listitem,stream_url
+        # player.play(stream_url, listitem)
+        # return player
+        xbmc.Player().play(stream_url, listitem)
+    else:
+        listitem.setPath(stream_url)
+        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
+        # TrackProgress(player)
+
+def TrackProgress(player):
     while player._playbackLock:
-        player._trackPosition()
-        xbmc.sleep(250)
+        if player.isPlayingVideo():
+            player._trackPosition()
+            xbmc.sleep(250)
 
 def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
     metaget=metahandlers.MetaData(preparezip=prepare_zip)
@@ -1930,10 +1960,13 @@ addon.log(addon.queries)
 if mode=='main':
     AddonMenu()
 elif mode=='GetSources':
+    import urlresolver
     GetSources(url,title,img,year,imdbnum,dialog)
 elif mode=='PlaySource':
+    import urlresolver
     PlaySource(url, title, img, year, imdbnum, video_type, season, episode)
 elif mode=='PlayTrailer':
+    import urlresolver
     PlayTrailer(url)
 elif mode=='BrowseListMenu':
     BrowseListMenu(section)
@@ -1970,6 +2003,7 @@ elif mode=='9988': #Metahandler Settings
     import metahandler
     metahandler.display_settings()
 elif mode=='ResolverSettings':
+    import urlresolver
     urlresolver.display_settings()
 elif mode=='install_metapack':
     install_metapack(title)
@@ -1983,7 +2017,7 @@ elif mode=='AddToLibrary':
     xbmc.executebuiltin(builtin)
 elif mode=='UpdateSubscriptions':
     UpdateSubscriptions()
-    if addon.getSetting('cleanup-subscriptions')=='true':
+    if addon.get_setting('cleanup-subscriptions')=='true':
         CleanupSubscriptions()
 elif mode=='AddSubscription':
     AddSubscription(url, title, img, year, imdbnum)
