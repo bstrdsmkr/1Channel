@@ -21,7 +21,6 @@ import string
 import sys
 import urllib2
 import urllib
-# import urlresolver
 import zipfile
 import xbmcgui
 import xbmcplugin
@@ -421,6 +420,12 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
 def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
     addon.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
+    win = xbmcgui.Window(10000)
+    win.setProperty('1ch.playing.title', title)
+    win.setProperty('1ch.playing.year', year)
+    win.setProperty('1ch.playing.imdb', imdbnum)
+    win.setProperty('1ch.playing.season', season)
+    win.setProperty('1ch.playing.episode', episode)
     if META_ON:
         if video_type == 'episode':
             try:
@@ -442,16 +447,11 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
                 listitem.setInfo(type="Video", infoLabels=meta)
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
 
-    # player = playback.Player(imdbnum=imdbnum, video_type=video_type, title=title, season=season, episode=episode, year=year)
     if addon.get_setting('auto-play')=='true':
-        # return player,listitem,stream_url
-        # player.play(stream_url, listitem)
-        # return player
         xbmc.Player().play(stream_url, listitem)
     else:
         listitem.setPath(stream_url)
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
-        # TrackProgress(player)
 
 def TrackProgress(player):
     while player._playbackLock:
