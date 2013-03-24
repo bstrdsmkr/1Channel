@@ -349,13 +349,7 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
     if not list: addon.show_ok_dialog(['No sources were found for this item'], title='1Channel')
     if dialog and addon.get_setting('auto-play')=='false': #we're comming from a .strm file and can't create a directory so we have to pop a 
         sources = []                                       #dialog if auto-play isn't on
-        path = xbmc.getInfoLabel('ListItem.FileNameAndPath')
-        tbn = xbmc.getCacheThumbName(path)
-        path = xbmc.translatePath(os.path.join('special://Thumbnails', tbn[0], tbn))
-
-        print "|||||||||||||||||||"
-        print "Thumb path: %s" %path
-        print "|||||||||||||||||||"
+        img = xbmc.getInfoImage('ListItem.Art(thumb)')
         for item in list:
             try:
                 label = format_label_source(item)
@@ -370,7 +364,7 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
                         partnum += 1
             except: addon.log('Error while trying to resolve %s' % url)
         source = urlresolver.choose_source(sources).get_url()
-        PlaySource(source, title, img, year, imdbnum, video_type, season, episode)
+        PlaySource(source, title, img, year, imdbnum, video_type, season, episode, strm=True)
     else:
         try:
             if addon.get_setting('auto-play')=='false': raise #skips the next line and goes into the else clause
@@ -417,23 +411,25 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
             addon.end_of_directory()
 
 
-def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
+def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm=False):
     addon.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing.title', title)
     win.setProperty('1ch.playing.year', year)
     win.setProperty('1ch.playing.imdb', imdbnum)
-    win.setProperty('1ch.playing.season', season)
-    win.setProperty('1ch.playing.episode', episode)
+    win.setProperty('1ch.playing.season', str(season))
+    win.setProperty('1ch.playing.episode', str(episode))
+    
     if META_ON:
         if video_type == 'episode':
             try:
                 meta = metaget.get_episode_meta(title,imdbnum,season,episode)
                 meta['TVShowTitle'] = title
                 meta['title'] = format_tvshow_episode(meta)
-                try: img = meta['cover_url']
-                except: img = ''
+                if not strm:
+                    try: img = meta['cover_url']
+                    except: img = ''
                 listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
                 listitem.setInfo(type="Video", infoLabels=meta)
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
@@ -441,12 +437,12 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
             try:
                 meta = metaget.get_meta('movie', title, year=year)
                 meta['title'] = format_label_movie(meta)
-                try: img = meta['cover_url']
-                except: img = ''
+                if not strm:
+                    try: img = meta['cover_url']
+                    except: img = ''
                 listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
                 listitem.setInfo(type="Video", infoLabels=meta)
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
-
     if addon.get_setting('auto-play')=='true':
         xbmc.Player().play(stream_url, listitem)
     else:
