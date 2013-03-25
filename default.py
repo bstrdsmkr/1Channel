@@ -549,13 +549,16 @@ def Search(section, query):
                 resurls.append(resurl)
                 runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
                 cm = add_contextsearchmenu(title, section)
-                cm.append(('Add to Favorites', runstring,))
+                cm.append(('Add to Favorites', runstring))
                 runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-                cm.append(('Add to Library', runstring,))
+                cm.append(('Add to Library', runstring))
                 if video_type == 'tvshow':
                     runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-                    cm.append(('Subscribe', runstring,))
-                cm.append(('Show Information', 'XBMC.Action(Info)',))
+                    cm.append(('Subscribe', runstring))
+                else:
+                    runstring = 'XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add?title=%s)' %title
+                    cm.append(('Add to CouchPotato', runstring),)
+                cm.append(('Show Information', 'XBMC.Action(Info)'))
 
                 img = thumb
                 fanart = ''
@@ -719,13 +722,16 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
             resurls.append(resurl)
             cm = add_contextsearchmenu(title, section)
             runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
-            cm.append(('Add to Favorites', runstring,))
+            cm.append(('Add to Favorites', runstring),)
             runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-            cm.append(('Add to Library', runstring,))
+            cm.append(('Add to Library', runstring),)
             if video_type == 'tvshow':
                 runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-                cm.append(('Subscribe', runstring,))
-            cm.append(('Show Information', 'XBMC.Action(Info)',))
+                cm.append(('Subscribe', runstring),)
+            else:
+                runstring = 'XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add?title=%s)' %title
+                cm.append(('Add to CouchPotato', runstring),)
+                cm.append(('Show Information', 'XBMC.Action(Info)'),)
 
             img = thumb
             fanart = ''
@@ -996,6 +1002,9 @@ def BrowseFavorites(section):
         else: label = 'Mark as unwatched'
         runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
         cm.append((label, runstring))
+        if video_type == 'movie':
+            runstring = 'XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add?title=%s)' %title
+            cm.append(('Add to CouchPotato', runstring),)
 
         if META_ON: img = meta['cover_url']
 
@@ -1060,6 +1069,9 @@ def BrowseFavorites_Website(section):
         if video_type == 'tvshow':
             runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+link, 'title':title, 'img':thumb, 'year':year})
             cm.append(('Subscribe', runstring,))
+        else:
+            runstring = 'XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add?title=%s)' %title
+            cm.append(('Add to CouchPotato', runstring),)
         cm.append(('Show Information', 'XBMC.Action(Info)',))
         runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'], 'imdb':meta['imdb_id'], 'alt_id':alt_id, 'year':year})
         runstring = 'RunPlugin(%s)'%runstring
