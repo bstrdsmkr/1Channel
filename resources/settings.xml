@@ -96,5 +96,6 @@
 		<setting id="site_enabled"	type="bool" 	label="Enabled" default="False"/>
 		<setting id="username"		type="text" 	label="    Username"	enable="eq(-1,true)" default="" />
 		<setting id="passwd"		type="text" 	label="    Password"	enable="eq(-2,true)" default="" option="hidden"/>
-	</category>
+        <setting id="old_version" type="text" visible="False" default="0.0.0.0"/>
+    </category>
 </settings>

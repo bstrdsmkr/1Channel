@@ -24,6 +24,7 @@ import urllib
 import zipfile
 import xbmcgui
 import xbmcplugin
+import xbmcaddon
 import xbmc, xbmcvfs
 import HTMLParser
 import time
@@ -35,7 +36,7 @@ from metahandler import metacontainers
 from operator import itemgetter, methodcaller
 
 import metapacks
-import playback
+# import playback
 from utils import *
 
 addon = Addon('plugin.video.1channel', sys.argv)
@@ -349,7 +350,7 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
     if not list: addon.show_ok_dialog(['No sources were found for this item'], title='1Channel')
     if dialog and addon.get_setting('auto-play')=='false': #we're comming from a .strm file and can't create a directory so we have to pop a 
         sources = []                                       #dialog if auto-play isn't on
-        img = xbmc.getInfoImage('ListItem.Art(thumb)')
+        img = xbmc.getInfoImage('ListItem.Thumb')
         for item in list:
             try:
                 label = format_label_source(item)
@@ -443,11 +444,11 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
                 listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
                 listitem.setInfo(type="Video", infoLabels=meta)
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
-    if addon.get_setting('auto-play')=='true':
-        xbmc.Player().play(stream_url, listitem)
-    else:
-        listitem.setPath(stream_url)
-        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
+    # if addon.get_setting('auto-play')=='true' or strm==True:
+        # xbmc.Player().play(stream_url, listitem)
+    # else:
+    listitem.setPath(stream_url)
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
 def TrackProgress(player):
     while player._playbackLock:
@@ -517,15 +518,15 @@ def Search(section, query):
         cur = db.cursor()
         cur.execute('SELECT url FROM subscriptions')
         subscriptions = cur.fetchall()
-        print subscriptions
         db.close()
-        subscriptions = [row[0] for row in subscriptions]
+        subs = [row[0] for row in subscriptions]
 
     else:
         setView('movies', 'movies-view')
         nextmode = 'GetSources'
         video_type = 'movie'
         folder = addon.get_setting('auto-play')=='false'
+        subs = []
 
     html = '> >> <'
     page = 0
@@ -547,55 +548,16 @@ def Search(section, query):
             resurl,title,year,thumb = s.groups()
             if resurl not in resurls:
                 resurls.append(resurl)
-                runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
-                cm = add_contextsearchmenu(title, section)
-                cm.append(('Add to Favorites', runstring))
-                runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-                cm.append(('Add to Library', runstring))
-                if video_type == 'tvshow':
-                    runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-                    cm.append(('Subscribe', runstring))
-                else:
-                    runstring = 'XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add?title=%s)' %title
-                    cm.append(('Add to CouchPotato', runstring),)
-                cm.append(('Show Information', 'XBMC.Action(Info)'))
 
-                img = thumb
-                fanart = ''
-                meta = create_meta(video_type, title, year, img)
+                li = build_listitem(video_type, title, year, img, resurl, subs=subs)
+                imdb = li.getProperty('imdb')
+                thumb = li.getProperty('img')
 
-                if 'trailer_url' in meta:
-                    url = meta['trailer_url']
-                    url = re.sub('&feature=related','',url)
-                    url = url.encode('base-64').strip()
-                    runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
-                    cm.append(('Watch Trailer', runstring,))
-                if meta['overlay'] == 6: label = 'Mark as watched'
-                else: label = 'Mark as unwatched'
-                runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
-                cm.append((label, runstring,))
-
-                if FANART_ON:
-                    try: fanart = meta['backdrop_url']
-                    except: pass
-                
-                if video_type == 'tvshow':
-                    lookup_url = BASE_URL + resurl
-                    if lookup_url in subscriptions:
-                        meta['title'] = format_label_sub(meta)
-                    else:
-                        meta['title'] = format_label_tvshow(meta)
-
-                listitem = xbmcgui.ListItem(meta['title'], iconImage=img, 
-                                thumbnailImage=img)
-                listitem.setInfo('video', meta)
-                listitem.setProperty('fanart_image', fanart)
-                listitem.addContextMenuItems(cm, replaceItems=True)
                 queries = {'mode':nextmode, 'title':title, 'url':BASE_URL + resurl,
-                           'img':thumb, 'imdbnum':meta['imdb_id'],
+                           'img':thumb, 'imdbnum':imdb,
                            'video_type':video_type, 'year':year}
                 li_url = addon.build_plugin_url(queries)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, 
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li, 
                                             isFolder=folder, totalItems=total)    
                 # addon.add_directory({'mode':nextmode, 'title':title, 'url':BASE_URL + resurl, 'img':thumb, 'imdbnum':meta['imdb_id'], 'video_type':video_type, 'year':year},
                                     # meta, cm, True, img, fanart, total_items=total, is_folder=folder)            
@@ -604,10 +566,16 @@ def Search(section, query):
 
 def AddonMenu():  #homescreen
     addon.log('Main Menu')
+    if has_upgraded():
+        addon.log('Showing update popup')
+        popup = TextBox()
+        adn = xbmcaddon.Addon('plugin.video.1channel')
+        adn.setSetting('old_version', addon.get_version())
     initDatabase()
     addon.add_directory({'mode': 'BrowseListMenu', 'section': ''},   {'title':  'Movies'}, img=art('movies.png'), fanart=art('fanart.png'))
     addon.add_directory({'mode': 'BrowseListMenu', 'section': 'tv'}, {'title':  'TV shows'}, img=art('television.png'), fanart=art('fanart.png'))
     addon.add_directory({'mode': 'ResolverSettings'},   {'title':  'Resolver Settings'}, img=art('settings.png'), fanart=art('fanart.png'))
+    addon.add_directory({'mode': 'Help'},   {'title': 'Help'}, img=art('help.png'), fanart=art('fanart.png'))
     # addon.add_directory({'mode': 'test'},   {'title':  'Test'}, img=art('settings.png'), fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -697,13 +665,14 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         cur.execute('SELECT url FROM subscriptions')
         subscriptions = cur.fetchall()
         db.close()
-        subscriptions = [row[0] for row in subscriptions]
+        subs = [row[0] for row in subscriptions]
 
     else:
         nextmode = 'GetSources'
         section = 'movie'
         video_type = 'movie'
         folder = addon.get_setting('auto-play')=='false'
+        subs = []
 
     html = GetURL(pageurl)
 
@@ -720,60 +689,14 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         resurl,title,year,thumb = s.groups()
         if resurl not in resurls:
             resurls.append(resurl)
-            cm = add_contextsearchmenu(title, section)
-            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
-            cm.append(('Add to Favorites', runstring),)
-            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-            cm.append(('Add to Library', runstring),)
-            if video_type == 'tvshow':
-                runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-                cm.append(('Subscribe', runstring),)
-            else:
-                runstring = 'XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add?title=%s)' %title
-                cm.append(('Add to CouchPotato', runstring),)
-                cm.append(('Show Information', 'XBMC.Action(Info)'),)
-
-            img = thumb
-            fanart = ''
-            
-            meta = create_meta(video_type, title, year, img)
-            
-            runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'], 'imdb':meta['imdb_id'], 'alt_id':alt_id, 'year':year})
-            runstring = 'RunPlugin(%s)'%runstring
-            cm.append(('Refresh Metadata', runstring,))
-            if 'trailer_url' in meta:
-                url = meta['trailer_url']
-                url = re.sub('&feature=related','',url)
-                url = url.encode('base-64').strip()
-                runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
-                cm.append(('Watch Trailer', runstring,))
-            if meta['overlay'] == 6: label = 'Mark as watched'
-            else: label = 'Mark as unwatched'
-            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
-            cm.append((label, runstring,))
-
-            if FANART_ON:
-                try: fanart = meta['backdrop_url']
-                except: pass
-
-            if video_type == 'tvshow':
-                lookup_url = BASE_URL + resurl
-                if lookup_url in subscriptions:
-                    meta['title'] = format_label_sub(meta)
-                else:
-                    meta['title'] = format_label_tvshow(meta)
-            else: meta['title'] = format_label_movie(meta)
-
-            listitem = xbmcgui.ListItem(meta['title'], iconImage=img, 
-                            thumbnailImage=img)
-            listitem.setInfo('video', meta)
-            listitem.setProperty('fanart_image', fanart)
-            listitem.addContextMenuItems(cm, replaceItems=True)
+            li = build_listitem(video_type, title, year, img, resurl, subs=subs)
+            imdb = li.getProperty('imdb')
+            imdb = li.getProperty('img')
             queries = {'mode':nextmode, 'title':title, 'url':BASE_URL + resurl,
-                       'img':thumb, 'imdbnum':meta['imdb_id'],
+                       'img':thumb, 'imdbnum':imdb,
                        'video_type':video_type, 'year':year}
             li_url = addon.build_plugin_url(queries)
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, 
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li, 
                                         isFolder=folder, totalItems=total)    
 
     if html.find('> >> <') > -1:
@@ -892,8 +815,6 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
     episodes = re.finditer(r, eplist, re.DOTALL)
     folder = addon.get_setting('auto-play')=='false'
     for ep in episodes:
-        cm = []
-        cm.append(('Show Information', 'XBMC.Action(Info)',))
         epurl, eptitle = ep.groups()
         meta = {}
         eptitle = re.sub('<[^<]+?>', '', eptitle.strip())
@@ -901,58 +822,15 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
 
         season = int(re.search('/season-([0-9]{1,4})-', epurl).group(1))
         epnum = int(re.search('-episode-([0-9]{1,3})', epurl).group(1))
-        fanart = ''
-        if META_ON and imdbnum:
-            try:
-                meta = metaget.get_episode_meta(ShowTitle,imdbnum,season,epnum)
-                if meta['overlay'] == 6: label = 'Mark as watched'
-                else: label = 'Mark as unwatched'
-                runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':ShowTitle, 'imdbnum':meta['imdb_id'], 'season':season, 'episode':epnum,  'video_type':'episode', 'year':year})
-                cm.append((label, runstring,))
-                
-                ###Temporary work around. t0mm0.common isn't happy with the episode key being a str
-                # meta['episode'] = int(meta['episode'])
-                # meta['rating'] = float(meta['rating'])
 
-            except:
-                meta['cover_url'] = ''
-                meta['backdrop_url'] = ''
-                meta['title'] = eptitle
-                meta['season'] = season
-                meta['episode'] = epnum
-                addon.log('Error getting metadata for %s season %s episode %s with imdbnum %s' % (ShowTitle,season,epnum,imdbnum))
-        else:
-            meta['cover_url'] = ''
-            meta['backdrop_url'] = ''
-            meta['title'] = eptitle
-            meta['season'] = season
-            meta['episode'] = epnum
-        img = meta['cover_url']
-
-        meta['TVShowTitle'] = ShowTitle
-        if meta['title'] == ShowTitle:
-            meta['title'] = eptitle
-            addon.log('Episode title not found in metadata, using title from website')
-        if not meta['title']: meta['title'] = eptitle
-        meta['title'] = format_tvshow_episode(meta)
-
-        if FANART_ON:
-            try: fanart =  meta['backdrop_url']
-            except: pass
-        
         url = BASE_URL + epurl
         queries = {'mode':'GetSources', 'url':url, 'imdbnum':imdbnum,
                    'title':ShowTitle, 'img':img}
         li_url = addon.build_plugin_url(queries)
-        listitem = xbmcgui.ListItem(meta['title'], iconImage=img,
-                                    thumbnailImage=img)
-        listitem.setInfo('video', meta)
-        listitem.setProperty('fanart_image', fanart)
-        listitem.addContextMenuItems(cm, replaceItems=True)
+        listitem =  build_listitem('episode', ShowTitle, year, img, epurl, imdbnum, season, epnum)
+
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
                                         isFolder=folder)
-        # addon.add_directory({'mode':'GetSources', 'url':url, 'imdbnum':imdbnum, 'title':ShowTitle, 'img':img},
-                        # infolabels=meta, contextmenu_items=cm, context_replace=True, is_folder=folder, img=img, fanart=fanart)
 
     setView('episodes', 'episodes-view')
     addon.end_of_directory()
@@ -973,7 +851,7 @@ def BrowseFavorites(section):
         folder = True
         cur.execute('SELECT url FROM subscriptions')
         subscriptions = cur.fetchall()
-        subscriptions = [row[0] for row in subscriptions]
+        subs = [row[0] for row in subscriptions]
     else: 
         nextmode = 'GetSources'
         section  = 'movie'
@@ -986,43 +864,16 @@ def BrowseFavorites(section):
         title      = row[1]
         favurl      = row[2]
         year      = row[3]
-        cm          = []
         img = ''
         fanart = ''
-        meta      = create_meta(video_type, title, year, thumb = img)
 
-        if 'trailer_url' in meta:
-            url = meta['trailer_url']
-            url = re.sub('&feature=related','',url)
-            url = url.encode('base-64').strip()
-            runstring = 'RunScript(plugin.video.1channel,%s,?mode=PlayTrailer&url=%s)' %(sys.argv[1],url)
-            cm.append(('Watch Trailer', runstring))
-
-        if meta['overlay'] == 6: label = 'Mark as watched'
-        else: label = 'Mark as unwatched'
-        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
-        cm.append((label, runstring))
-        if video_type == 'movie':
-            runstring = 'XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add?title=%s)' %title
-            cm.append(('Add to CouchPotato', runstring),)
-
-        if META_ON: img = meta['cover_url']
-
-        if video_type == 'tvshow':
-            if favurl in subscriptions:
-                meta['title'] = format_label_sub(meta)
-            else:
-                meta['title'] = format_label_tvshow(meta)
-        else: meta['title'] = format_label_movie(meta)
-
-        if FANART_ON:
-            try: fanart = meta['backdrop_url']
-            except: pass
         remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' %(sys.argv[1],section,title,year,favurl)
-        cm.append(('Remove from Favorites', remfavstring))
+        cm = [('Remove from Favorites', remfavstring)]
 
-        addon.add_directory({'mode':nextmode, 'title':title, 'url':favurl, 'imdbnum':meta['imdb_id'], 'video_type':video_type, 'year':year},
-                            meta, cm, True, img, fanart, is_folder=folder)    
+        listitem = build_listitem(video_type, title, year, img, favurl, extra_cms=cm, subs=subs)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), favurl , listitem,
+                                        isFolder=folder)
+
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     db.close()
 
@@ -1049,63 +900,28 @@ def BrowseFavorites_Website(section):
         else: db = database.connect( db_dir )
         cur = db.cursor()
         cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
+        subs = cur.fetchall()
     else:
         video_type = 'movie'
         nextmode = 'GetSources'
         folder = addon.get_setting('auto-play')=='false'
+        subs = []
 
-    pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href='(.+?)' ref='delete_fav' '''
+    pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{4})\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=["'](.+?)["'] ref=["']delete_fav["']'''
     regex = re.compile(pattern, re.IGNORECASE|re.DOTALL)
     for item in regex.finditer(html):
-        link,thumb,title,delete = item.groups()
-        meta = create_meta(video_type, title, year, thumb)
-
-        cm = add_contextsearchmenu(title, section)
+        link, img, year, title, delete = item.groups()
+        
         runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'DeleteFav', 'section':section, 'title':title, 'url':BASE_URL+link, 'year':year})
-        cm.append(('Delete Favorite', runstring,))
-        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'section':section, 'title':title, 'url':BASE_URL+link, 'year':year})
-        cm.append(('Add to Library', runstring,))
-        if video_type == 'tvshow':
-            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+link, 'title':title, 'img':thumb, 'year':year})
-            cm.append(('Subscribe', runstring,))
-        else:
-            runstring = 'XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add?title=%s)' %title
-            cm.append(('Add to CouchPotato', runstring),)
-        cm.append(('Show Information', 'XBMC.Action(Info)',))
-        runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'], 'imdb':meta['imdb_id'], 'alt_id':alt_id, 'year':year})
-        runstring = 'RunPlugin(%s)'%runstring
-        cm.append(('Refresh Metadata', runstring,))
-        if 'trailer_url' in meta:
-            url = meta['trailer_url']
-            url = re.sub('&feature=related','',url)
-            url = url.encode('base-64').strip()
-            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
-            cm.append(('Watch Trailer', runstring,))
-        if meta['overlay'] == 6: label = 'Mark as watched'
-        else: label = 'Mark as unwatched'
-        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
-        cm.append((label, runstring,))
+        cm = [('Delete Favorite', runstring)]
 
-        if FANART_ON:
-                try:    fanart = meta['backdrop_url']
-                except: fanart = art('fanart.png')
-        if video_type == 'tvshow':
-            lookup_url = BASE_URL + link
-            if lookup_url in subscriptions:
-                meta['title'] = format_label_sub(meta)
-            else:
-                meta['title'] = format_label_tvshow(meta)
-        else: meta['title'] = format_label_movie(meta)
-        listitem = xbmcgui.ListItem(title, iconImage=thumb, thumbnailImage=thumb)
-        listitem.setInfo('video', meta)
-        listitem.setProperty('fanart_image', fanart)
-        listitem.addContextMenuItems(cm, replaceItems=True)
+        li = build_listitem(video_type, title, year, img, link, extra_cms=cm, subs=subs)
+        img = li.getProperty('img')
         url = '%s/%s' %(BASE_URL,link)
         queries = {'mode':nextmode, 'title':title, 'url':url,
-                   'img':thumb, 'video_type':video_type}
+                   'img':img, 'video_type':video_type}
         li_url = addon.build_plugin_url(queries)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, 
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li, 
                                     isFolder=folder)
     addon.end_of_directory()
 
@@ -1120,7 +936,7 @@ def GetByLetter(letter, section):
         else: db = database.connect( db_dir )
         cur = db.cursor()
         cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
+        subs = cur.fetchall()
     else:
         url = 'http://www.1channel.ch/allmovies.php'
         video_type = 'movie'
@@ -1138,51 +954,8 @@ def GetByLetter(letter, section):
     listings = re.finditer(item_regex, ltr_container)
     for item in listings:
         resurl,title,year = item.groups()
-        thumb = ''
-        fanart = art('fanart.png')
-        
-        meta = create_meta(video_type, title, year, thumb)
 
-        cm = add_contextsearchmenu(title, section)
-        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
-        cm.append(('Add to Favorites', runstring,))
-        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-        cm.append(('Add to Library', runstring,))
-        if video_type == 'tvshow':
-            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':thumb, 'year':year})
-            cm.append(('Subscribe', runstring,))
-        cm.append(('Show Information', 'XBMC.Action(Info)',))
-        runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'], 'imdb':meta['imdb_id'], 'alt_id':alt_id, 'year':year})
-        runstring = 'RunPlugin(%s)'%runstring
-        cm.append(('Refresh Metadata', runstring,))
-        if 'trailer_url' in meta:
-            url = meta['trailer_url']
-            url = re.sub('&feature=related','',url)
-            url = url.encode('base-64').strip()
-            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
-            cm.append(('Watch Trailer', runstring,))
-        if meta['overlay'] == 6: label = 'Mark as watched'
-        else: label = 'Mark as unwatched'
-        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
-        cm.append((label, runstring,))
-
-        if FANART_ON:
-                try: fanart = meta['backdrop_url']
-                except: pass
-
-        if video_type == 'tvshow':
-            lookup_url = BASE_URL + resurl
-            if lookup_url in subscriptions:
-                meta['title'] = format_label_sub(meta)
-            else:
-                meta['title'] = format_label_tvshow(meta)
-        else: meta['title'] = format_label_movie(meta)
-
-        listitem = xbmcgui.ListItem(meta['title'], iconImage=meta['cover_url'], 
-                        thumbnailImage=meta['cover_url'])
-        listitem.setInfo('video', meta)
-        listitem.setProperty('fanart_image', fanart)
-        listitem.addContextMenuItems(cm, replaceItems=True)
+        listitem = build_listitem(video_type, title, year, img, resurl, subs=subs)
         url = '%s/%s' %(BASE_URL,resurl)
         queries = {'mode':nextmode, 'title':title, 'url':url,
                    'img':meta['cover_url'], 'imdbnum':meta['imdb_id'],
@@ -1206,10 +979,6 @@ def create_meta(video_type, title, year, thumb):
                     meta = metaget.get_meta(video_type, title, year=year)
                 alt_id = meta['tvdb_id']
 
-                ###Temporary work around. t0mm0.common isn't happy with the episode key being a str
-                meta['episode'] = int(meta['episode'])
-                meta['rating'] = float(meta['rating'])
-
             else: #movie
                 meta = metaget.get_meta(video_type, title, year=year)
                 alt_id = meta['tmdb_id']
@@ -1219,8 +988,7 @@ def create_meta(video_type, title, year, thumb):
             if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg',''):
                 meta['cover_url'] = thumb
             img = meta['cover_url']
-        # except: addon.log('Error assigning meta data for %s %s %s' %(video_type, title, year))
-        except: print 'Error assigning meta data for %s %s %s' %(video_type, title, year)
+        except: addon.log('Error assigning meta data for %s %s %s' %(video_type, title, year))
     return meta
 
 def scan_by_letter(section, letter):
@@ -1653,9 +1421,10 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
 
 def AddSubscription(url, title, img, year, imdbnum):
     try:
-        sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (%s,%s,%s,%s,%s)'
+        sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?,?,?,?,?)'
         if DB == 'mysql':
             db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+            sql = sql.replace('?','%s')
         else: db = database.connect( db_dir )
         cur = db.cursor()
         cur.execute(sql, (url, title, img, year, imdbnum))
@@ -1943,6 +1712,72 @@ def website_is_integrated():
     if enabled and user and passwd: return True
     else: return False
 
+
+def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=[], subs=[]):
+    if video_type == 'episode':
+        meta = metaget.get_episode_meta(title,imdbnum,season,episode)
+        meta['TVShowTitle'] = title
+    else:
+        meta = create_meta(video_type, title, year, img)
+
+    if 'cover_url' in meta: img = meta['cover_url']
+
+    cm = add_contextsearchmenu(title, section)
+    cm = cm + extra_cms
+    
+    runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
+    cm.append(('Add to Favorites', runstring),)
+    
+    runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':img, 'year':year})
+    cm.append(('Add to Library', runstring),)
+    
+    if video_type in ('tvshow', 'episode'):
+        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':img, 'year':year})
+        cm.append(('Subscribe', runstring),)
+    else:
+        runstring = 'XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add?title=%s)' %title
+        cm.append(('Add to CouchPotato', runstring),)
+    
+    cm.append(('Show Information', 'XBMC.Action(Info)'),)
+    
+    runstring = addon.build_plugin_url({'mode':'RefreshMetadata', 'video_type':video_type, 'title':meta['title'], 'imdb':meta['imdb_id'], 'alt_id':imdbnum, 'year':year})
+    runstring = 'RunPlugin(%s)'%runstring
+    cm.append(('Refresh Metadata', runstring,))
+
+    if 'trailer_url' in meta:
+        url = meta['trailer_url']
+        url = url.encode('base-64').strip()
+        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'PlayTrailer', 'url':url})
+        cm.append(('Watch Trailer', runstring,))
+
+    if meta['overlay'] == 6: label = 'Mark as watched'
+    else: label = 'Mark as unwatched'
+    runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
+    cm.append((label, runstring,))
+
+    if FANART_ON:
+        try: fanart = meta['backdrop_url']
+        except: fanart = ''
+
+    if video_type == 'tvshow':
+        lookup_url = BASE_URL + resurl
+        if lookup_url in subs:
+            meta['title'] = format_label_sub(meta)
+        else:
+            meta['title'] = format_label_tvshow(meta)
+    elif video_type == 'episode':  meta['title'] = format_tvshow_episode(meta)
+    else: meta['title'] = format_label_movie(meta)
+
+    listitem = xbmcgui.ListItem(meta['title'], iconImage=img, 
+                    thumbnailImage=img)
+    listitem.setInfo('video', meta)
+    listitem.setProperty('fanart_image', fanart)
+    listitem.setProperty('imdb', meta['imdb_id'])
+    listitem.setProperty('img', img)
+    listitem.addContextMenuItems(cm, replaceItems=True)
+    return listitem
+
+
 mode        = addon.queries.get('mode',       None)
 section      = addon.queries.get('section',    '')
 genre        = addon.queries.get('genre',       '')
@@ -2050,3 +1885,7 @@ elif mode=='RefreshMetadata':
     RefreshMetadata(video_type, title, imdbnum, alt_id, year)
 elif mode=='migrateDB':
     migrate_to_mysql()
+elif mode=='Help':
+    addon.log('Showing help popup')
+    popup = TextBox()
+    popup.show()

@@ -1,6 +1,8 @@
-import sys
-import re
 import os
+import re
+import sys
+import xbmc
+import xbmcgui
 
 # from functools import wraps
 
@@ -46,11 +48,15 @@ def format_label_sub(info):
     return formatted_label
 
 def format_label_movie(info):
+    if 'premiered' in info:
+        year = info['premiered'][:4]
+    else: year = ''
+    title = info['title']
     label = addon.get_setting('format-movie')
-    label = re.sub('\{t\}', info['title'], label)
-    label = re.sub('\{y\}', str(info['year']), label)
-    label = re.sub('\{ft\}', format_movie_title(info['title']), label)
-    label = re.sub('\{fy\}', format_movie_year(str(info['year'])), label)
+    label = label.replace('{t}', title)
+    label = label.replace('{y}', year)
+    label = label.replace('{ft}', format_movie_title(title))
+    label = label.replace('{fy}', format_movie_year(year))
     return label
 
 def format_movie_title(title):
@@ -90,34 +96,44 @@ def format_label_source_parts(info, part_num):
     if info['verified']: label = format_label_source_verified(label)
     return label
 
+def has_upgraded():
+    old_version = addon.get_setting('old_version').split('.')
+    new_version = addon.get_version().split('.')
+    current_oct = 0
+    for oct in old_version:
+        if int(new_version[current_oct]) > int(oct):
+            addon.log('New version found')
+            return True
+        current_oct += 1
+    return False
+
 class TextBox:
-	# constants
-	WINDOW = 10147
-	CONTROL_LABEL = 1
-	CONTROL_TEXTBOX = 5
+    # constants
+    WINDOW = 10147
+    CONTROL_LABEL = 1
+    CONTROL_TEXTBOX = 5
 
-	def __init__( self, *args, **kwargs):
-		# activate the text viewer window
-		xbmc.executebuiltin( "ActivateWindow(%d)" % ( self.WINDOW, ) )
-		# get window
-		self.window = xbmcgui.Window( self.WINDOW )
-		# give window time to initialize
-		xbmc.sleep( 100 )
+    def __init__( self, *args, **kwargs):
+        # activate the text viewer window
+        xbmc.executebuiltin( "ActivateWindow(%d)" % ( self.WINDOW, ) )
+        # get window
+        self.win = xbmcgui.Window( self.WINDOW )
+        # give window time to initialize
+        xbmc.sleep( 100 )
+        self.setControls()
 
 
-	def setControls( self ):
-		#get header, text
-		heading, text = self.message
-		# set heading
-		self.window.getControl( self.CONTROL_LABEL ).setLabel( "%s - %s" % ( heading, ADDON_NAME, ) )
-		# set text
-		self.window.getControl( self.CONTROL_TEXTBOX ).setText( text )
+    def setControls( self ):
+        # set heading
+        heading =  "1Channel v%s" % (addon.get_version())
+        self.win.getControl( self.CONTROL_LABEL ).setLabel(heading)
+        # set text
+        dir = addon.get_path()
+        faq_path = os.path.join(dir, 'help.faq')
+        f = open(faq_path)
+        text = f.read()
+        self.win.getControl( self.CONTROL_TEXTBOX ).setText( text )
 
-   	def show(self, heading, text):
-		# set controls
-
-		self.message = heading, text
-		self.setControls()
 
 # import cProfile
 

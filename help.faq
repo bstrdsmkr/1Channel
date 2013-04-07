@@ -1,0 +1,66 @@
+[B]New Features[/B]
+Alot of new features have been added to 1Channel recently, most importantly the Help button. Most of your questions should be answered after a read through there.
+
+[COLOR red]If you still have questions afterward, this addon is supported at www.XBMCHub.com,  [B]NOT[/B] xbmc.org[/COLOR]
+
+Here's a quick rundown:
+
+[COLOR blue][B]Add to Library[/B][/COLOR]
+    - Create .strm files to link directly to 1Ch content from your XBMC library
+        - In order for 1Channel content to show up in your XBMC library, you need to add the Tv Shows and Movies folders as sources in XBMC. 
+        This can be done through Videos-> Files-> Add Videos...-> Browse and navigating to and selecting the appropriate folder. Once you have selected the appropriate folder, 
+        enter a name of your choosing for the source and select ok. In the Set Content screen, select the type of content (Tv Shows or Movies) and the scraper you want XBMC 
+        to use to identify each piece of content and download metadata.
+        
+        The next time XBMC's library updates, the new content will show up in your library as if you had downloaded the whole file and saved it locally
+
+[COLOR blue][B]Subscriptions[/B][/COLOR]
+    - Automatically create .strm files when a new episode of a subscribed show is added to the website
+        - Subscriptions work exactly like the Add to Library feature with the added benefit that the addon checks periodically for new episodes and automatically adds new episodes
+        to your library as they appear on the site
+
+[COLOR blue][B]Sorting of sources[/B][/COLOR]
+    - You can specifiy the order in which to present sources ranked by the host, quality, number of views, number or parts, and whether or not the source is listed as verified on the site
+        - The Host Ranking field allows you to specify the order in which you prefer hosts to be listed. The host listed first will be ranked highest, and so on.
+           For example:
+            
+                putlocker.com, sockshare.com, vidxden.com 
+
+        - To give two hosts equal prefrence, separate them with the | character:
+           For example:
+            
+                putlocker.com|sockshare.com, vidxden.com, nowvideo.eu
+ 
+        - Any hosts not listed will be given an equal ranking lower than all listed hosts.
+        - Enabling Reverse Sort after a sorting option will sort them appropriately, then reverse the list
+
+[COLOR blue][B]Autoplay[/B][/COLOR]
+    - When enabled, the list of sources won't be displayed. Instead, the list will be sorted according to your prefrences and will be tried in order until playback is successful.
+
+[COLOR blue][B]Autowatch[/B][/COLOR]
+    - Automatically mark a movie or episode as watched when playback reaches a specified percentage
+    - Keep in mind that this only affects items displayed within the addon. It is not currently possible to mark items as watched in your library this way
+
+[COLOR blue][B]MySQL support[/B][/COLOR]
+    - Share subscriptions and favorites across multiple installations
+
+[COLOR blue][B]Website Integration[/B][/COLOR]
+    - View and save your favorites to/from the www.1channel.ch website
+
+[COLOR blue][B]Themes[/B][/COLOR]
+    - Switch up the artwork in 1channel
+
+[COLOR blue][B]Label formating[/B][/COLOR]
+    - Control how content and source labels are displayed
+        The following tokens can be used:
+            {t} The unchanged title of the Movie or TV Show
+            {y} The unchanged release year of the Movie or TV Show
+            {ft} The title of the Movie or TV Show after applying any formating specified in the Title field
+            {fy} The release year of the Movie or TV Show after applying any formating specified in the Year field
+            {q} The quality of the source as specified on the website (DVD, TS, or CAM)
+            {h} The host of the source
+            {v} The number of views reported by the website
+            {p} The part number of the specified source
+
+[COLOR blue][B]Automatic view settings[/B][/COLOR]
+    - Specify a skin's view id to be automatically set for each section
