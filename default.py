@@ -1385,6 +1385,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
                         epnum = match.group(2)
 
                         filename = '%s S%sE%s.strm' %(ShowTitle,seasonnum,epnum)
+                        filename = re.sub('[^\w\-_\. ]', '_', filename)
                         final_path = os.path.join(save_path, ShowTitle, season, filename)
                         final_path = xbmc.makeLegalFilename(final_path)
                         if not xbmcvfs.exists(os.path.dirname(final_path)):
@@ -1392,7 +1393,8 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
                             except: addon.log('Failed to create directory %s' %final_path)
 
                         playurl = BASE_URL + epurl
-                        strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle, 'img':'', 'dialog':1})
+                        queries = {'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle, 'img':'', 'dialog':1, 'video_type':'episode'}
+                        strm_string = addon.build_plugin_url(queries)
                         if not xbmcvfs.exists(final_path):
                             try:
                                 file = xbmcvfs.File(final_path,'w')
@@ -1403,9 +1405,10 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
     elif video_type == 'movie' :
         save_path = addon.get_setting('movie-folder')
         save_path = xbmc.translatePath(save_path)
-        strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':url, 'imdbnum':imdbnum, 'title':title, 'img':img, 'year':year, 'dialog':1})
-        if year: title = '%s(%s)'% (title,year)
+        strm_string = addon.build_plugin_url({'mode':'GetSources', 'url':url, 'imdbnum':imdbnum, 'title':title, 'img':img, 'year':year, 'dialog':1, 'video_type':'movie'})
+        if year: title = '%s (%s)'% (title,year)
         filename = '%s.strm' %title
+        filename = re.sub('[^\w\-_\. ]', '_', filename)
         final_path = os.path.join(save_path,title,filename)
         final_path = xbmc.makeLegalFilename(final_path)
         if not xbmcvfs.exists(os.path.dirname(final_path)):
@@ -1888,4 +1891,3 @@ elif mode=='migrateDB':
 elif mode=='Help':
     addon.log('Showing help popup')
     popup = TextBox()
-    popup.show()
