@@ -1395,12 +1395,14 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
                         playurl = BASE_URL + epurl
                         queries = {'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle, 'img':'', 'dialog':1, 'video_type':'episode'}
                         strm_string = addon.build_plugin_url(queries)
-                        if not xbmcvfs.exists(final_path):
-                            try:
-                                file = xbmcvfs.File(final_path,'w')
-                                file.write(strm_string)
-                                file.close()
-                            except: addon.log('Failed to create .strm file: %s' %final_path)
+                        # if not xbmcvfs.exists(final_path):
+                        #temp disabled bc of change in .strm format. Reenable in next version
+                        try:
+                            file = xbmcvfs.File(final_path,'w')
+                            file.write(strm_string)
+                            file.close()
+                        except Exception, e:
+                            addon.log('Failed to create .strm file: %s\n%s' %(final_path, e))
 
     elif video_type == 'movie' :
         save_path = addon.get_setting('movie-folder')
@@ -1414,12 +1416,13 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
         if not xbmcvfs.exists(os.path.dirname(final_path)):
             try:    xbmcvfs.mkdirs(os.path.dirname(final_path))
             except: addon.log('Failed to create directory %s' %final_path)
-        if not xbmcvfs.exists(final_path):
-            try:
-                file = xbmcvfs.File(final_path,'w')
-                file.write(strm_string)
-                file.close()
-            except: addon.log('Failed to create .strm file: %s' %final_path)
+        # if not xbmcvfs.exists(final_path):
+        #temp disabled bc of change in .strm format. Reenable in next version
+        try:
+            file = xbmcvfs.File(final_path,'w')
+            file.write(strm_string)
+            file.close()
+        except: addon.log('Failed to create .strm file: %s\n%s' %(final_path, e))
 
 
 def AddSubscription(url, title, img, year, imdbnum):
