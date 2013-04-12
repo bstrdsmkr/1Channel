@@ -1767,6 +1767,7 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
     runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'ChangeWatched', 'title':title, 'imdbnum':meta['imdb_id'],  'video_type':video_type, 'year':year})
     cm.append((label, runstring,))
 
+    fanart = ''
     if FANART_ON:
         try: fanart = meta['backdrop_url']
         except: fanart = ''
