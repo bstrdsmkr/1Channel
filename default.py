@@ -1446,10 +1446,13 @@ def AddSubscription(url, title, img, year, imdbnum):
 
 
 def CancelSubscription(url, title, img, year, imdbnum):
-    if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+    sql_delete = 'DELETE FROM subscriptions WHERE url=%s AND title=%s AND year=%s'
+    if DB == 'mysql':
+        db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+        sql_delete = sql_delete.replace('%s','?')
     else: db = database.connect( db_dir )
     db_cur = db.cursor()
-    db_cur.execute('DELETE FROM subscriptions WHERE url=%s AND title=%s AND year=%s', (url,unicode(title,'utf-8'),year))
+    db_cur.execute(sql_delete, (url,unicode(title,'utf-8'),year))
     db.commit()
     db.close()
     xbmc.executebuiltin('Container.Refresh')
@@ -1469,7 +1472,10 @@ def UpdateSubscriptions():
 
 def CleanupSubscriptions():
     addon.log('Cleaning up dead subscriptions')
-    if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+    sql_delete = 'DELETE FROM subscriptions WHERE url=%s'
+    if DB == 'mysql':
+        db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+        sql_delete = sql_delete.replace('%s','?')
     else: db = database.connect( db_dir )
     cur = db.cursor()
     cur.execute('SELECT * FROM subscriptions')
@@ -1482,7 +1488,7 @@ def CleanupSubscriptions():
             addon.log('Selecting %s  for removal' %sub[1])
     if to_clean:
         to_clean = zip(to_clean)
-        cur.executemany('DELETE FROM subscriptions WHERE url=%s', to_clean)
+        cur.executemany(sql_delete, to_clean)
         db.commit()
     db.close()
 
