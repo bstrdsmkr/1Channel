@@ -1446,10 +1446,10 @@ def AddSubscription(url, title, img, year, imdbnum):
 
 
 def CancelSubscription(url, title, img, year, imdbnum):
-    sql_delete = 'DELETE FROM subscriptions WHERE url=%s AND title=%s AND year=%s'
+    sql_delete = 'DELETE FROM subscriptions WHERE url=? AND title=? AND year=?'
     if DB == 'mysql':
         db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
-        sql_delete = sql_delete.replace('%s','?')
+        sql_delete = sql_delete.replace('?','%s')
     else: db = database.connect( db_dir )
     db_cur = db.cursor()
     db_cur.execute(sql_delete, (url,unicode(title,'utf-8'),year))
@@ -1472,10 +1472,10 @@ def UpdateSubscriptions():
 
 def CleanupSubscriptions():
     addon.log('Cleaning up dead subscriptions')
-    sql_delete = 'DELETE FROM subscriptions WHERE url=%s'
+    sql_delete = 'DELETE FROM subscriptions WHERE url=?'
     if DB == 'mysql':
         db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
-        sql_delete = sql_delete.replace('%s','?')
+        sql_delete = sql_delete.replace('?','%s')
     else: db = database.connect( db_dir )
     cur = db.cursor()
     cur.execute('SELECT * FROM subscriptions')
