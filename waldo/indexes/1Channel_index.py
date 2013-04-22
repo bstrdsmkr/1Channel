@@ -1,8 +1,14 @@
 import os
+import re
 import sys
+import urllib2
+import xbmcgui
+import xbmcplugin
+import HTMLParser
 
 from t0mm0.common.addon import Addon
 addon = Addon('plugin.video.waldo', sys.argv)
+BASE_URL = 'http://www.1channel.ch'
 
 display_name = '1Channel'
 #Label that will be displayed to the user representing this index
@@ -62,33 +68,38 @@ def get_browsing_options():#MUST be defined
     '''
     option_1 = {}
     option_1['name'] = 'Tv Shows'
-    option_1['function'] = BrowseListMenu
+    option_1['function'] = 'BrowseListMenu'
     option_1['kwargs'] = {'section':'tv'}
 
     option_2 = {}
     option_2['name'] = 'Movies'
-    option_2['function'] = BrowseListMenu
+    option_2['function'] = 'BrowseListMenu'
     option_2['kwargs'] = {'section':'movies'}
     
     return [option_1,option_2]
 
 def callback(params):
     '''
-    MUST be implemented. This method allows you to call functions from your listitems.
-    When Waldo is called with mode=CallModule, the callback() function of the module
-    who's filename matches the receiver parameter will be called and passed a dict of 
-    all the parameters.
-    For example, to call this example function, you would call:
-        plugin://plugin.video.waldo/?mode=CallModule&receiver=ExampleIndex
+    MUST be implemented. This method will be called when the user selects a
+    listitem you created. It will be passed a dict of parameters you passed to
+    the listitem's url.
+    For example, the following listitem url:
+        plugin://plugin.video.waldo/?mode=main&section=tv&api_key=1234
+     Will call this function with:
+        {'mode':'main', 'section':'tv', 'api_key':'1234'}
     '''
     addon.log('%s was called with the following parameters: %s' %(params.get('receiver',''), params))
+    sort_by = params.get('sort', None)
+    section = params.get('section')
+    if sort_by: GetFilteredResults(section, sort=sort_by)
+
 
 def BrowseListMenu(section): #This must match the 'function' key of an option from get_browsing_options
-    addon.add_directory({'mode': 'CallModule', 'receiver':'1Channel', 'ind_path':os.path.dirname(__file__), 'section': section, 'sort': 'featured'},   {'title':  'Featured'}, img=art('featured.png'), fanart=art('fanart.png'))
-    addon.add_directory({'mode': 'CallModule', 'receiver':'1Channel', 'ind_path':os.path.dirname(__file__), 'section': section, 'sort': 'views'},   {'title':  'Most Popular'}, img=art('most_popular.png'), fanart=art('fanart.png'))
-    addon.add_directory({'mode': 'CallModule', 'receiver':'1Channel', 'ind_path':os.path.dirname(__file__), 'section': section, 'sort': 'ratings'},   {'title':  'Highly rated'}, img=art('highly_rated.png'), fanart=art('fanart.png'))
-    addon.add_directory({'mode': 'CallModule', 'receiver':'1Channel', 'ind_path':os.path.dirname(__file__), 'section': section, 'sort': 'release'},   {'title':  'Date released'}, img=art('date_released.png'), fanart=art('fanart.png'))
-    addon.add_directory({'mode': 'CallModule', 'receiver':'1Channel', 'ind_path':os.path.dirname(__file__), 'section': section, 'sort': 'date'},   {'title':  'Date added'}, img=art('date_added.png'), fanart=art('fanart.png'))
+    addon.add_directory({'section': section, 'sort': 'featured'}, {'title':  'Featured'}, img=art('featured.png'), fanart=art('fanart.png'))
+    addon.add_directory({'section': section, 'sort': 'views'},     {'title':  'Most Popular'}, img=art('most_popular.png'), fanart=art('fanart.png'))
+    addon.add_directory({'section': section, 'sort': 'ratings'},   {'title':  'Highly rated'}, img=art('highly_rated.png'), fanart=art('fanart.png'))
+    addon.add_directory({'section': section, 'sort': 'release'},  {'title':  'Date released'}, img=art('date_released.png'), fanart=art('fanart.png'))
+    addon.add_directory({'section': section, 'sort': 'date'},      {'title':  'Date added'}, img=art('date_added.png'), fanart=art('fanart.png'))
     addon.end_of_directory()
 
 def art(file):
@@ -99,3 +110,72 @@ def art(file):
     img = os.path.join(THEME_PATH, file)
     return img
 
+def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None): #3000
+    addon.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' %(section, genre, letter, sort, page))
+
+    pageurl = BASE_URL + '/?'
+    if section == 'tv': pageurl += 'tv'
+    if genre  :    pageurl += '&genre='  + genre
+    if letter :    pageurl += '&letter=' + letter
+    if sort   :    pageurl += '&sort='   + sort
+    if page      : pageurl += '&page=%s' % page
+
+    if page: page = int(page) + 1
+    else: page = 2
+
+    html = GetURL(pageurl)
+
+    r = re.search('number_movies_result">([0-9,]+)', html)
+    if r: total = int(r.group(1).replace(',', ''))
+    else: total = 0
+    total_pages = total/24
+    total = min(total,24)
+
+    r = 'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
+    regex = re.finditer(r, html, re.DOTALL)
+    resurls = []
+    for s in regex:
+        resurl,title,year,thumb = s.groups()
+        if resurl not in resurls:
+            resurls.append(resurl)
+            li_title = '%s (%s)' %(title, year)
+            li = xbmcgui.ListItem(li_title, iconImage=thumb, thumbnailImage=thumb)
+            if section == 'tv': section = 'tvshow'
+            else: section = 'movie'
+            queries = {'waldo_mode':'GetAllResults', 'title':title, 'vid_type':section}
+            li_url = addon.build_plugin_url(queries)
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li, 
+                                        isFolder=True, totalItems=total)    
+
+    if html.find('> >> <') > -1:
+        label = 'Skip to Page...'
+        command = addon.build_plugin_url({'mode':'PageSelect', 'pages':total_pages, 'section':section, 'genre':genre, 'letter':letter, 'sort':sort})
+        command = 'RunPlugin(%s)' %command
+        cm = [(label, command)]
+        meta = {'title':'Next Page >>'}
+        addon.add_directory({'mode': 'CallModule', 'receiver':'1Channel', 'ind_path':os.path.dirname(__file__), 'section':section, 'genre':genre, 'letter':letter, 'sort':sort, 'page':page},
+                            meta, cm, True, art('nextpage.png'), art('fanart.png'), is_folder=True)
+    addon.end_of_directory()
+
+def GetURL(url, params=None, referrer=BASE_URL):
+    addon.log('Fetching URL: %s' % url)
+
+    USER_AGENT = 'User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56'
+    if params: req = urllib2.Request(url, params)
+    else: req = urllib2.Request(url)
+
+    req.add_header('User-Agent', USER_AGENT)
+    req.add_header('Host', 'www.1channel.ch')
+    req.add_header('Referer', referrer)
+    
+    try:
+        response = urllib2.urlopen(req, timeout=10)
+        body = response.read()
+        body = unicode(body,'iso-8859-1')
+        h = HTMLParser.HTMLParser()
+        body = h.unescape(body)
+    except Exception, e:
+        addon.log('Failed to connect to %s: %s' %(url, e))
+        return ''
+
+    return body.encode('utf-8')

@@ -433,6 +433,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
                     except: img = ''
                 listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
                 listitem.setInfo(type="Video", infoLabels=meta)
+                listitem.setProperty('IsPlayable', 'true')
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
         elif video_type == 'movie':
             try:
@@ -443,6 +444,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
                     except: img = ''
                 listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
                 listitem.setInfo(type="Video", infoLabels=meta)
+                listitem.setProperty('IsPlayable', 'true')
             except: addon.log('Failed to get metadata for Title: %s IMDB: %s Season: %s Episode %s' %(title,imdbnum,season,episode))
     # if addon.get_setting('auto-play')=='true' or strm==True:
         # xbmc.Player().play(stream_url, listitem)
@@ -692,6 +694,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
             li = build_listitem(video_type, title, year, img, resurl, subs=subs)
             imdb = li.getProperty('imdb')
             imdb = li.getProperty('img')
+            li.setProperty('IsPlayable', 'true')
             queries = {'mode':nextmode, 'title':title, 'url':BASE_URL + resurl,
                        'img':thumb, 'imdbnum':imdb,
                        'video_type':video_type, 'year':year}
@@ -828,6 +831,7 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
                    'title':ShowTitle, 'img':img}
         li_url = addon.build_plugin_url(queries)
         listitem =  build_listitem('episode', ShowTitle, year, img, epurl, imdbnum, season, epnum)
+        listitem.setProperty('IsPlayable', 'true')
 
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
                                         isFolder=folder)
@@ -1812,6 +1816,7 @@ alt_id           = addon.queries.get('alt_id',       '')
 dialog          = addon.queries.get('dialog',       '')
 
 addon.log(addon.queries)
+addon.log(sys.argv)
 
 if mode=='main':
     AddonMenu()
