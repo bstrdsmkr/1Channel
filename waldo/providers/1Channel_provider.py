@@ -99,14 +99,3 @@ def Search(section, query, imdb):
                 print result['li_url']
                 result['info_labels'] = {'title':disp_title}
                 yield result
-
-def PlaySource(url, title, img, year, imdbnum, video_type, season, episode):
-    qs = {'url':url, 'title':title, 'img':img, 'year':year, 'imdbnum':imdbnum}
-    qs['video_type'] = video_type
-    qs['season'] = season
-    qs['episode'] = episode
-    qs['mode'] = 'PlaySource'
-    query_string = urllib.urlencode(qs)
-    builtin = 'RunPlugin(plugin://plugin.video.1channel/%s)' %query_string
-    print builtin
-    xbmc.executebuiltin(builtin)
