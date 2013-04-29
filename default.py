@@ -872,9 +872,16 @@ def BrowseFavorites(section):
         remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' %(sys.argv[1],section,title,year,favurl)
         cm = [('Remove from Favorites', remfavstring)]
 
-        listitem = build_listitem(video_type, title, year, img, favurl, extra_cms=cm, subs=subs)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), favurl , listitem,
-                                        isFolder=folder)
+        # listitem = build_listitem(video_type, title, year, img, favurl, extra_cms=cm, subs=subs)
+        # xbmcplugin.addDirectoryItem(int(sys.argv[1]), favurl , listitem,
+                                        # isFolder=folder)
+        li = build_listitem(video_type, title, year, img, favurl, extra_cms=cm, subs=subs)
+        img = li.getProperty('img')
+        queries = {'mode':nextmode, 'title':title, 'url':favurl,
+                   'img':img, 'video_type':video_type}
+        li_url = addon.build_plugin_url(queries)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li, 
+                                    isFolder=folder)  
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     db.close()
