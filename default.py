@@ -872,9 +872,6 @@ def BrowseFavorites(section):
         remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' %(sys.argv[1],section,title,year,favurl)
         cm = [('Remove from Favorites', remfavstring)]
 
-        # listitem = build_listitem(video_type, title, year, img, favurl, extra_cms=cm, subs=subs)
-        # xbmcplugin.addDirectoryItem(int(sys.argv[1]), favurl , listitem,
-                                        # isFolder=folder)
         li = build_listitem(video_type, title, year, img, favurl, extra_cms=cm, subs=subs)
         img = li.getProperty('img')
         queries = {'mode':nextmode, 'title':title, 'url':favurl,
@@ -887,6 +884,17 @@ def BrowseFavorites(section):
     db.close()
 
 def BrowseFavorites_Website(section):
+    sql = 'SELECT count(*) FROM favorites'
+    if DB == 'mysql':
+        db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+        sql = sql.replace('?','%s')
+    else: db = database.connect( db_dir )
+    cur = db.cursor()
+    local_favs = cur.execute(sql).fetchall()
+
+    if local_favs:
+        addon.add_item({'mode':'migrateFavs'}, {'title':'Upload Local Favorites'})
+    
     user   = addon.get_setting('username')
     passwd = addon.get_setting('passwd')
     if not section: section = 'movies'
@@ -934,6 +942,63 @@ def BrowseFavorites_Website(section):
                                     isFolder=folder)
     addon.end_of_directory()
 
+def migrate_favs_to_web():
+    sql = 'SELECT type, name, url, year FROM favorites ORDER BY name'
+    if DB == 'mysql':
+        db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+        sql = sql.replace('?','%s')
+    else: db = database.connect( db_dir )
+    cur = db.cursor()
+    cur.execute(sql)
+    all_favs = cur.fetchall()
+    progress = xbmcgui.DialogProgress()
+    ln1 = 'Uploading your favorites to www.1channel.ch...'
+    ret = progress.create('Uploading Favorites', ln1)
+    net = Net()
+    cookiejar = addon.get_profile()
+    cookiejar = os.path.join(cookiejar,'cookies')
+    failures = []
+    for fav in all_favs:
+        if progress.iscanceled(): return
+        title = fav[1]
+        favurl = fav[2]
+        progress.update(0, ln1, 'Adding %s' %title)
+        try:
+            id = re.search('.+(?:watch|tv)-([\d]+)-', favurl)
+            if id:
+                save_url = "http://www.1channel.ch/addtofavs.php?id=%s&whattodo=add"
+                save_url = save_url % id.group(1)
+                addon.log(save_url)
+                net.set_cookies(cookiejar)
+                html = net.http_GET(save_url).content
+                net.save_cookies(cookiejar)
+                progress.update(0, ln1, 'Adding %s' %title, 'Success')
+                addon.log('%s added successfully' %title)
+        except Exception, e:
+            addon.log(e)
+            failures.append((title, favurl))
+    progress.close()
+    dialog = xbmcgui.Dialog()
+    ln1 = 'Do you want to remove the successful'
+    ln2 = 'uploads from local favorites?'
+    ln3 = 'THIS CANNOT BE UNDONE'
+    yes = 'Keep'
+    no  = 'Delete'
+    ret = dialog.yesno('Migration Complete', ln1, ln2, ln3, yes, no)
+    # failures = [('title1','url1'), ('title2','url2'), ('title3','url3'), ('title4','url4'), ('title5','url5'), ('title6','url6'), ('title7','url7')]
+    if ret:
+        if failures:
+            params = ', '.join('%s' if DB=='mysql' else '?' for item in failures)
+            sql_delete = 'DELETE FROM favorites WHERE url NOT IN (SELECT url FROM favorites WHERE url IN (%s))'
+            sql_delete = sql_delete % params
+            addon.log(sql_delete)
+            urls = [item[1] for item in failures]
+            addon.log(urls)
+            # cur.execute(sql_delete, failures)
+        else:
+            cur.execute('DELETE FROM favorites')
+            
+        
 def GetByLetter(letter, section):
     addon.log('Showing results for letter: %s' %letter)
     if section == 'tv':
@@ -1919,6 +1984,8 @@ elif mode=='RefreshMetadata':
     RefreshMetadata(video_type, title, imdbnum, alt_id, year)
 elif mode=='migrateDB':
     migrate_to_mysql()
+elif mode=='migrateFavs':
+    migrate_favs_to_web()
 elif mode=='Help':
     addon.log('Showing help popup')
     popup = TextBox()
