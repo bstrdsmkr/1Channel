@@ -77,7 +77,7 @@ THEME_PATH = os.path.join(addon.get_path(), 'art', 'themes', THEME)
 AUTO_WATCH = addon.get_setting('auto-watch') == 'true'
 
 AZ_DIRECTORIES = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y', 'Z']
-BASE_URL = 'http://www.1channel.ch'
+BASE_URL = addon.get_setting('domain')
 USER_AGENT = 'User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56'
 GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 
           'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Game-Show', 
@@ -135,8 +135,8 @@ def SaveFav(fav_type, name, url, img, year):
         addon.log('Saving favorite to website')
         id = re.search('.+(?:watch|tv)-([\d]+)-', url)
         if id:
-            save_url = "http://www.1channel.ch/addtofavs.php?id=%s&whattodo=add"
-            save_url = save_url % id.group(1)
+            save_url = "%s/addtofavs.php?id=%s&whattodo=add"
+            save_url = save_url %(BASE_URL, id.group(1))
             print save_url
             net = Net()
             cookiejar = addon.get_profile()
@@ -181,14 +181,14 @@ def DeleteFav(fav_type, name, url): #7777
         addon.log('Deleting favorite from website')
         id = re.search('.+(?:watch|tv)-([\d]+)-', url)
         if id:
-            del_url = "http://www.1channel.ch/addtofavs.php?id=%s&whattodo=delete"
-            del_url = del_url % id.group(1)
+            del_url = "%s/addtofavs.php?id=%s&whattodo=delete"
+            del_url = del_url %(BASE_URL, id.group(1))
             print del_url
             net = Net()
             cookiejar = addon.get_profile()
             cookiejar = os.path.join(cookiejar,'cookies')
             net.set_cookies(cookiejar)
-            html = net.http_GET(url).content
+            html = net.http_GET(del_url).content
             net.save_cookies(cookiejar)
 
     else:
@@ -226,8 +226,9 @@ def GetURL(url, params=None, referrer=BASE_URL, silent=False, cache_limit=8):
     if params: req = urllib2.Request(url, params)
     else: req = urllib2.Request(url)
 
+    host = re.sub('http://', '', BASE_URL)
     req.add_header('User-Agent', USER_AGENT)
-    req.add_header('Host', 'www.1channel.ch')
+    req.add_header('Host', host)
     if referrer: req.add_header('Referer', referrer)
     
     try:
@@ -272,7 +273,7 @@ def GetSources(url, title, img, year, imdbnum, dialog): #10
     cookiejar = addon.get_profile()
     cookiejar = os.path.join(cookiejar,'cookies')
     net.set_cookies(cookiejar)
-    html = net.http_GET(url).content
+    html = net.http_GET(BASE_URL + url).content
     net.save_cookies(cookiejar)
     adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
     r = re.search(adultregex, html, re.DOTALL)
@@ -553,7 +554,7 @@ def Search(section, query):
                 imdb = li.getProperty('imdb')
                 thumb = li.getProperty('img')
 
-                queries = {'mode':nextmode, 'title':title, 'url':BASE_URL + resurl,
+                queries = {'mode':nextmode, 'title':title, 'url':resurl,
                            'img':thumb, 'imdbnum':imdb,
                            'video_type':video_type, 'year':year}
                 li_url = addon.build_plugin_url(queries)
@@ -570,6 +571,8 @@ def AddonMenu():  #homescreen
         addon.log('Showing update popup')
         popup = TextBox()
         adn = xbmcaddon.Addon('plugin.video.1channel')
+        upgrade_subs_db()
+        fix_existing_strms()
         adn.setSetting('old_version', addon.get_version())
     initDatabase()
     addon.add_directory({'mode': 'BrowseListMenu', 'section': ''},   {'title':  'Movies'}, img=art('movies.png'), fanart=art('fanart.png'))
@@ -693,7 +696,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
             imdb = li.getProperty('imdb')
             imdb = li.getProperty('img')
             li.setProperty('IsPlayable', 'true')
-            queries = {'mode':nextmode, 'title':title, 'url':BASE_URL + resurl,
+            queries = {'mode':nextmode, 'title':title, 'url':resurl,
                        'img':thumb, 'imdbnum':imdb,
                        'video_type':video_type, 'year':year}
             li_url = addon.build_plugin_url(queries)
@@ -720,7 +723,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''): #4000
     cookiejar = addon.get_profile()
     cookiejar = os.path.join(cookiejar,'cookies')
     net.set_cookies(cookiejar)
-    html = net.http_GET(url).content
+    html = net.http_GET(BASE_URL + url).content
     net.save_cookies(cookiejar)
     adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
     r = re.search(adultregex, html, re.DOTALL)
@@ -824,8 +827,7 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum): #5000
         season = int(re.search('/season-([0-9]{1,4})-', epurl).group(1))
         epnum = int(re.search('-episode-([0-9]{1,3})', epurl).group(1))
 
-        url = BASE_URL + epurl
-        queries = {'mode':'GetSources', 'url':url, 'imdbnum':imdbnum,
+        queries = {'mode':'GetSources', 'url':epurl, 'imdbnum':imdbnum,
                    'title':ShowTitle, 'img':img}
         li_url = addon.build_plugin_url(queries)
         listitem =  build_listitem('episode', ShowTitle, year, img, epurl, imdbnum, season, epnum)
@@ -929,13 +931,12 @@ def BrowseFavorites_Website(section):
     for item in regex.finditer(html):
         link, img, year, title, delete = item.groups()
         
-        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'DeleteFav', 'section':section, 'title':title, 'url':BASE_URL+link, 'year':year})
+        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'DeleteFav', 'section':section, 'title':title, 'url':link, 'year':year})
         cm = [('Delete Favorite', runstring)]
 
         li = build_listitem(video_type, title, year, img, link, extra_cms=cm, subs=subs)
         img = li.getProperty('img')
-        url = '%s/%s' %(BASE_URL,link)
-        queries = {'mode':nextmode, 'title':title, 'url':url,
+        queries = {'mode':nextmode, 'title':title, 'url':link,
                    'img':img, 'video_type':video_type}
         li_url = addon.build_plugin_url(queries)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li, 
@@ -966,7 +967,7 @@ def migrate_favs_to_web():
         try:
             id = re.search('.+(?:watch|tv)-([\d]+)-', favurl)
             if id:
-                save_url = "http://www.1channel.ch/addtofavs.php?id=%s&whattodo=add"
+                save_url = "%s/addtofavs.php?id=%s&whattodo=add" %BASE_URL
                 save_url = save_url % id.group(1)
                 addon.log(save_url)
                 net.set_cookies(cookiejar)
@@ -1002,7 +1003,7 @@ def migrate_favs_to_web():
 def GetByLetter(letter, section):
     addon.log('Showing results for letter: %s' %letter)
     if section == 'tv':
-        url = 'http://www.1channel.ch/alltvshows.php'
+        url = '%s/alltvshows.php' %BASE_URL
         video_type = 'tvshow'
         nextmode = 'TVShowSeasonList'
         folder = True
@@ -1012,7 +1013,7 @@ def GetByLetter(letter, section):
         cur.execute('SELECT url FROM subscriptions')
         subs = cur.fetchall()
     else:
-        url = 'http://www.1channel.ch/allmovies.php'
+        url = '%s/allmovies.php' %BASE_URL
         video_type = 'movie'
         nextmode = 'GetSources'
         folder = addon.get_setting('auto-play')=='false'
@@ -1427,7 +1428,7 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
         cookiejar = addon.get_profile()
         cookiejar = os.path.join(cookiejar,'cookies')
         net.set_cookies(cookiejar)
-        html = net.http_GET(url).content
+        html = net.http_GET(BASE_URL + url).content
         net.save_cookies(cookiejar)
         adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
         r = re.search(adultregex, html, re.DOTALL)
@@ -1467,8 +1468,9 @@ def AddToLibrary(video_type, url, title, img, year, imdbnum):
                             except: addon.log('Failed to create directory %s' %final_path)
 
                         playurl = BASE_URL + epurl
-                        queries = {'mode':'GetSources', 'url':playurl, 'imdbnum':'', 'title':ShowTitle, 'img':'', 'dialog':1, 'video_type':'episode'}
+                        queries = {'mode':'GetSources', 'url':epurl, 'imdbnum':'', 'title':ShowTitle, 'img':'', 'dialog':1, 'video_type':'episode'}
                         strm_string = addon.build_plugin_url(queries)
+                        addon.log('Writing strm: %s' %strm_string)
                         # if not xbmcvfs.exists(final_path):
                         #temp disabled bc of change in .strm format. Reenable in next version
                         try:
@@ -1780,7 +1782,8 @@ def login_and_retry(redirect):
     net = Net()
     cookiejar = addon.get_profile()
     cookiejar = os.path.join(cookiejar,'cookies')
-    headers = {'Referer': redirect, 'Origin':'http://www.1channel.ch', 'Host':'www.1channel.ch'}
+    host = re.sub('http://', '', BASE_URL)
+    headers = {'Referer': redirect, 'Origin': BASE_URL, 'Host': host}
     headers['User-Agent'] = USER_AGENT
     form_data = {'username':user, 'password':passwd, 'remember':'on', 'login_submit':'Login'}
     html = net.http_POST(url, headers=headers, form_data=form_data).content
@@ -1812,14 +1815,14 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
         cm = add_contextsearchmenu(title, section)
         cm = cm + extra_cms
         
-        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':BASE_URL+resurl, 'year':year})
+        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'SaveFav', 'section':section, 'title':title, 'url':resurl, 'year':year})
         cm.append(('Add to Favorites', runstring),)
         
-        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':img, 'year':year})
+        runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddToLibrary', 'video_type':video_type, 'url':resurl, 'title':title, 'img':img, 'year':year})
         cm.append(('Add to Library', runstring),)
         
         if video_type in ('tvshow', 'episode'):
-            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':BASE_URL+resurl, 'title':title, 'img':img, 'year':year})
+            runstring = 'RunPlugin(%s)' % addon.build_plugin_url({'mode':'AddSubscription', 'video_type':video_type, 'url':resurl, 'title':title, 'img':img, 'year':year})
             cm.append(('Subscribe', runstring),)
         else:
             runstring = 'XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add?title=%s)' %title
@@ -1848,8 +1851,7 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
             except: fanart = ''
 
         if video_type == 'tvshow':
-            lookup_url = BASE_URL + resurl
-            if lookup_url in subs:
+            if resurl in subs:
                 meta['title'] = format_label_sub(meta)
             else:
                 meta['title'] = format_label_tvshow(meta)
@@ -1875,6 +1877,39 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
                         thumbnailImage=img)
     return listitem
 
+
+def upgrade_subs_db():
+    addon.log('Upgrading subs db...')
+    sql = "UPDATE subscriptions SET url = replace(url, 'http://www.1channel.ch', '')"
+    if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+    else: db = database.connect( db_dir )
+    cur = db.cursor()
+    cur.execute(sql)
+    db.commit()
+    db.close()
+
+
+def fix_existing_strms():
+    for folder in ('tvshow-folder', 'movie-folder'):
+        save_path = addon.get_setting(folder)
+        save_path = xbmc.translatePath(save_path)
+        for root, dirs, files in os.walk(save_path):
+            for currentFile in files:
+                if currentFile.endswith('.strm'):
+                    addon.log( "processing file: %s" %currentFile)
+                    full_path = os.path.join(root, currentFile)
+                    with open(full_path, 'r+') as target:
+                        content = target.read()
+                        target.seek(0)
+                        new_content = content.replace('&url=http%3A%2F%2Fwww.1channel.ch', '&url=')
+                        if not '&video_type=' in new_content:
+                            if folder == 'tvshow-folder':
+                                new_content += '&video_type=episode'
+                            elif folder == 'movie-folder':
+                                new_content += '&video_type=movie'
+                        addon.log('Writing new content: %s' %new_content)
+                        target.write(new_content)
+                    
 
 mode        = addon.queries.get('mode',       None)
 section      = addon.queries.get('section',    '')

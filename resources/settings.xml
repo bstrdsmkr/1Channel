@@ -80,6 +80,7 @@
 	</category>
 
    <category label="Miscellaneous">
+    <setting id="domain" type="labelenum" label="Domain" values="http://www.1channel.ch|http://www.letmewatchthis.ch"/>
     <setting id="theme" type="enum" label="30800" values="mikey1234|Glossy_Black" default="1"/>
     <setting id="auto-watch" type="bool" label="30801" default="true"/>
     <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="30802" default="2" enable="!eq(-1,false)"/>
