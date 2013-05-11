@@ -3,7 +3,15 @@ Alot of new features have been added to 1Channel recently, most importantly the 
 
 [COLOR red]If you still have questions afterward, this addon is supported at [COLOR blue]www.XBMCHub.com[/COLOR],  [COLOR white][B]NOT[/B][/COLOR] xbmc.org[/COLOR].
 
-Here's a quick rundown:
+[COLOR blue][B]1Channel.ch under attack[/B][/COLOR]
+    -On 01May2013, www.1channel.ch was attacked and the domain hijacked. The site is currently available under the old doman www.letmewatchthis.ch. Until further notice, please 
+    [COLOR red]DO NOT[/COLOR] use www.1channel.ch and especially do not attempt to log in there. If you have tried to login there, visit www.letmewatchthis.ch and change
+    your password immediately. 
+    
+    This updated version of the addon allows you to select to use 1channel.ch or letmewatchthis.ch via a setting under Miscellaneous -> Domain. Until the team behind the
+    1channel/letmewatchthis site give the all clear, please leave this set to Letmewatchthis.ch. You can keep up with them on Twitter @real_1channel.
+
+Here's a quick rundown of things that have changed or that you might not know about:
 
 [COLOR blue][B]Add to Library[/B][/COLOR]
     - Create .strm files to link directly to 1Ch content from your XBMC library

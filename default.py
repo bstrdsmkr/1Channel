@@ -36,7 +36,6 @@ from metahandler import metacontainers
 from operator import itemgetter, methodcaller
 
 import metapacks
-# import playback
 from utils import *
 
 addon = Addon('plugin.video.1channel', sys.argv)
@@ -858,8 +857,9 @@ def BrowseFavorites(section):
         subs = [row[0] for row in subscriptions]
     else: 
         nextmode = 'GetSources'
-        section  = 'movie'
         video_type      = 'movie'
+        section = 'movie'
+        subs = []
         folder   = addon.get_setting('auto-play')=='false'
 
     cur.execute(sql, (section,))
@@ -871,7 +871,7 @@ def BrowseFavorites(section):
         img = ''
         fanart = ''
 
-        remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' %(sys.argv[1],section,title,year,favurl)
+        remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' %(sys.argv[1],video_type,title,year,favurl)
         cm = [('Remove from Favorites', remfavstring)]
 
         li = build_listitem(video_type, title, year, img, favurl, extra_cms=cm, subs=subs)
