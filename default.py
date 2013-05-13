@@ -566,14 +566,14 @@ def Search(section, query):
 
 def AddonMenu():  #homescreen
     addon.log('Main Menu')
+    initDatabase()
     if has_upgraded():
         addon.log('Showing update popup')
         popup = TextBox()
         adn = xbmcaddon.Addon('plugin.video.1channel')
-        upgrade_subs_db()
+        upgrade_db()
         fix_existing_strms()
         adn.setSetting('old_version', addon.get_version())
-    initDatabase()
     addon.add_directory({'mode': 'BrowseListMenu', 'section': ''},   {'title':  'Movies'}, img=art('movies.png'), fanart=art('fanart.png'))
     addon.add_directory({'mode': 'BrowseListMenu', 'section': 'tv'}, {'title':  'TV shows'}, img=art('television.png'), fanart=art('fanart.png'))
     addon.add_directory({'mode': 'ResolverSettings'},   {'title':  'Resolver Settings'}, img=art('settings.png'), fanart=art('fanart.png'))
@@ -1878,15 +1878,16 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
     return listitem
 
 
-def upgrade_subs_db():
-    addon.log('Upgrading subs db...')
-    sql = "UPDATE subscriptions SET url = replace(url, 'http://www.1channel.ch', '')"
-    if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
-    else: db = database.connect( db_dir )
-    cur = db.cursor()
-    cur.execute(sql)
-    db.commit()
-    db.close()
+def upgrade_db():
+    addon.log('Upgrading db...')
+    for table in ('subscriptions', 'favorites'):
+        sql = "UPDATE %s SET url = replace(url, 'http://www.1channel.ch', '')" %table
+        if DB == 'mysql': db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+        else: db = database.connect( db_dir )
+        cur = db.cursor()
+        cur.execute(sql)
+        db.commit()
+        db.close()
 
 
 def fix_existing_strms():
