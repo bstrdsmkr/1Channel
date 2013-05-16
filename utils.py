@@ -119,7 +119,7 @@ class TextBox:
         # get window
         self.win = xbmcgui.Window( self.WINDOW )
         # give window time to initialize
-        xbmc.sleep( 500 )
+        xbmc.sleep( 1000 )
         self.setControls()
 
 

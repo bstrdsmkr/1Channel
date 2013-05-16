@@ -9,7 +9,7 @@ from t0mm0.common.net import Net
 from t0mm0.common.addon import Addon
 
 addon = Addon('plugin.video.1channel', sys.argv)
-BASE_URL = 'http://www.1channel.ch'
+BASE_URL = addon.get_setting('domain')
 display_name = '1Channel'
 required_addons = []
 tag = '1Ch'
@@ -23,15 +23,16 @@ def get_results(vid_type,title,year,imdb,tvdb,season,episode):
 	elif vid_type=='season' : return _get_season(title,year,imdb,tvdb,season)
 	elif vid_type=='episode': return _get_episodes(title,year,imdb,tvsb,season,episode)
 
-def GetURL(url, referrer=BASE_URL):
+def GetURL(url):
     addon.log('Fetching URL: %s' % url)
 
     USER_AGENT = 'User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56'
     req = urllib2.Request(url)
 
     req.add_header('User-Agent', USER_AGENT)
-    req.add_header('Host', 'www.1channel.ch')
-    req.add_header('Referer', referrer)
+    host = re.sub('http://', '', BASE_URL)
+    req.add_header('Host', host)
+    req.add_header('Referer', BASE_URL)
     
     try:
         response = urllib2.urlopen(req, timeout=10)
