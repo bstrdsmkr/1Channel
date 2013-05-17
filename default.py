@@ -333,10 +333,10 @@ def get_sources(url, title, img, year, imdbnum, dialog): #10
                             sorting.append(this_sort)
     else: sorting = []
 
-    container_pattern = r'<table[^\n]+?class="movie_version\w+">(.*?)</table>'
+    container_pattern = r'<table[^>]+class="movie_version[ "][^>]*>(.*?)</table>'
     item_pattern = (
-                    r'quality_(?!sponsored|unknown)(.*?)></span>.*?'
-                    r'url=(.*?)&(?:amp;)?domain=(.*?)&(?:amp;)?(.*?)'
+                    r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
+                    r'url=([^&]+)&(?:amp;)?domain=([^&]+)&(?:amp;)?(.*?)'
                     r'"version_veiws"> ([\d]+) views</')
     for version in re.finditer(container_pattern, html, re.DOTALL|re.IGNORECASE):
         for source in re.finditer(item_pattern, version.group(1), re.DOTALL):
@@ -349,7 +349,7 @@ def get_sources(url, title, img, year, imdbnum, dialog): #10
                 item['verified'] = source.group(0).find('star.gif') > -1
                 item['quality'] = qual.upper()
                 item['views'] = int(views)
-                pattern = r'[<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part \d*)</a>]'
+                pattern = r'<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part \d*)</a>'
                 other_parts = re.findall(pattern, parts, re.DOTALL|re.I)
                 if other_parts:
                     item['multi-part'] = True
