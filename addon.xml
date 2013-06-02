@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--suppress ALL -->
 <addon id="plugin.video.1channel" version="2.0.1" name="1Channel" provider-name="Bstrdsmkr">
     <requires>
         <import addon="xbmc.python" version="2.0"/>
-        <import addon="script.module.urlresolver"  version="1.0.0"/>
+        <import addon="script.module.urlresolver" version="1.0.0"/>
         <import addon="script.module.t0mm0.common" version="1.1.0"/>
-		<import addon="script.module.metahandler"  version="1.0.0"/>
-		<import addon="script.module.myconnpy"     version="0.3.2"/>
+        <import addon="script.module.metahandler" version="1.0.0"/>
+        <import addon="script.module.myconnpy" version="0.3.2"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video</provides>
     </extension>
     <extension point="xbmc.service" library="service.py" start="startup">
-	</extension>
+    </extension>
     <extension point="xbmc.addon.metadata">
         <summary>Browse 1channel.ch</summary>
-        <description>This addon is supported at [COLOR blue]www.XBMCHub.com[/COLOR],  [COLOR white][B]NOT[/B][/COLOR] [COLOR red]xbmc.org[/COLOR].  Play a wide selection of movies and TV shows from 1channel.ch</description>
+        <description>This addon is supported at [COLOR blue]www.XBMCHub.com[/COLOR], [COLOR white][B]NOT[/B][/COLOR]
+            [COLOR red]xbmc.org[/COLOR]. Play a wide selection of movies and TV shows from 1channel.ch
+        </description>
         <platform>all</platform>
     </extension>
 </addon>

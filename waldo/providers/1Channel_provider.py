@@ -2,7 +2,6 @@ import os
 import re
 import sys
 import urllib
-import xbmc
 import urllib2
 import HTMLParser
 from t0mm0.common.net import Net
@@ -14,14 +13,21 @@ display_name = '1Channel'
 required_addons = []
 tag = '1Ch'
 
+
 def get_settings_xml():
     return False
 
-def get_results(vid_type,title,year,imdb,tvdb,season,episode):
-	if   vid_type=='movie'  : return Search('movies', title, imdb)
-	elif vid_type=='tvshow' : return _get_tvshows(title,year,imdb,tvdb)
-	elif vid_type=='season' : return _get_season(title,year,imdb,tvdb,season)
-	elif vid_type=='episode': return _get_episodes(title,year,imdb,tvsb,season,episode)
+
+def get_results(vid_type, title, year, imdb, tvdb, season, episode):
+    if vid_type == 'movie':
+        return Search('movies', title, imdb)
+    elif vid_type == 'tvshow':
+        return _get_tvshows(title, year, imdb, tvdb)
+    elif vid_type == 'season':
+        return _get_season(title, year, imdb, tvdb, season)
+    elif vid_type == 'episode':
+        return _get_episodes(title, year, imdb, tvdb, season, episode)
+
 
 def GetURL(url):
     addon.log('Fetching URL: %s' % url)
@@ -33,18 +39,19 @@ def GetURL(url):
     host = re.sub('http://', '', BASE_URL)
     req.add_header('Host', host)
     req.add_header('Referer', BASE_URL)
-    
+
     try:
         response = urllib2.urlopen(req, timeout=10)
         body = response.read()
-        body = unicode(body,'iso-8859-1')
+        body = unicode(body, 'iso-8859-1')
         h = HTMLParser.HTMLParser()
         body = h.unescape(body)
     except Exception, e:
-        addon.log('Failed to connect to %s: %s' %(url, e))
+        addon.log('Failed to connect to %s: %s' % (url, e))
         return ''
 
     return body.encode('utf-8')
+
 
 def Search(section, query, imdb):
     html = GetURL(BASE_URL)
@@ -63,10 +70,10 @@ def Search(section, query, imdb):
     r = 'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
     regex = re.search(r, html, re.DOTALL)
     if regex:
-        url,title,year,thumb = regex.groups()
+        url, title, year, thumb = regex.groups()
         net = Net()
         cookiejar = addon.get_profile()
-        cookiejar = os.path.join(cookiejar,'cookies')
+        cookiejar = os.path.join(cookiejar, 'cookies')
         net.set_cookies(cookiejar)
         html = net.http_GET(BASE_URL + url).content
         net.save_cookies(cookiejar)
@@ -81,22 +88,20 @@ def Search(section, query, imdb):
             net.save_cookies(cookiejar)
 
         for version in re.finditer('<table[^\n]+?class="movie_version(?: movie_version_alt)?">(.*?)</table>',
-                                    html, re.DOTALL|re.IGNORECASE):
-            for s in re.finditer('quality_(?!sponsored|unknown)(.*?)></span>.*?'+
-                                  'url=(.*?)&(?:amp;)?domain=(.*?)&(?:amp;)?(.*?)'+
-                                 '"version_veiws"> ([\d]+) views</',
+                                   html, re.DOTALL | re.IGNORECASE):
+            for s in re.finditer('quality_(?!sponsored|unknown)(.*?)></span>.*?' +
+                                         'url=(.*?)&(?:amp;)?domain=(.*?)&(?:amp;)?(.*?)' +
+                                         '"version_veiws"> ([\d]+) views</',
                                  version.group(1), re.DOTALL):
                 q, url, host, parts, views = s.groups()
                 q = q.upper()
                 url = url.decode('base-64')
                 host = host.decode('base-64')
-                disp_title = '[%s] %s (%s views)' %(q, host, views)
-                result = {'tag':tag, 'provider_name':display_name}
-                qs = {'url':url, 'title':title, 'img':thumb, 'year':year, 'imdbnum':imdb}
-                qs['video_type'] = video_type
-                qs['strm'] = True
-                qs['mode'] = 'PlaySource'
-                result['li_url'] = 'plugin://plugin.video.1channel/?%s' %urllib.urlencode(qs)
+                disp_title = '[%s] %s (%s views)' % (q, host, views)
+                result = {'tag': tag, 'provider_name': display_name}
+                qs = {'url': url, 'title': title, 'img': thumb, 'year': year, 'imdbnum': imdb, 'video_type': video_type,
+                      'strm': True, 'mode': 'PlaySource'}
+                result['li_url'] = 'plugin://plugin.video.1channel/?%s' % urllib.urlencode(qs)
                 print result['li_url']
-                result['info_labels'] = {'title':disp_title}
+                result['info_labels'] = {'title': disp_title}
                 yield result

@@ -1,10 +1,10 @@
 [B]New Features[/B]
-Alot of new features have been added to 1Channel recently, most importantly the Help button. Most of your questions should be answered after a read through there.
+A lot of new features have been added to 1Channel recently, most importantly the Help button. Most of your questions should be answered after a read through there.
 
 [COLOR red]If you still have questions afterward, this addon is supported at [COLOR blue]www.XBMCHub.com[/COLOR],  [COLOR white][B]NOT[/B][/COLOR] xbmc.org[/COLOR].
 
 [COLOR blue][B]1Channel.ch under attack[/B][/COLOR]
-    -On 01May2013, www.1channel.ch was attacked and the domain hijacked. The site is currently available under the old doman www.letmewatchthis.ch. Until further notice, please 
+    -On 01May2013, www.1channel.ch was attacked and the domain hijacked. The site is currently available under the old domain www.letmewatchthis.ch. Until further notice, please
     [COLOR red]DO NOT[/COLOR] use www.1channel.ch and especially do not attempt to log in there. If you have tried to login there, visit www.letmewatchthis.ch and change
     your password immediately. 
     
@@ -28,7 +28,7 @@ Here's a quick rundown of things that have changed or that you might not know ab
         to your library as they appear on the site
 
 [COLOR blue][B]Sorting of sources[/B][/COLOR]
-    - You can specifiy the order in which to present sources ranked by the host, quality, number of views, number or parts, and whether or not the source is listed as verified on the site
+    - You can specify the order in which to present sources ranked by the host, quality, number of views, number or parts, and whether or not the source is listed as verified on the site
         - The Host Ranking field allows you to specify the order in which you prefer hosts to be listed. The host listed first will be ranked highest, and so on.
            For example:
             
@@ -58,13 +58,13 @@ Here's a quick rundown of things that have changed or that you might not know ab
 [COLOR blue][B]Themes[/B][/COLOR]
     - Switch up the artwork in 1channel
 
-[COLOR blue][B]Label formating[/B][/COLOR]
+[COLOR blue][B]Label formatting[/B][/COLOR]
     - Control how content and source labels are displayed
         The following tokens can be used:
             {t} The unchanged title of the Movie or TV Show
             {y} The unchanged release year of the Movie or TV Show
-            {ft} The title of the Movie or TV Show after applying any formating specified in the Title field
-            {fy} The release year of the Movie or TV Show after applying any formating specified in the Year field
+            {ft} The title of the Movie or TV Show after applying any formatting specified in the Title field
+            {fy} The release year of the Movie or TV Show after applying any formatting specified in the Year field
             {q} The quality of the source as specified on the website (DVD, TS, or CAM)
             {h} The host of the source
             {v} The number of views reported by the website
