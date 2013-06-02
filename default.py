@@ -349,7 +349,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
         sorting = []
 
     container_pattern = r'<table[^>]+class="movie_version[ "][^>]*>(.*?)</table>'
-    item_pattern = re.compile(
+    item_pattern = (
                     r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
                     r'url=([^&]+)&(?:amp;)?domain=([^&]+)&(?:amp;)?(.*?)'
                     r'"version_veiws"> ([\d]+) views</')
