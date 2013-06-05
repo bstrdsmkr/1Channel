@@ -350,9 +350,9 @@ def get_sources(url, title, img, year, imdbnum, dialog):
 
     container_pattern = r'<table[^>]+class="movie_version[ "][^>]*>(.*?)</table>'
     item_pattern = (
-                    r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
-                    r'url=([^&]+)&(?:amp;)?domain=([^&]+)&(?:amp;)?(.*?)'
-                    r'"version_veiws"> ([\d]+) views</')
+        r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
+        r'url=([^&]+)&(?:amp;)?domain=([^&]+)&(?:amp;)?(.*?)'
+        r'"version_veiws"> ([\d]+) views</')
     for version in re.finditer(container_pattern, html, re.DOTALL | re.IGNORECASE):
         for source in re.finditer(item_pattern, version.group(1), re.DOTALL):
             qual, url, host, parts, views = source.groups()
@@ -771,12 +771,12 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         resurl, title, year, thumb = s.groups()
         if resurl not in resurls:
             resurls.append(resurl)
-            li = build_listitem(video_type, title, year, img, resurl, subs=subs)
+            li = build_listitem(video_type, title, year, thumb, resurl, subs=subs)
             imdb = li.getProperty('imdb')
-            imdb = li.getProperty('img')
+            img = li.getProperty('img')
             li.setProperty('IsPlayable', 'true')
             queries = {'mode': nextmode, 'title': title, 'url': resurl,
-                       'img': thumb, 'imdbnum': imdb,
+                       'img': img, 'imdbnum': imdb,
                        'video_type': video_type, 'year': year}
             li_url = _1CH.build_plugin_url(queries)
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
@@ -1943,6 +1943,29 @@ def website_is_integrated():
 def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=None, subs=None):
     if not subs: subs = []
     if not extra_cms: extra_cms = []
+    menu_items = add_contextsearchmenu(title, section)
+    menu_items = menu_items + extra_cms
+
+    queries = {'mode': 'SaveFav', 'section': section, 'title': title, 'url': resurl, 'year': year}
+    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
+    menu_items.append(('Add to Favorites', runstring), )
+
+    queries = {'mode': 'add_to_library', 'video_type': video_type, 'title': title, 'img': img, 'year': year,
+               'url': resurl}
+    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
+    menu_items.append(('Add to Library', runstring), )
+    if video_type in ('tv', 'tvshow', 'episode'):
+        queries = {'mode': 'add_subscription', 'video_type': video_type, 'url': resurl, 'title': title,
+                   'img': img, 'year': year}
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
+        menu_items.append(('Subscribe', runstring), )
+        print menu_items
+    else:
+        plugin_str = 'plugin://plugin.video.couchpotato_manager'
+        plugin_str += '/movies/add?title=%s' % title
+        runstring = 'XBMC.RunPlugin(%s)' % plugin_str
+        menu_items.append(('Add to CouchPotato', runstring), )
+
     if META_ON:
         if video_type == 'episode':
             meta = __metaget__.get_episode_meta(title, imdbnum, season, episode)
@@ -1952,29 +1975,6 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
 
         if 'cover_url' in meta:
             img = meta['cover_url']
-
-        menu_items = add_contextsearchmenu(title, section)
-        menu_items = menu_items + extra_cms
-
-        queries = {'mode': 'SaveFav', 'section': section, 'title': title, 'url': resurl, 'year': year}
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
-        menu_items.append(('Add to Favorites', runstring), )
-
-        queries = {'mode': 'add_to_library', 'video_type': video_type, 'title': title, 'img': img, 'year': year,
-                   'url': resurl}
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
-        menu_items.append(('Add to Library', runstring), )
-
-        if video_type in ('tvshow', 'episode'):
-            queries = {'mode': 'add_subscription', 'video_type': video_type, 'url': resurl, 'title': title,
-                       'img': img, 'year': year}
-            runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
-            menu_items.append(('Subscribe', runstring), )
-        else:
-            plugin_str = 'plugin://plugin.video.couchpotato_manager'
-            plugin_str += '/movies/add?title=%s' % title
-            runstring = 'XBMC.RunPlugin(%s)' % plugin_str
-            menu_items.append(('Add to CouchPotato', runstring), )
 
         menu_items.append(('Show Information', 'XBMC.Action(Info)'), )
 
@@ -2035,6 +2035,7 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
                 disp_title = title
             listitem = xbmcgui.ListItem(disp_title, iconImage=img,
                                         thumbnailImage=img)
+            listitem.addContextMenuItems(menu_items, replaceItems=True)
     return listitem
 
 
