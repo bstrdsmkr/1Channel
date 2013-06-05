@@ -348,11 +348,11 @@ def get_sources(url, title, img, year, imdbnum, dialog):
     else:
         sorting = []
 
-    container_pattern = r'<table[^\n]+?class="movie_version\w+">(.*?)</table>'
-    item_pattern = re.compile(
-        r'''quality_(?!sponsored|unknown)(.*?)></span>.*?'
-                    r'url=(.*?)&(?:amp;)?domain=(.*?)&(?:amp;)?(.*?)'
-                    r'"version_veiws"> ([\d]+) views</''')
+    container_pattern = r'<table[^>]+class="movie_version[ "][^>]*>(.*?)</table>'
+    item_pattern = (
+                    r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
+                    r'url=([^&]+)&(?:amp;)?domain=([^&]+)&(?:amp;)?(.*?)'
+                    r'"version_veiws"> ([\d]+) views</')
     for version in re.finditer(container_pattern, html, re.DOTALL | re.IGNORECASE):
         for source in re.finditer(item_pattern, version.group(1), re.DOTALL):
             qual, url, host, parts, views = source.groups()
@@ -362,7 +362,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                 item['verified'] = source.group(0).find('star.gif') > -1
                 item['quality'] = qual.upper()
                 item['views'] = int(views)
-                pattern = r'[<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part \d*)</a>]'
+                pattern = r'<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part \d*)</a>'
                 other_parts = re.findall(pattern, parts, re.DOTALL | re.I)
                 if other_parts:
                     item['multi-part'] = True
@@ -594,7 +594,7 @@ def Search(section, query):
         else:
             total = 0
 
-        pattern = re.compile('class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"')
+        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
         regex = re.finditer(pattern, html, re.DOTALL)
         resurls = []
         for s in regex:
@@ -764,7 +764,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
     total_pages = total / 24
     total = min(total, 24)
 
-    pattern = re.compile('class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"')
+    pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
     regex = re.finditer(pattern, html, re.DOTALL)
     resurls = []
     for s in regex:
@@ -1967,7 +1967,7 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
 
         if video_type in ('tvshow', 'episode'):
             queries = {'mode': 'add_subscription', 'video_type': video_type, 'url': resurl, 'title': title,
-                       'image': img, 'year': year}
+                       'img': img, 'year': year}
             runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
             menu_items.append(('Subscribe', runstring), )
         else:
