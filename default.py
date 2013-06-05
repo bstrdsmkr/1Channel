@@ -1563,6 +1563,7 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
                         filename = '%s S%sE%s.strm'
                         filename = filename % (show_title, seasonnum, epnum)
                         filename = re.sub(r'[^\w\-_\. ]', '_', filename)
+                        show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
                         final_path = os.path.join(save_path, show_title, season, filename)
                         final_path = xbmc.makeLegalFilename(final_path)
                         if not xbmcvfs.exists(os.path.dirname(final_path)):
@@ -1593,6 +1594,7 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
         if year: title = '%s (%s)' % (title, year)
         filename = '%s.strm' % title
         filename = re.sub(r'[^\w\-_\. ]', '_', filename)
+        title = re.sub(r'[^\w\-_\. ]', '_', title)
         final_path = os.path.join(save_path, title, filename)
         final_path = xbmc.makeLegalFilename(final_path)
         if not xbmcvfs.exists(os.path.dirname(final_path)):
