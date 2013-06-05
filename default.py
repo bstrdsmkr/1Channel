@@ -1939,20 +1939,6 @@ def website_is_integrated():
 
 
 def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=None, subs=None):
-    """
-
-    :param video_type:
-    :param title:
-    :param year:
-    :param img:
-    :param resurl:
-    :param imdbnum:
-    :param season:
-    :param episode:
-    :param extra_cms:
-    :param subs:
-    :return:
-    """
     if not subs: subs = []
     if not extra_cms: extra_cms = []
     if META_ON:
@@ -1979,7 +1965,7 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
 
         if video_type in ('tvshow', 'episode'):
             queries = {'mode': 'add_subscription', 'video_type': video_type, 'url': resurl, 'title': title,
-                       'image': image, 'year': year}
+                       'image': img, 'year': year}
             runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
             menu_items.append(('Subscribe', runstring), )
         else:

@@ -1,5 +1,6 @@
 import os
-import time
+import datetime
+
 import xbmc
 import xbmcgui
 import xbmcaddon
@@ -8,12 +9,12 @@ import xbmcaddon
 ADDON = xbmcaddon.Addon(id='plugin.video.1channel')
 
 try:
-    DB_NAME = ADDON.get_setting('db_name')
-    DB_USER = ADDON.get_setting('db_user')
-    DB_PASS = ADDON.get_setting('db_pass')
-    DB_ADDRESS = ADDON.get_setting('db_address')
+    DB_NAME = ADDON.getSetting('db_name')
+    DB_USER = ADDON.getSetting('db_user')
+    DB_PASS = ADDON.getSetting('db_pass')
+    DB_ADDRESS = ADDON.getSetting('db_address')
 
-    if ADDON.get_setting('use_remote_db') == 'true' and \
+    if ADDON.getSetting('use_remote_db') == 'true' and \
                     DB_ADDRESS is not None and \
                     DB_USER is not None and \
                     DB_PASS is not None and \
@@ -47,7 +48,7 @@ def format_time(seconds):
         return "%02d:%02d" % (minutes, seconds)
 
 
-def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
+def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched=''):
     from metahandler import metahandlers
 
     metaget = metahandlers.MetaData(False)
@@ -56,14 +57,13 @@ def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='
 
 class Service(xbmc.Player):
     def __init__(self, *args, **kwargs):
-        xbmc.Player.__init__(self)
+        xbmc.Player.__init__(self, *args, **kwargs)
         self.reset()
 
         self.last_run = 0
         hours_list = [2, 5, 10, 15, 24]
         selection = int(ADDON.getSetting('subscription-interval'))
         self.hours = hours_list[selection]
-        self.seconds = self.hours * 3600
         self.DB = ''
         xbmc.log('1Channel: Service starting...')
 
@@ -140,7 +140,7 @@ class Service(xbmc.Player):
             tTime = format_time(self._totalTime)
             xbmc.log('1Channel: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
             if playedTime == 0 and self._totalTime == 999999:
-                raise PlaybackFailed('XBMC silently failed to start playback')
+                raise RuntimeError('XBMC silently failed to start playback')
             elif ((playedTime / self._totalTime) > min_watched_percent) and (
                         self.video_type == 'movie' or (self.season and self.episode)):
                 xbmc.log('1Channel: Service: Threshold met. Marking item as watched')
@@ -179,18 +179,21 @@ class Service(xbmc.Player):
 monitor = Service()
 while not xbmc.abortRequested:
     if ADDON.getSetting('auto-update-subscriptions') == 'true':
-        now = time.time()
-        if now > (monitor.last_run + monitor.seconds):
+        now = datetime.datetime.now()
+        last_run = ADDON.getSetting('last_run')
+        last_run = datetime.datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S.%f")
+        elapsed = now - last_run
+        threshold = datetime.timedelta(hours=monitor.hours)
+        if elapsed > threshold:
             is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
             if not (monitor.isPlaying() or is_scanning):
                 xbmc.log('1Channel: Service: Updating subscriptions')
                 builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=UpdateSubscriptions)'
                 xbmc.executebuiltin(builtin)
-                monitor.last_run = now
+                ADDON.setSetting(last_run, now.strftime("%Y-%m-%d %H:%M:%S.%f"))
             else:
                 xbmc.log('1Channel: Service: Busy... Postponing subscription update')
     while monitor.tracking and monitor.isPlayingVideo():
-        # xbmc.log('1Channel: Service: tracking playback')
         monitor._lastPos = monitor.getTime()
         xbmc.sleep(1000)
     xbmc.sleep(1000)
