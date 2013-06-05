@@ -111,7 +111,7 @@
 
     <category label="Miscellaneous">
         <setting id="domain" type="labelenum" label="Domain"
-                 values="http://www.1channel.ch|http://www.letmewatchthis.ch|http://www.1channel.ag"
+                 values="http://www.1channel.ch|http://www.letmewatchthis.ch|http://www.1channel.ag|http://www.primewire.ag"
                  default="http://www.letmewatchthis.ch"/>
         <setting id="theme" type="enum" label="30800" values="mikey1234|Glossy_Black" default="1"/>
         <setting id="auto-watch" type="bool" label="30801" default="true"/>
