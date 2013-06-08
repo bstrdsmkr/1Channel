@@ -1,4 +1,6 @@
 import os
+
+# workaround for bug in Python imports
 import datetime
 
 import xbmc

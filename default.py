@@ -624,6 +624,7 @@ def AddonMenu():  # homescreen
         adn = xbmcaddon.Addon('plugin.video.1channel')
         upgrade_db()
         fix_existing_strms()
+        adn.setSetting('domain', 'http://www.primewire.ag')
         adn.setSetting('old_version', _1CH.get_version())
     _1CH.add_directory({'mode': 'BrowseListMenu', 'section': ''}, {'title': 'Movies'}, img=art('movies.png'),
                        fanart=art('fanart.png'))
