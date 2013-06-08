@@ -2,6 +2,10 @@ import os
 
 # workaround for bug in Python imports
 import datetime
+# noinspection PyUnresolvedReferences
+import _strptime
+# noinspection PyUnresolvedReferences
+import time
 
 import xbmc
 import xbmcgui
