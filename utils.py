@@ -139,7 +139,6 @@ class TextBox:
         xbmc.sleep(1000)
         self.setControls()
 
-
     def setControls(self):
         # set heading
         heading = "1Channel v%s" % (addon.get_version())
