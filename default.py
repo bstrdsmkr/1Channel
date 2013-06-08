@@ -497,7 +497,6 @@ def TrackProgress(player):
 
 
 def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
-    __metaget__ = metahandlers.MetaData(preparezip=prepare_zip)
     __metaget__.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
     if refresh:
         xbmc.executebuiltin("XBMC.Container.Refresh")
@@ -1962,7 +1961,6 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
                    'img': img, 'year': year}
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
         menu_items.append(('Subscribe', runstring), )
-        print menu_items
     else:
         plugin_str = 'plugin://plugin.video.couchpotato_manager'
         plugin_str += '/movies/add?title=%s' % title
@@ -1995,11 +1993,17 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
 
         if meta['overlay'] == 6:
             label = 'Mark as watched'
+            new_status = 7
         else:
             label = 'Mark as unwatched'
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-            {'mode': 'ChangeWatched', 'title': title, 'imdbnum': meta['imdb_id'], 'video_type': video_type,
-             'year': year})
+            new_status = 6
+
+        queries = {'mode': 'ChangeWatched', 'title': title, 'imdbnum': meta['imdb_id'], 'video_type': video_type,
+                   'year': year, 'watched': new_status}
+        if video_type in ('tv', 'tvshow', 'episode'):
+            queries['season'] = season
+            queries['episode'] = episode
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
         menu_items.append((label, runstring,))
 
         fanart = ''
