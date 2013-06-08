@@ -1022,10 +1022,12 @@ def browse_favorites_website(section):
         folder = _1CH.get_setting('auto-play') == 'false'
         subs = []
 
-    pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{4})\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=["'](.+?)["'] ref=["']delete_fav["']'''
+    pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
     regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
     for item in regex.finditer(html):
         link, img, year, title, delete = item.groups()
+        if len(year) != 4:
+            year = ''
 
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
             {'mode': 'DeleteFav', 'section': section, 'title': title, 'url': link, 'year': year})
