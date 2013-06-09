@@ -1043,6 +1043,7 @@ def browse_favorites_website(section):
 
 
 def migrate_favs_to_web():
+    init_database()
     sql = 'SELECT type, name, url, year FROM favorites ORDER BY name'
     if DB == 'mysql':
         db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
