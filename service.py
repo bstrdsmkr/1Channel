@@ -150,7 +150,11 @@ class Service(xbmc.Player):
             elif ((playedTime / self._totalTime) > min_watched_percent) and (
                         self.video_type == 'movie' or (self.season and self.episode)):
                 xbmc.log('1Channel: Service: Threshold met. Marking item as watched')
-                ChangeWatched(self.imdb, self.video_type, self.title, self.season, self.episode, self.year, watched=7)
+                if self.video_type == 'movie':
+                    videotype = 'movie'
+                else:
+                    videotype = 'episode'
+                ChangeWatched(self.imdb, videotype, self.title, self.season, self.episode, self.year, watched=7)
                 sql = 'DELETE FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?'
                 if DB == 'mysql':
                     sql = sql.replace('?', '%s')
