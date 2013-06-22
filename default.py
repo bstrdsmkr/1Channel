@@ -842,14 +842,14 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
         if META_ON:
             if not old_imdb and new_imdb:
                 _1CH.log('Imdb ID not recieved from title search, updating with new id of %s' % new_imdb)
-                try:
-                    _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (
-                        title, old_imdb, old_tvdb, new_imdb, year))
-                    __metaget__.update_meta('tvshow', title, old_imdb, old_tvdb, new_imdb)
-                except:
-                    _1CH.log('Error while trying to update metadata with:')
-                    _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (
-                        title, old_imdb, old_tvdb, new_imdb, year))
+                # try:
+                # _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (
+                #     title, old_imdb, old_tvdb, new_imdb, year))
+                __metaget__.update_meta('tvshow', title, old_imdb, old_tvdb, new_imdb)
+                # except:
+                #     _1CH.log('Error while trying to update metadata with:')
+                #     _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (
+                #         title, old_imdb, old_tvdb, new_imdb, year))
                 imdbnum = new_imdb
 
             season_meta = __metaget__.get_seasons(title, imdbnum, season_nums)

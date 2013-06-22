@@ -18,10 +18,15 @@ def format_label_tvshow(info):
         year = ''
     title = info['title']
     label = addon.get_setting('format-tvshow')
-    label = label.replace('{t}', title)
-    label = label.replace('{y}', year)
-    label = label.replace('{ft}', format_tvshow_title(title))
-    label = label.replace('{fy}', format_tvshow_year(year))
+    # label = label.replace('{t}', title)
+    # label = label.replace('{y}', year)
+    # label = label.replace('{ft}', format_tvshow_title(title))
+    # label = label.replace('{fy}', format_tvshow_year(year))
+
+    label = re.sub('\{t\}', title, label)
+    label = re.sub('\{y\}', year, label)
+    label = re.sub('\{ft\}', format_tvshow_title(title), label)
+    label = re.sub('\{fy\}', format_tvshow_year(year), label)
     return label
 
 
