@@ -842,14 +842,18 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
         if META_ON:
             if not old_imdb and new_imdb:
                 _1CH.log('Imdb ID not recieved from title search, updating with new id of %s' % new_imdb)
-                # try:
-                # _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (
-                #     title, old_imdb, old_tvdb, new_imdb, year))
-                __metaget__.update_meta('tvshow', title, old_imdb, old_tvdb, new_imdb)
-                # except:
-                #     _1CH.log('Error while trying to update metadata with:')
-                #     _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (
-                #         title, old_imdb, old_tvdb, new_imdb, year))
+                # TODO: WTF is up with xbmc.log() and utf-8 all of a sudden?
+                # print 'title is unicode: %s' % isinstance(title, unicode)
+                # print _1CH.log(title)
+                try:
+                    _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (
+                        title, old_imdb, old_tvdb, new_imdb, year))
+                    __metaget__.update_meta('tvshow', title, old_imdb, old_tvdb, new_imdb)
+                except Exception, e:
+                    _1CH.log('Error while trying to update metadata with:')
+                    # print 'Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (
+                    #     title, old_imdb, old_tvdb, new_imdb, year)
+                    print str(e)
                 imdbnum = new_imdb
 
             season_meta = __metaget__.get_seasons(title, imdbnum, season_nums)
