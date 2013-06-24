@@ -123,7 +123,7 @@ class Service(xbmc.Player):
             else:
                 db = database.connect(db_dir)
             cur = db.cursor()
-            cur.execute(sql, (self.video_type, self.title, self.season, self.episode, self.year))
+            cur.execute(sql, (self.video_type, unicode(self.title, 'utf-8'), self.season, self.episode, self.year))
             bookmark = cur.fetchone()
             db.close()
             if bookmark:
@@ -162,7 +162,7 @@ class Service(xbmc.Player):
                 else:
                     db = database.connect(db_dir)
                 cur = db.cursor()
-                cur.execute(sql, (self.video_type, self.title, self.season, self.episode, self.year))
+                cur.execute(sql, (self.video_type, unicode(self.title, 'utf-8'), self.season, self.episode, self.year))
                 db.commit()
                 db.close()
             else:
@@ -175,7 +175,7 @@ class Service(xbmc.Player):
                     sql = 'INSERT or ' + sql
                     db = database.connect(db_dir)
                 cur = db.cursor()
-                cur.execute(sql, (self.video_type, self.title, self.season,
+                cur.execute(sql, (self.video_type, unicode(self.title, 'utf-8'), self.season,
                                   self.episode, self.year, playedTime))
                 db.commit()
                 db.close()
