@@ -1,3 +1,19 @@
+[B]Version 2.0.2i[/B] - Some Fixes By TheHighway
+- Noticed that theres a limited set of 10 pages for search results, so I've upped it to 100.
+- Added Search Methods: Title+Description, Title+Tag, Advanced Search (This one lets you set many, but not all, search fields. Needs improved, but is nice as it is. Just use your head a little, please.)
+- Fixed another problem that I noticed during movie searches to do with the YEAR, that wanted to cause an error, preventing search results.
+
+[B]Version 2.0.2h[/B] - Some Fixes By TheHighway
+- Added the ability to use .png images from the Theme images for genre's / A-Z folders as well as putting up the fanart.png for them. I'm not sure why this was left out of the code since it's already got the theme graphics.
+- Added a new PrimeWire Theme package.
+- Switched "MOST" 1Channel text over to it's new name PrimeWire ( since 1channel.ch is now primewire.ag ).
+- Added Option to turn on a download Feature. To make this work better for other people who  don't use the daily builds for updated xbmcgui (( Dialog.ProgressBG() )), I've tried to push this feature back to the normal Dialog.Progress() method, instead of what I prefer... since ProgressBG() is still very buggy. -- PS: If your one of those people who really -HATE- on this feature, then don't enable it.
+- Updated settings.xml.
+- Fixed: Error when New Features window comes up.
+
+[B]Version 2.0.2[/B]
+- ?? Seems to be missing in the packaged version from the original source.
+
 [B]Version 1.0.0[/B]
 - Fixed problems deleting favorites
 - Fixed Error in listing search results

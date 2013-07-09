@@ -10,12 +10,12 @@ from t0mm0.common.addon import Addon
 
 
 addon = Addon('plugin.video.waldo', sys.argv)
-BASE_URL = 'http://www.1channel.ch'
+BASE_URL = 'http://www.primewire.ag'#'http://www.1channel.ch'
 
-display_name = '1Channel'
+display_name = 'PrimeWire'#'1Channel'
 #Label that will be displayed to the user representing this index
 
-tag = '1Channel'
+tag = 'PrimeWire'#'1Channel'
 #MUST be implemented. Unique 3 or 4 character string that will be used to
 #identify this index
 
@@ -108,7 +108,7 @@ def BrowseListMenu(section): #This must match the 'function' key of an option fr
 
 def art(filename):
     adn = Addon('plugin.video.1channel', sys.argv)
-    THEME_LIST = ['mikey1234', 'Glossy_Black']
+    THEME_LIST = ['mikey1234', 'Glossy_Black', 'PrimeWire']
     THEME = THEME_LIST[int(adn.get_setting('theme'))]
     THEME_PATH = os.path.join(adn.get_path(), 'art', 'themes', THEME)
     img = os.path.join(THEME_PATH, filename)

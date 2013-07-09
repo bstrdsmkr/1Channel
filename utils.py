@@ -64,11 +64,13 @@ def format_label_movie(info):
         year = info['premiered'][:4]
     else:
         year = ''
+    if (year==None): year=''
     title = info['title']
     label = addon.get_setting('format-movie')
     label = label.replace('{t}', title)
     label = label.replace('{y}', year)
-    label = label.replace('{ft}', format_movie_title(title))
+    try: label = label.replace('{ft}', format_movie_title(title))
+    except: t=''
     label = label.replace('{fy}', format_movie_year(year))
     return label
 
@@ -146,7 +148,7 @@ class TextBox:
 
     def setControls(self):
         # set heading
-        heading = "1Channel v%s" % (addon.get_version())
+        heading = "PrimeWire v%s" % (addon.get_version())#"1Channel v%s" % (addon.get_version())
         self.win.getControl(self.CONTROL_LABEL).setLabel(heading)
         # set text
         root = addon.get_path()

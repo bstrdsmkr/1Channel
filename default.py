@@ -1,5 +1,5 @@
 """
-    1Channel XBMC Addon
+    PrimeWire (1Channel) XBMC Addon
     Copyright (C) 2012 Bstrdsmkr
 
     This program is free software: you can redistribute it and/or modify
@@ -78,7 +78,7 @@ META_ON = _1CH.get_setting('use-meta') == 'true'
 FANART_ON = _1CH.get_setting('enable-fanart') == 'true'
 USE_POSTERS = _1CH.get_setting('use-posters') == 'true'
 POSTERS_FALLBACK = _1CH.get_setting('posters-fallback') == 'true'
-THEME_LIST = ['mikey1234', 'Glossy_Black']
+THEME_LIST = ['mikey1234', 'Glossy_Black', 'PrimeWire']
 THEME = THEME_LIST[int(_1CH.get_setting('theme'))]
 THEME_PATH = os.path.join(_1CH.get_path(), 'art', 'themes', THEME)
 AUTO_WATCH = _1CH.get_setting('auto-watch') == 'true'
@@ -107,7 +107,7 @@ def art(name):
 
 
 def init_database():
-    _1CH.log('Building 1channel Database')
+    _1CH.log('Building PrimeWire Database')
     if DB == 'mysql':
         db = orm.connect(DB_NAME, DB_USER,
                          DB_PASS, DB_ADDR, buffered=True)
@@ -263,7 +263,7 @@ def get_url(url, cache_limit=8):
     except:
         dialog = xbmcgui.Dialog()
         dialog.ok("Connection failed", "Failed to connect to url", url)
-        print "1Channel: Failed to connect to URL %s" % url
+        print "PrimeWire: Failed to connect to URL %s" % url
         return ''
 
     response.close()
@@ -374,7 +374,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             if sorting:
                 hosters = multikeysort(hosters, sorting, functions={'host': rank_host})
     if not hosters:
-        _1CH.show_ok_dialog(['No sources were found for this item'], title='1Channel')
+        _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
     if dialog and _1CH.get_setting(
             'auto-play') == 'false':  # we're comming from a .strm file and can't create a directory so we have to pop a
         sources = []                  # dialog if auto-play isn't on
@@ -400,7 +400,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             if _1CH.get_setting('auto-play') == 'false': raise # skips the next line and goes into the else clause
             dlg = xbmcgui.DialogProgress()
             line1 = 'Trying Sources...'
-            dlg.create('1Channel', line1)
+            dlg.create('PrimeWire', line1)
             total = len(hosters)
             count = 1
             success = False
@@ -424,6 +424,12 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             for item in hosters:
                 _1CH.log(item)
                 label = format_label_source(item)
+                #
+                #contextMenuItems = add_contextsearchmenu(title, video_type, item['url'])
+                #listitem = xbmcgui.ListItem(title, iconImage=img, thumbnailImage=img)
+                #listitem.addContextMenuItems(contextMenuItems, replaceItems=False)
+                #xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
+                #
                 _1CH.add_directory({'mode': 'PlaySource', 'url': item['url'], 'title': title,
                                     'img': img, 'year': year, 'imdbnum': imdbnum,
                                     'video_type': video_type, 'season': season, 'episode': episode},
@@ -445,6 +451,37 @@ def get_sources(url, title, img, year, imdbnum, dialog):
 def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm=False):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
+    #print 'string_url: ',stream_url
+    dialog = xbmcgui.Dialog()
+    print 'enable-downloading-option-movie',_1CH.get_setting('enable-downloading-option-movie')
+    print 'enable-downloading-option-show',_1CH.get_setting('enable-downloading-option-show')
+    downloadopt=False
+    if (video_type == 'movie') and (_1CH.get_setting('enable-downloading-option-movie'))=='true': 
+    	pathopt=_1CH.get_setting('folder-downloading-movie')
+    	downloadopt=True
+    elif (video_type == 'episode') and (_1CH.get_setting('enable-downloading-option-show'))=='true': 
+    	pathopt=_1CH.get_setting('folder-downloading-show')
+    	downloadopt=True
+    if downloadopt==True:
+    	ret = dialog.yesno('Title: '+title, stream_url,'','', '[COLOR tan]Play[/COLOR]', '[COLOR maroon]Download[/COLOR]')
+    	xbmc.sleep(1000)
+    	if ret:
+    		if '.mp4' in url: filext='.mp4'
+    		elif '.mpeg' in url: filext='.mpeg'
+    		elif '.avi' in url: filext='.avi'
+    		elif '.flv' in url: filext='.flv'
+    		else: filext='.flv'
+    		#player = xbmc.Player(xbmc.PLAYER_CORE_AUTO)
+    		#player.stop()
+    		#xbmc.sleep(1000)
+    		if video_type == 'episode':
+    			filnam=title+' s'+season+' e'+episode+' id('+imdbnum+')'+filext
+    			download_video(stream_url,os.path.join(pathopt,filnam),title+' s'+season+' e'+episode+' id('+imdbnum+')')
+    		elif video_type == 'movie':
+    			filnam=title+' ('+year+')'+filext
+    			download_video(stream_url,os.path.join(pathopt,filnam),title+' ('+year+')')
+    		return
+    #
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing.title', title)
     win.setProperty('1ch.playing.year', year)
@@ -547,11 +584,170 @@ def GetSearchQuery(section):
         BrowseListMenu(section)
 
 
+def GetSearchQueryTag(section):
+    last_search = _1CH.load_data('search')
+    if not last_search: last_search = ''
+    #
+    keyboard2 = xbmc.Keyboard()
+    keyboard2.setHeading('Search Tag')
+    keyboard2.setDefault('')
+    keyboard2.doModal()
+    if keyboard2.isConfirmed():
+        tag_text = keyboard2.getText()
+    #
+    keyboard = xbmc.Keyboard()
+    if section == 'tv':
+        keyboard.setHeading('Search TV Shows')
+    else:
+        keyboard.setHeading('Search Movies')
+    keyboard.setDefault(last_search)
+    keyboard.doModal()
+    if keyboard.isConfirmed():
+        search_text = keyboard.getText()
+        _1CH.save_data('search', search_text)
+        if search_text.startswith('!#'):
+            if search_text == '!#create metapacks': create_meta_packs()
+            if search_text == '!#repair meta': repair_missing_images()
+            if search_text == '!#install all meta': install_all_meta()
+            if search_text.startswith('!#sql'):
+                if DB == 'mysql':
+                    db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
+                else:
+                    db = orm.connect(DB_DIR)
+                db.execute(search_text[5:])
+                db.commit()
+                db.close()
+        else:
+            SearchAdvanced(section, keyboard.getText(), tag_text)
+            #SearchTag(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1')
+    else:
+        BrowseListMenu(section)
+
+
+def GetSearchQueryAdvanced(section):
+    last_search = _1CH.load_data('search')
+    if not last_search: last_search = ''
+    #
+    keyboard2 = xbmc.Keyboard()
+    keyboard2.setHeading('Search Tag')
+    keyboard2.setDefault('')
+    keyboard2.doModal()
+    if keyboard2.isConfirmed(): tag_text = keyboard2.getText()
+    else: tag_text = ''
+    #
+    keyboard2.setHeading('Search Actor')
+    keyboard2.setDefault('')
+    keyboard2.doModal()
+    if keyboard2.isConfirmed(): actor_text = keyboard2.getText()
+    else: actor_text = ''
+    #
+    keyboard2.setHeading('Search Directed By')
+    keyboard2.setDefault('')
+    keyboard2.doModal()
+    if keyboard2.isConfirmed(): director_text = keyboard2.getText()
+    else: director_text = ''
+    #
+    keyboard2 = xbmc.Keyboard()
+    keyboard2.setHeading('Search Year (Numbers Only)')
+    keyboard2.setDefault('0')
+    keyboard2.doModal()
+    if keyboard2.isConfirmed(): year_text = keyboard2.getText()
+    else: year_text = ''
+    #
+    keyboard2 = xbmc.Keyboard()
+    keyboard2.setHeading('Search Month (Numbers Only)')
+    keyboard2.setDefault('0')
+    keyboard2.doModal()
+    if keyboard2.isConfirmed(): month_text = keyboard2.getText()
+    else: month_text = ''
+    #
+    keyboard2 = xbmc.Keyboard()
+    keyboard2.setHeading('Search Decade (Example: type 1980 for 1980s)')
+    keyboard2.setDefault('0')
+    keyboard2.doModal()
+    if keyboard2.isConfirmed(): decade_text = keyboard2.getText()
+    else: decade_text = ''
+    #
+    keyboard2.setHeading('Search Country (Capital First Letter)')
+    keyboard2.setDefault('')
+    keyboard2.doModal()
+    if keyboard2.isConfirmed(): country_text = keyboard2.getText()
+    else: country_text = ''
+    keyboard2.setHeading('Search Genre (Capital First Letter)')
+    keyboard2.setDefault('')
+    keyboard2.doModal()
+    if keyboard2.isConfirmed(): genre_text = keyboard2.getText()
+    else: genre_text = ''
+    #
+    #
+    #
+    #
+    keyboard = xbmc.Keyboard()
+    if section == 'tv':
+        keyboard.setHeading('Search TV Shows')
+    else:
+        keyboard.setHeading('Search Movies')
+    keyboard.setDefault('')#keyboard.setDefault(last_search)
+    keyboard.doModal()
+    if keyboard.isConfirmed():
+        search_text = keyboard.getText()
+        _1CH.save_data('search', search_text)
+        if search_text.startswith('!#'):
+            if search_text == '!#create metapacks': create_meta_packs()
+            if search_text == '!#repair meta': repair_missing_images()
+            if search_text == '!#install all meta': install_all_meta()
+            if search_text.startswith('!#sql'):
+                if DB == 'mysql':
+                    db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
+                else:
+                    db = orm.connect(DB_DIR)
+                db.execute(search_text[5:])
+                db.commit()
+                db.close()
+        else:
+            SearchAdvanced(section, keyboard.getText(), tag_text, True, country_text, genre_text, actor_text, director_text, year_text, month_text, decade_text)
+            #SearchTag(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1')
+    else:
+        BrowseListMenu(section)
+
+
+def GetSearchQueryDesc(section):
+    last_search = _1CH.load_data('search')
+    if not last_search: last_search = ''
+    keyboard = xbmc.Keyboard()
+    if section == 'tv':
+        keyboard.setHeading('Search TV Shows')
+    else:
+        keyboard.setHeading('Search Movies')
+    keyboard.setDefault(last_search)
+    keyboard.doModal()
+    if keyboard.isConfirmed():
+        search_text = keyboard.getText()
+        _1CH.save_data('search', search_text)
+        if search_text.startswith('!#'):
+            if search_text == '!#create metapacks': create_meta_packs()
+            if search_text == '!#repair meta': repair_missing_images()
+            if search_text == '!#install all meta': install_all_meta()
+            if search_text.startswith('!#sql'):
+                if DB == 'mysql':
+                    db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
+                else:
+                    db = orm.connect(DB_DIR)
+                db.execute(search_text[5:])
+                db.commit()
+                db.close()
+        else:
+            SearchDesc(section, keyboard.getText())
+    else:
+        BrowseListMenu(section)
+
+
 def Search(section, query):
     html = get_url(BASE_URL, cache_limit=0)
     r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
     search_url = BASE_URL + '/index.php?search_keywords='
     search_url += urllib.quote_plus(query)
+    #search_url += '&desc_search=1' ## 1 = Search Descriptions
     search_url += '&key=' + r
     if section == 'tv':
         set_view('tvshows', 'tvshows-view')
@@ -579,7 +775,7 @@ def Search(section, query):
     html = '> >> <'
     page = 0
 
-    while html.find('> >> <') > -1 and page < 10:
+    while html.find('> >> <') > -1 and page < 100:
         page += 1
         if page > 1:
             pageurl = '%s&page=%s' % (search_url, page)
@@ -605,6 +801,140 @@ def Search(section, query):
                 imdb = li.getProperty('imdb')
                 thumb = li.getProperty('img')
 
+                queries = {'mode': nextmode, 'title': title, 'url': resurl,
+                           'img': thumb, 'imdbnum': imdb,
+                           'video_type': video_type, 'year': year}
+                li_url = _1CH.build_plugin_url(queries)
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
+                                            isFolder=folder, totalItems=total)
+    _1CH.end_of_directory()
+
+
+def SearchAdvanced(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1'):
+    html = get_url(BASE_URL, cache_limit=0)
+    r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
+    search_url = BASE_URL + '/index.php?search_keywords='
+    search_url += urllib.quote_plus(query)
+    if (description==True): search_url += '&desc_search=1'
+    search_url += '&tag=' + urllib.quote_plus(tag)
+    search_url += '&genre=' + urllib.quote_plus(genre)
+    search_url += '&actor_name=' + urllib.quote_plus(actor)
+    search_url += '&director=' + urllib.quote_plus(director)
+    search_url += '&country=' + urllib.quote_plus(country)
+    search_url += '&year=' + urllib.quote_plus(year)
+    search_url += '&month=' + urllib.quote_plus(month)
+    search_url += '&decade=' + urllib.quote_plus(decade)
+    search_url += '&host=' + urllib.quote_plus(host)
+    search_url += '&search_rating=' + urllib.quote_plus(rating) ## Rating higher than (#), 0-4
+    search_url += '&advanced=' + urllib.quote_plus(advanced)
+    ###search_url += 'search_section=1&genre=&director=&actor_name=&country=&search_rating=0&year=0&month=0&decade=0&host=&advanced=1'
+    search_url += '&key=' + r
+    if section == 'tv':
+        set_view('tvshows', 'tvshows-view')
+        search_url += '&search_section=2'
+        nextmode = 'TVShowSeasonList'
+        video_type = 'tvshow'
+        folder = True
+        if DB == 'mysql':
+            db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
+        else:
+            db = orm.connect(DB_DIR)
+        cur = db.cursor()
+        cur.execute('SELECT url FROM subscriptions')
+        subscriptions = cur.fetchall()
+        db.close()
+        subs = [row[0] for row in subscriptions]
+    else:
+        set_view('movies', 'movies-view')
+        nextmode = 'GetSources'
+        video_type = 'movie'
+        folder = _1CH.get_setting('auto-play') == 'false'
+        subs = []
+    html = '> >> <'
+    page = 0
+    while html.find('> >> <') > -1 and page < 100:#10:
+        page += 1
+        if page > 1:
+            pageurl = '%s&page=%s' % (search_url, page)
+        else:
+            pageurl = search_url
+        html = get_url(pageurl, cache_limit=0)
+        r = re.search('number_movies_result">([0-9,]+)', html)
+        if r:
+            total = int(r.group(1).replace(',', ''))
+        else:
+            total = 0
+        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
+        regex = re.finditer(pattern, html, re.DOTALL)
+        resurls = []
+        for s in regex:
+            resurl, title, year, thumb = s.groups()
+            if resurl not in resurls:
+                resurls.append(resurl)
+                li = build_listitem(video_type, title, year, img, resurl, subs=subs)
+                imdb = li.getProperty('imdb')
+                thumb = li.getProperty('img')
+                queries = {'mode': nextmode, 'title': title, 'url': resurl,
+                           'img': thumb, 'imdbnum': imdb,
+                           'video_type': video_type, 'year': year}
+                li_url = _1CH.build_plugin_url(queries)
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
+                                            isFolder=folder, totalItems=total)
+    _1CH.end_of_directory()
+
+
+def SearchDesc(section, query):
+    html = get_url(BASE_URL, cache_limit=0)
+    r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
+    search_url = BASE_URL + '/index.php?search_keywords='
+    search_url += urllib.quote_plus(query)
+    search_url += '&desc_search=1' ## 1 = Search Descriptions
+    search_url += '&key=' + r
+    if section == 'tv':
+        set_view('tvshows', 'tvshows-view')
+        search_url += '&search_section=2'
+        nextmode = 'TVShowSeasonList'
+        video_type = 'tvshow'
+        folder = True
+        if DB == 'mysql':
+            db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
+        else:
+            db = orm.connect(DB_DIR)
+        cur = db.cursor()
+        cur.execute('SELECT url FROM subscriptions')
+        subscriptions = cur.fetchall()
+        db.close()
+        subs = [row[0] for row in subscriptions]
+    else:
+        set_view('movies', 'movies-view')
+        nextmode = 'GetSources'
+        video_type = 'movie'
+        folder = _1CH.get_setting('auto-play') == 'false'
+        subs = []
+    html = '> >> <'
+    page = 0
+    while html.find('> >> <') > -1 and page < 100:
+        page += 1
+        if page > 1:
+            pageurl = '%s&page=%s' % (search_url, page)
+        else:
+            pageurl = search_url
+        html = get_url(pageurl, cache_limit=0)
+        r = re.search('number_movies_result">([0-9,]+)', html)
+        if r:
+            total = int(r.group(1).replace(',', ''))
+        else:
+            total = 0
+        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
+        regex = re.finditer(pattern, html, re.DOTALL)
+        resurls = []
+        for s in regex:
+            resurl, title, year, thumb = s.groups()
+            if resurl not in resurls:
+                resurls.append(resurl)
+                li = build_listitem(video_type, title, year, img, resurl, subs=subs)
+                imdb = li.getProperty('imdb')
+                thumb = li.getProperty('img')
                 queries = {'mode': nextmode, 'title': title, 'url': resurl,
                            'img': thumb, 'imdbnum': imdb,
                            'video_type': video_type, 'year': year}
@@ -642,6 +972,12 @@ def BrowseListMenu(section=None):
     _1CH.add_directory({'mode': 'BrowseAlphabetMenu', 'section': section}, {'title': 'A-Z'}, img=art('atoz.png'),
                        fanart=art('fanart.png'))
     _1CH.add_directory({'mode': 'GetSearchQuery', 'section': section}, {'title': 'Search'}, img=art('search.png'),
+                       fanart=art('fanart.png'))
+    _1CH.add_directory({'mode': 'GetSearchQueryDesc', 'section': section}, {'title': 'Search (+Description)'}, img=art('search.png'),
+                       fanart=art('fanart.png'))
+    _1CH.add_directory({'mode': 'GetSearchQueryTag', 'section': section}, {'title': 'Search (by Title & Tag)'}, img=art('search.png'),
+                       fanart=art('fanart.png'))
+    _1CH.add_directory({'mode': 'GetSearchQueryAdvanced', 'section': section}, {'title': 'Search (Advanced Search)'}, img=art('search.png'),
                        fanart=art('fanart.png'))
     if website_is_integrated():
         _1CH.add_directory({'mode': 'browse_favorites_website', 'section': section}, {'title': 'Website Favourites'},
@@ -684,13 +1020,22 @@ def BrowseAlphabetMenu(section=None):
 def BrowseByGenreMenu(section=None, letter=None): #2000
     print 'Browse by genres screen'
     for genre in GENRES:
+        genre_img=(genre.lower())
+        if (' ' in genre_img): genre_img.replace(' ','_')
+        genre_img=genre_img+'.png'
         _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': '', 'genre': genre},
-                           {'title': genre})
+                           {'title': genre}, img=art(genre_img), fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
-def add_contextsearchmenu(title, video_type):
+def add_contextsearchmenu(title, video_type, resurl=''):
     contextmenuitems = []
+    if (os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.theanimehighway')): ## For future possible features.
+    	if resurl=='': test=''
+    	else:
+    		contextmenuitems.append(('Use: [COLOR white]Anime [COLOR tan]Highway[/COLOR][/COLOR]',
+                                 'XBMC.Container.Update(%s?mode=1900&url=%s&name=%s)' % (
+                                     'plugin://plugin.video.theanimehighway/', resurl, title)))
     if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.icefilms'):
         contextmenuitems.append(('Search Icefilms',
                                  'XBMC.Container.Update(%s?mode=555&url=%s&search=%s&nextPage=%s)' % (
@@ -1058,7 +1403,7 @@ def migrate_favs_to_web():
     cur.execute(sql)
     all_favs = cur.fetchall()
     progress = xbmcgui.DialogProgress()
-    ln1 = 'Uploading your favorites to www.1channel.ch...'
+    ln1 = 'Uploading your favorites to www.primewire.ag...'
     progress.create('Uploading Favorites', ln1)
     net = Net()
     cookiejar = _1CH.get_profile()
@@ -1346,6 +1691,77 @@ class StopDownloading(Exception):
 
     def __str__(self):
         return repr(self.value)
+
+
+def download_video(url, dest, displayname=False):
+    print 'Downloading Metapack'
+    print 'URL: %s' % url
+    print 'Destination: %s' % dest
+    if not displayname: displayname = url
+    #dlg = xbmcgui.DialogProgressBG() ## For Dialog.ProgrsBG() ## XBMC Daily Build
+    dlg = xbmcgui.DialogProgress() ## For Dialog.Progrs()
+    #try: dlg.close()
+    #except: t=''
+    ####xbmc.executebuiltin('Dialog.Close(all, true)') 
+    ####xbmcgui.Dialog.Close(all, true)
+    ##dlg.create('Downloading', displayname) ## For Dialog.ProgrsBG() ## XBMC Daily Build
+    dlg.create('Downloading', '', displayname) ## For Dialog.Progres()
+    ##dlg.create('', '') ## For Dialog.ProgrsBG() ## XBMC Daily Build
+    #dlg.create('', '', '') ## For Dialog.Progres()
+    start_time = time.time()
+    if os.path.isfile(dest):
+        print 'File to be downloaded already esists'
+        return False
+    try:
+        ##player = xbmc.Player(xbmc.PLAYER_CORE_AUTO)
+        ##player.play(url, xbmcgui.ListItem(label='Test', path=url))
+        ##player.stop()
+        ##xbmc.sleep(1000)
+        urllib.urlretrieve(url, dest, lambda nb, bs, fs: _pbhookb(nb, bs, fs, dlg, start_time, displayname))
+        dlg.close()
+    except:
+        t='' ## For Dialog.ProgrsBG() ## XBMC Daily Build
+        ###only handle StopDownloading (from cancel),
+        ###ContentTooShort (from urlretrieve), and OS (from the race condition);
+        ###let other exceptions bubble 
+        if sys.exc_info()[0] in (urllib.ContentTooShortError, StopDownloading, OSError): ## For Dialog.Progres()
+            return False ## For Dialog.Progres()
+        else: ## For Dialog.Progres()
+            raise ## For Dialog.Progres()
+    return True
+
+def _pbhookb(numblocks, blocksize, filesize, dlg, start_time, displayname): ## For use by download_video()
+	player = xbmc.Player(xbmc.PLAYER_CORE_AUTO)
+	if player.isPlaying(): t=''
+	else:
+		try:
+			percent = min(numblocks * blocksize * 100 / filesize, 100)
+			currently_downloaded = float(numblocks) * blocksize / (1024 * 1024)
+			kbps_speed = numblocks * blocksize / (time.time() - start_time)
+			if kbps_speed > 0:
+				eta = (filesize - numblocks * blocksize) / kbps_speed
+			else:
+				eta = 0
+			kbps_speed /= 1024
+			total = float(filesize) / (1024 * 1024)
+			#mbs =  ('['+'%.02f MB of %.02f MB' % (currently_downloaded, total)) + '] ' + displayname ## For Dialog.ProgrsBG() ## XBMC Daily Build
+			mbs =  '%.02f MB of %.02f MB' % (currently_downloaded, total) ## For Dialog.Progrs()
+			est = 'Speed: %.02f Kb/s ' % kbps_speed
+			est += 'ETA: %02d:%02d' % divmod(eta, 60)
+			#if (percent > 0) and (kbps_speed > 0): ## For Dialog.ProgrsBG() ## XBMC Daily Build
+			#	dlg.update(percent, mbs, est) ## For Dialog.ProgrsBG() ## XBMC Daily Build
+			dlg.update(percent, mbs, est) ## For Dialog.Progres()
+			if (percent==100):
+				#dlg.close()
+				return
+		except:
+			percent = 100
+			dlg.update(percent) ## For Dialog.Progres()
+		if dlg.iscanceled(): ## For Dialog.Progres()
+			dlg.close() ## For Dialog.Progres()
+			raise StopDownloading('Stopped Downloading') ## For Dialog.Progres()
+
+
 
 
 def download_metapack(url, dest, displayname=False):
@@ -1950,7 +2366,7 @@ def website_is_integrated():
 def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=None, subs=None):
     if not subs: subs = []
     if not extra_cms: extra_cms = []
-    menu_items = add_contextsearchmenu(title, section)
+    menu_items = add_contextsearchmenu(title, section, resurl)
     menu_items = menu_items + extra_cms
 
     queries = {'mode': 'SaveFav', 'section': section, 'title': title, 'url': resurl, 'year': year}
@@ -2054,7 +2470,7 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
 def upgrade_db():
     _1CH.log('Upgrading db...')
     for table in ('subscriptions', 'favorites'):
-        sql = "UPDATE %s SET url = replace(url, 'http://www.1channel.ch', '')" % table
+        sql = "UPDATE %s SET url = replace(url, 'http://www.primewire.ag', '')" % table
         if DB == 'mysql':
             db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
         else:
@@ -2083,7 +2499,7 @@ def fix_existing_strms():
                                 new_content += '&video_type=episode'
                             elif folder == 'movie-folder':
                                 new_content += '&video_type=movie'
-                        _1CH.log('Writing new content: %s' % new_content)
+                        #_1CH.log('Writing new content: %s' % new_content)
                         target.write(new_content)
 
 
@@ -2140,6 +2556,12 @@ elif mode == 'TVShowEpisodeList':
     TVShowEpisodeList(title, season, imdbnum, tvdbnum)
 elif mode == 'GetSearchQuery':
     GetSearchQuery(section)
+elif mode == 'GetSearchQueryTag':
+    GetSearchQueryTag(section)
+elif mode == 'GetSearchQueryAdvanced':
+    GetSearchQueryAdvanced(section)
+elif mode == 'GetSearchQueryDesc':
+    GetSearchQueryDesc(section)
 elif mode == '7000':  # Enables Remote Search
     Search(section, query)
 elif mode == 'browse_favorites':

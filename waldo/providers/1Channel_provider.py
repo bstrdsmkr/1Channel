@@ -9,7 +9,7 @@ from t0mm0.common.addon import Addon
 
 addon = Addon('plugin.video.1channel', sys.argv)
 BASE_URL = addon.get_setting('domain')
-display_name = '1Channel'
+display_name = 'PrimeWire'#'1Channel'
 required_addons = []
 tag = '1Ch'
 
