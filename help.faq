@@ -3,6 +3,15 @@ A lot of new features have been added to 1Channel recently, most importantly the
 
 [COLOR red]If you still have questions afterward, this addon is supported at [COLOR blue]www.XBMCHub.com[/COLOR],  [COLOR white][B]NOT[/B][/COLOR] xbmc.org[/COLOR].
 
+[COLOR blue][B]Subscriptions' Day Menus[/B][/COLOR]
+    A request had been heard for a while about adding the days of the week to either Favorites or Subscriptions.  Subscriptions now can include a Day marking of the current day they are added as, updated to the current day of the week, or the day marking removed.  Also you can view all subscriptions, or view subscriptions marked with a specific day of the week.  Psst!  Thank TwiztedZero for his suggested mind-control of me, if you come to like this.  You can also edit the label formating of this in addon-settings.
+
+[COLOR blue][B]Error Handling[/B][/COLOR]
+    Error handling has been added in many place, most of all to logging, for sake of unhandled text.  This should help solve several of the script errors that accured due to unhandled text being printed to xbmc.log that would cause an error.
+
+[COLOR blue][B]PrimeWire.ag[/B][/COLOR]
+    November of 2013 has come around and PrimeWire.ag has been the mainly used domain for 1Channel for quite some time now.  It was about time for a graphics to be updated.  Icon and Fanart were updated from what was made by fans a while back.  Also a new temp thing has been included called PrimeWire.  A lot of the 1Channel Text has also been switched to PrimeWire, within the addon.
+
 [COLOR blue][B]1Channel.ch under attack[/B][/COLOR]
     -On 01May2013, www.1channel.ch was attacked and the domain hijacked. The site is currently available under the old domain www.letmewatchthis.ch. Until further notice, please
     [COLOR red]DO NOT[/COLOR] use www.1channel.ch and especially do not attempt to log in there. If you have tried to login there, visit www.letmewatchthis.ch and change

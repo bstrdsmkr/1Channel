@@ -10,7 +10,7 @@ from t0mm0.common.addon import Addon
 
 
 addon = Addon('plugin.video.waldo', sys.argv)
-BASE_URL = 'http://www.primewire.ag'#'http://www.1channel.ch'
+BASE_URL = 'http://www.primewire.ag'
 
 display_name = 'PrimeWire'#'1Channel'
 #Label that will be displayed to the user representing this index
@@ -86,7 +86,8 @@ def callback(params):
      Will call this function with:
         {'mode':'main', 'section':'tv', 'api_key':'1234'}
     """
-    addon.log('%s was called with the following parameters: %s' % (params.get('receiver', ''), params))
+    try: addon.log('%s was called with the following parameters: %s' % (params.get('receiver', ''), params))
+    except: pass
     sort_by = params.get('sort', None)
     section = params.get('section')
     if sort_by: GetFilteredResults(section, sort=sort_by)
@@ -116,8 +117,8 @@ def art(filename):
 
 
 def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None): #3000
-    addon.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % (
-        section, genre, letter, sort, page))
+    try: addon.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % (section, genre, letter, sort, page))
+    except: pass
 
     pageurl = BASE_URL + '/?'
     if section == 'tv': pageurl += 'tv'
@@ -168,14 +169,15 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         cm = [(label, command)]
         meta = {'title': 'Next Page >>'}
         addon.add_directory(
-            {'mode': 'CallModule', 'receiver': '1Channel', 'ind_path': os.path.dirname(__file__), 'section': section,
+            {'mode': 'CallModule', 'receiver': 'PrimeWire', 'ind_path': os.path.dirname(__file__), 'section': section,
              'genre': genre, 'letter': letter, 'sort': sort, 'page': page},
             meta, cm, True, art('nextpage.png'), art('fanart.png'), is_folder=True)
     addon.end_of_directory()
 
 
 def GetURL(url, params=None, referrer=BASE_URL):
-    addon.log('Fetching URL: %s' % url)
+    try: addon.log('Fetching URL: %s' % url)
+    except: pass
 
     USER_AGENT = 'User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56'
     if params:
@@ -184,7 +186,7 @@ def GetURL(url, params=None, referrer=BASE_URL):
         req = urllib2.Request(url)
 
     req.add_header('User-Agent', USER_AGENT)
-    req.add_header('Host', 'www.1channel.ch')
+    req.add_header('Host', 'www.primewire.ag')
     req.add_header('Referer', referrer)
 
     try:
@@ -194,7 +196,8 @@ def GetURL(url, params=None, referrer=BASE_URL):
         h = HTMLParser.HTMLParser()
         body = h.unescape(body)
     except Exception, e:
-        addon.log('Failed to connect to %s: %s' % (url, e))
+        try: addon.log('Failed to connect to %s: %s' % (url, e))
+        except: pass
         return ''
 
     return body.encode('utf-8')

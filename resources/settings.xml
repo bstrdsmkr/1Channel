@@ -42,13 +42,6 @@
                  action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=install_metapack&title=MetaPack-movie-U-123.zip)"/>
     </category>
 
-    <category label="Downloads">
-        <setting label="Enable Download Option for [COLOR red]Movies[/COLOR]" 	type="bool" 		id="enable-downloading-option-movie" 					default="false"/>
-        <setting label="Folder: [COLOR red]Movie[/COLOR] Downloads" 						type="folder" 	id="folder-downloading-movie" 									default="special://home/media/TV Shows" />
-        <setting label="Enable Download Option for [COLOR green]Shows[/COLOR]" 	type="bool" 		id="enable-downloading-option-show" 					default="false"/>
-        <setting label="Folder: [COLOR green]Show[/COLOR]  Downloads" 						type="folder" 	id="folder-downloading-show"  								default="special://home/media/Movies" />
-    </category>
-
     <category label="Auto-View">
         <setting id="auto-view" type="bool" label="Enable Automatic View" default="false"/>
         <setting id="movies-view" type="number" label="Movies View" default="503" enable="!eq(-1,false)"/>
@@ -113,13 +106,15 @@
         <setting id="format-source" type="text" label="32000" default="[{q}] {h} {p} ({v} views)"/>
         <setting id="format-source-verified" type="text" label="32001" default="[COLOR gold]{L}[/COLOR]"/>
         <setting id="format-source-parts" type="text" label="32002" default="     {h} {p}"/>
+        <setting id="format-subscription-day" type="text" label="Subscription Day" default="[COLOR deeppink]%s[/COLOR]"/>
+        <setting id="format-subscription-day-tag" type="text" label="Subscription Day Brackets" default="[COLOR blueviolet][[/COLOR]%s[COLOR blueviolet]][/COLOR]"/>
 
     </category>
 
     <category label="Miscellaneous">
         <setting id="domain" type="labelenum" label="Domain"
                  values="http://www.1channel.ch|http://www.letmewatchthis.ch|http://www.1channel.ag|http://www.primewire.ag"
-                 default="http://www.letmewatchthis.ch"/>
+                 default="http://www.primewire.ag"/>
         <setting id="theme" type="enum" label="30800" values="mikey1234|Glossy_Black|PrimeWire" default="1"/>
         <setting id="auto-watch" type="bool" label="30801" default="true"/>
         <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="30802" default="2"

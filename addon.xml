@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--suppress ALL -->
-<addon id="plugin.video.1channel" version="2.0.2" name="[COLOR white]1[/COLOR]Channel [COLOR white]( [COLOR cornflowerblue]PrimeWire[/COLOR] )[/COLOR]" provider-name="Bstrdsmkr">
+<addon id="plugin.video.1channel" version="2.0.2.6" name="PrimeWire" provider-name="Bstrdsmkr">
     <requires>
         <import addon="xbmc.python" version="2.0"/>
         <import addon="script.module.urlresolver" version="1.0.0"/>
@@ -14,9 +14,9 @@
     <extension point="xbmc.service" library="service.py" start="startup">
     </extension>
     <extension point="xbmc.addon.metadata">
-        <summary>Browse PrimeWire.ag (no longer 1channel.ch)</summary>
+        <summary>Browse 1channel.ch</summary>
         <description>This addon is supported at [COLOR blue]www.XBMCHub.com[/COLOR], [COLOR white][B]NOT[/B][/COLOR]
-            [COLOR red]xbmc.org[/COLOR]. Play a wide selection of movies and TV shows from PrimeWire.ag (1channel.ch)
+            [COLOR red]xbmc.org[/COLOR]. Play a wide selection of movies and TV shows from 1channel.ch
         </description>
         <platform>all</platform>
     </extension>

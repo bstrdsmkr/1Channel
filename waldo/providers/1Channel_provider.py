@@ -30,7 +30,8 @@ def get_results(vid_type, title, year, imdb, tvdb, season, episode):
 
 
 def GetURL(url):
-    addon.log('Fetching URL: %s' % url)
+    try: addon.log('Fetching URL: %s' % url)
+    except: pass
 
     USER_AGENT = 'User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56'
     req = urllib2.Request(url)
@@ -47,7 +48,8 @@ def GetURL(url):
         h = HTMLParser.HTMLParser()
         body = h.unescape(body)
     except Exception, e:
-        addon.log('Failed to connect to %s: %s' % (url, e))
+        try: addon.log('Failed to connect to %s: %s' % (url, e))
+        except: pass
         return ''
 
     return body.encode('utf-8')
@@ -80,7 +82,8 @@ def Search(section, query, imdb):
         adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
         r = re.search(adultregex, html, re.DOTALL)
         if r:
-            addon.log('Adult content url detected')
+            try: addon.log('Adult content url detected')
+            except: pass
             adulturl = BASE_URL + r.group(1)
             headers = {'Referer': url}
             net.set_cookies(cookiejar)
@@ -99,8 +102,7 @@ def Search(section, query, imdb):
                 host = host.decode('base-64')
                 disp_title = '[%s] %s (%s views)' % (q, host, views)
                 result = {'tag': tag, 'provider_name': display_name}
-                qs = {'url': url, 'title': title, 'img': thumb, 'year': year, 'imdbnum': imdb, 'video_type': video_type,
-                      'strm': True, 'mode': 'PlaySource'}
+                qs = {'url': url, 'title': title, 'img': thumb, 'year': year, 'imdbnum': imdb, 'video_type': video_type, 'strm': True, 'mode': 'PlaySource'}
                 result['li_url'] = 'plugin://plugin.video.1channel/?%s' % urllib.urlencode(qs)
                 print result['li_url']
                 result['info_labels'] = {'title': disp_title}

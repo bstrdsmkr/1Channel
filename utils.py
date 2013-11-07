@@ -64,13 +64,11 @@ def format_label_movie(info):
         year = info['premiered'][:4]
     else:
         year = ''
-    if (year==None): year=''
     title = info['title']
     label = addon.get_setting('format-movie')
     label = label.replace('{t}', title)
     label = label.replace('{y}', year)
-    try: label = label.replace('{ft}', format_movie_title(title))
-    except: t=''
+    label = label.replace('{ft}', format_movie_title(title))
     label = label.replace('{fy}', format_movie_year(year))
     return label
 
@@ -125,7 +123,8 @@ def has_upgraded():
     current_oct = 0
     for octant in old_version:
         if int(new_version[current_oct]) > int(octant):
-            addon.log('New version found')
+            try: addon.log('New version found')
+            except: pass
             return True
         current_oct += 1
     return False
@@ -148,7 +147,7 @@ class TextBox:
 
     def setControls(self):
         # set heading
-        heading = "PrimeWire v%s" % (addon.get_version())#"1Channel v%s" % (addon.get_version())
+        heading = "PrimeWire v%s" % (addon.get_version())
         self.win.getControl(self.CONTROL_LABEL).setLabel(heading)
         # set text
         root = addon.get_path()
