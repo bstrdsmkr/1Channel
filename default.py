@@ -2381,10 +2381,12 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
         menu_items.append(('Refresh Metadata', runstring,))
 
         if 'trailer_url' in meta:
-            url = meta['trailer_url']
-            url = url.encode('base-64').strip()
-            runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'PlayTrailer', 'url': url})
-            menu_items.append(('Watch Trailer', runstring,))
+            try:
+            	url = meta['trailer_url']
+            	url = url.encode('base-64').strip()
+            	runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'PlayTrailer', 'url': url})
+            	menu_items.append(('Watch Trailer', runstring,))
+            except: pass
 
         if meta['overlay'] == 6:
             label = 'Mark as watched'
