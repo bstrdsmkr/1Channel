@@ -1,3 +1,7 @@
+[B]Version 2.0.2.7[/B]
+- Added "|http://primewireproxy.co.uk|http://1channel.occupyuk.co.uk" to domain setting in settings.xml.
+- Error handling on Play Trailer url(s). ~line 2385: UnicodeEncodeError: 'ascii' codec can't encode character u'\u200e' in position 11
+
 [B]Version 2.0.2.6[/B]
 - These are custom changes, made by The Highway.
 - Monday through Sunday (and ALL) Sub-Menu Listings for Subscriptions.
