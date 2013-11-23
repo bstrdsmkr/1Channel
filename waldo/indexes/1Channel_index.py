@@ -7,10 +7,16 @@ import HTMLParser
 import xbmcgui
 import xbmcplugin
 from t0mm0.common.addon import Addon
-
+from t0mm0.common.addon import Addon as Addon2
 
 addon = Addon('plugin.video.waldo', sys.argv)
-BASE_URL = 'http://www.primewire.ag'
+_1CH = Addon2('plugin.video.1channel', sys.argv)
+
+#BASE_Address = 'www.primewire.ag'
+BASE_Address = _1CH.get_setting('domain').replace('http://','')
+if (tfalse(_1CH.get_setting("enableDomain"))==True) and (len(_1CH.get_setting("customDomain")) > 10):
+	BASE_Address=_1CH.get_setting("customDomain").replace('http://','')
+BASE_URL = 'http://'+BASE_Address
 
 display_name = 'PrimeWire'#'1Channel'
 #Label that will be displayed to the user representing this index
@@ -186,7 +192,7 @@ def GetURL(url, params=None, referrer=BASE_URL):
         req = urllib2.Request(url)
 
     req.add_header('User-Agent', USER_AGENT)
-    req.add_header('Host', 'www.primewire.ag')
+    req.add_header('Host', BASE_Address) #'www.primewire.ag'
     req.add_header('Referer', referrer)
 
     try:

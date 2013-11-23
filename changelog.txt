@@ -1,3 +1,14 @@
+[B]Version 2.0.2.8[/B]
+- | try: xbmcvfs.mkdirs #Frodo/Gotham/Python(v2.1.0) | except: os.path.mkdir #Eden |
+## Thanks to Eldorados for pointing this out.
+- Custom Domain Enable and Text Box Field in Addon Settings.
+- \waldo\indexes\1Channel_index.py (waldo) | \waldo\providers\1Channel_provider.py
+## Domain(s) Handling.
+- Moved Misc. Tab in Addon Settings to the be the first tab, so that it would be easier for those on devices with a harder time scrolling sideways.
+
+[B]Version 2.0.2.7b[/B]
+- Removed Orange Chat-Bubble graphics in PrimeWire theme to save filesize space due to Github FileSize Limitations.
+
 [B]Version 2.0.2.7[/B]
 - Added "|http://primewireproxy.co.uk|http://1channel.occupyuk.co.uk" to domain setting in settings.xml.
 - Error handling on Play Trailer url(s). ~line 2385: UnicodeEncodeError: 'ascii' codec can't encode character u'\u200e' in position 11

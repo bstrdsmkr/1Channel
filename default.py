@@ -32,6 +32,15 @@ import metapacks
 from utils import *
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
+
+def addstv(id,value=''): _1CH.addon.setSetting(id=id,value=value) ## Save Settings
+def addst(r,s=''): return _1CH.get_setting(r)   ## Get Settings
+def addpr(r,s=''): return _1CH.queries.get(r,s) ## Get Params
+def tfalse(r,d=False): ## Get True / False
+	if   (r.lower()=='true' ): return True
+	elif (r.lower()=='false'): return False
+	else: return d
+
 def Logg(o):
 	try: _1CH.log(o)
 	except: pass
@@ -81,6 +90,9 @@ AUTO_WATCH = _1CH.get_setting('auto-watch') == 'true'
 
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
 BASE_URL = _1CH.get_setting('domain')
+if (tfalse(addst("enableDomain"))==True) and (len(addst("customDomain")) > 10):
+	BASE_URL=addst("customDomain")
+
 USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
               "AppleWebKit/537.17 (KHTML, like Gecko)"
               "Chrome/24.0.1312.56")
@@ -93,7 +105,9 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
 PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
 
-if not xbmcvfs.exists(_1CH.get_profile()): xbmcvfs.mkdirs(_1CH.get_profile())
+if not xbmcvfs.exists(_1CH.get_profile()): 
+	try: xbmcvfs.mkdirs(_1CH.get_profile())
+	except: os.path.mkdir(_1CH.get_profile())
 
 def art(name): art_img = os.path.join(THEME_PATH, name); return art_img
 
@@ -118,7 +132,9 @@ def init_database():
         except: pass
 
     else:
-        if not xbmcvfs.exists(os.path.dirname(DB_DIR)): xbmcvfs.mkdirs(os.path.dirname(DB_DIR))
+        if not xbmcvfs.exists(os.path.dirname(DB_DIR)): 
+        	try: xbmcvfs.mkdirs(os.path.dirname(DB_DIR))
+        	except: os.path.mkdir(os.path.dirname(DB_DIR))
         db = orm.connect(DB_DIR)
         db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
         db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
@@ -1931,7 +1947,8 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
                         final_path = xbmc.makeLegalFilename(final_path)
                         if not xbmcvfs.exists(os.path.dirname(final_path)):
                             try:
-                                xbmcvfs.mkdirs(os.path.dirname(final_path))
+                                try: xbmcvfs.mkdirs(os.path.dirname(final_path))
+                                except: os.path.mkdir(os.path.dirname(final_path))
                             except:
                                 try: _1CH.log('Failed to create directory %s' % final_path)
                                 except: pass
@@ -1965,7 +1982,8 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
         final_path = xbmc.makeLegalFilename(final_path)
         if not xbmcvfs.exists(os.path.dirname(final_path)):
             try:
-                xbmcvfs.mkdirs(os.path.dirname(final_path))
+                try: xbmcvfs.mkdirs(os.path.dirname(final_path))
+                except: os.path.mkdir(os.path.dirname(final_path))
             except Exception, e:
                 try: _1CH.log('Failed to create directory %s' % final_path)
                 except: pass
