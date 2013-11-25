@@ -27,20 +27,24 @@ try:
                     DB_NAME is not None:
         import mysql.connector as database
 
-        xbmc.log('1Channel: Service: Loading MySQL as DB engine')
+        try: xbmc.log('PrimeWire: Service: Loading MySQL as DB engine')
+        except: pass
         DB = 'mysql'
     else:
-        xbmc.log('1Channel: Service: MySQL not enabled or not setup correctly')
+        try: xbmc.log('PrimeWire: Service: MySQL not enabled or not setup correctly')
+        except: pass
         raise ValueError('MySQL not enabled or not setup correctly')
 except:
     try:
         from sqlite3 import dbapi2 as database
 
-        xbmc.log('1Channel: Service: Loading sqlite3 as DB engine')
+        try: xbmc.log('PrimeWire: Service: Loading sqlite3 as DB engine')
+        except: pass
     except:
         from pysqlite2 import dbapi2 as database
 
-        xbmc.log('1Channel: Service: Loading pysqlite2 as DB engine')
+        try: xbmc.log('PrimeWire: Service: Loading pysqlite2 as DB engine')
+        except: pass
     DB = 'sqlite'
     db_dir = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
 
@@ -71,10 +75,12 @@ class Service(xbmc.Player):
         selection = int(ADDON.getSetting('subscription-interval'))
         self.hours = hours_list[selection]
         self.DB = ''
-        xbmc.log('1Channel: Service starting...')
+        try: xbmc.log('PrimeWire: Service starting...')
+        except: pass
 
     def reset(self):
-        xbmc.log('1Channel: Service: Resetting...')
+        try: xbmc.log('PrimeWire: Service: Resetting...')
+        except: pass
         win = xbmcgui.Window(10000)
         win.clearProperty('1ch.playing.title')
         win.clearProperty('1ch.playing.year')
@@ -101,10 +107,12 @@ class Service(xbmc.Player):
             return False
 
     def onPlayBackStarted(self):
-        xbmc.log('1Channel: Service: Playback started')
+        try: xbmc.log('PrimeWire: Service: Playback started')
+        except: pass
         self.tracking = self.check()
         if self.tracking:
-            xbmc.log('1Channel: Service: tracking progress...')
+            try: xbmc.log('PrimeWire: Service: tracking progress...')
+            except: pass
             win = xbmcgui.Window(10000)
             self.title = win.getProperty('1ch.playing.title')
             self.imdb = win.getProperty('1ch.playing.imdb')
@@ -136,7 +144,8 @@ class Service(xbmc.Player):
                     self._sought = True
 
     def onPlayBackStopped(self):
-        xbmc.log('1Channel: Playback Stopped')
+        try: xbmc.log('PrimeWire: Playback Stopped')
+        except: pass
         if self.tracking:
             playedTime = int(self._lastPos)
             watched_values = [.7, .8, .9]
@@ -144,12 +153,14 @@ class Service(xbmc.Player):
             percent = int((playedTime / self._totalTime) * 100)
             pTime = format_time(playedTime)
             tTime = format_time(self._totalTime)
-            xbmc.log('1Channel: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
+            try: xbmc.log('PrimeWire: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
+            except: pass
             if playedTime == 0 and self._totalTime == 999999:
                 raise RuntimeError('XBMC silently failed to start playback')
             elif ((playedTime / self._totalTime) > min_watched_percent) and (
                         self.video_type == 'movie' or (self.season and self.episode)):
-                xbmc.log('1Channel: Service: Threshold met. Marking item as watched')
+                try: xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')
+                except: pass
                 if self.video_type == 'movie':
                     videotype = 'movie'
                 else:
@@ -166,7 +177,8 @@ class Service(xbmc.Player):
                 db.commit()
                 db.close()
             else:
-                xbmc.log('1Channel: Service: Threshold not met. Saving bookmark')
+                try: xbmc.log('PrimeWire: Service: Threshold not met. Saving bookmark')
+                except: pass
                 sql = 'REPLACE INTO bookmarks (video_type, title, season, episode, year, bookmark) VALUES(?,?,?,?,?,?)'
                 if DB == 'mysql':
                     sql = sql.replace('?', '%s')
@@ -182,7 +194,8 @@ class Service(xbmc.Player):
         self.reset()
 
     def onPlayBackEnded(self):
-        xbmc.log('1Channel: Playback completed')
+        try: xbmc.log('PrimeWire: Playback completed')
+        except: pass
         self.onPlayBackStopped()
 
 
@@ -197,14 +210,17 @@ while not xbmc.abortRequested:
         if elapsed > threshold:
             is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
             if not (monitor.isPlaying() or is_scanning):
-                xbmc.log('1Channel: Service: Updating subscriptions')
+                try: xbmc.log('PrimeWire: Service: Updating subscriptions')
+                except: pass
                 builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=UpdateSubscriptions)'
                 xbmc.executebuiltin(builtin)
                 ADDON.setSetting('last_run', now.strftime("%Y-%m-%d %H:%M:%S.%f"))
             else:
-                xbmc.log('1Channel: Service: Busy... Postponing subscription update')
+                try: xbmc.log('PrimeWire: Service: Busy... Postponing subscription update')
+                except: pass
     while monitor.tracking and monitor.isPlayingVideo():
         monitor._lastPos = monitor.getTime()
         xbmc.sleep(1000)
     xbmc.sleep(1000)
-xbmc.log('1Channel: Service: shutting down...')
+try: xbmc.log('PrimeWire: Service: shutting down...')
+except: pass

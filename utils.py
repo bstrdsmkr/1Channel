@@ -123,7 +123,8 @@ def has_upgraded():
     current_oct = 0
     for octant in old_version:
         if int(new_version[current_oct]) > int(octant):
-            addon.log('New version found')
+            try: addon.log('New version found')
+            except: pass
             return True
         current_oct += 1
     return False
@@ -146,7 +147,7 @@ class TextBox:
 
     def setControls(self):
         # set heading
-        heading = "1Channel v%s" % (addon.get_version())
+        heading = "PrimeWire v%s" % (addon.get_version())
         self.win.getControl(self.CONTROL_LABEL).setLabel(heading)
         # set text
         root = addon.get_path()

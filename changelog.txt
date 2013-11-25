@@ -1,3 +1,77 @@
+[B]Version 2.0.2.8[/B]
+- | try: xbmcvfs.mkdirs #Frodo/Gotham/Python(v2.1.0) | except: os.path.mkdir #Eden |
+## Thanks to Eldorados for pointing this out.
+- Custom Domain Enable and Text Box Field in Addon Settings.
+- \waldo\indexes\1Channel_index.py (waldo) | \waldo\providers\1Channel_provider.py
+## Domain(s) Handling.
+- Moved Misc. Tab in Addon Settings to the be the first tab, so that it would be easier for those on devices with a harder time scrolling sideways.
+
+[B]Version 2.0.2.7b[/B]
+- Removed Orange Chat-Bubble graphics in PrimeWire theme to save filesize space due to Github FileSize Limitations.
+
+[B]Version 2.0.2.7[/B]
+- Added "|http://primewireproxy.co.uk|http://1channel.occupyuk.co.uk" to domain setting in settings.xml.
+- Error handling on Play Trailer url(s). ~line 2385: UnicodeEncodeError: 'ascii' codec can't encode character u'\u200e' in position 11
+
+[B]Version 2.0.2.6[/B]
+- These are custom changes, made by The Highway.
+- Monday through Sunday (and ALL) Sub-Menu Listings for Subscriptions.
+- "Subscription Day" ContextMenuItem to update the day to the current day of the week.
+- "Remove Day" ContextMenuItem to remove the day from a subscription.
+- ALL is displayed in all Subscription menus, while Monday through Sunday are displayed only if Monday through Sunday are not chosen.
+- Addon-Settings's Label Formatting area now includes Subscription Day and Brackets editable coding, so you can configure it as you like.
+
+[B]Version 2.0.2.5[/B]
+- These are custom changes, made by The Highway.
+- Fix to add_subscription
+- title to name-only in contextmenuitems
+- "else: sorting = []" added to get_sources() function to solve a rare bug.  Thanks goes out to crzen for pointing this one out.
+
+[B]Version 2.0.2.4[/B]
+- These are custom changes, made by The Highway.
+- Additional Function: filename_filter_out_year, Filtering of name-only without color and bold coding.
+- ContextMenuItems: SolarMovie.so (Search & Find AirDates)
+- PrimeWire Name-changes in "some" locations.
+- Temp-Fix for Handling the Additional Function when upgrading the database from an older version.  I'd like to find a better method if someone knows SQL well enough.
+
+[B]Version 2.0.2.3[/B]
+- These are custom changes, made by The Highway.
+- Day-of-The-Week value added to Subscriptions table and list menu.
+
+[B]Version 2.0.2.2[/B]
+- These are custom changes, made by The Highway, in an attempt to fix what's been notice to happen a lot on fresh install.  Also to provide couple additional features that I find useful.  For the time being, I've left out my video-file download feature.
+- Things should run smoother with less errors due to unhandled text when logging data to xbmc.log.
+- Changes to default.py
+### error handling on imports for metahandlers & metacontainers
+### EXTREME error handling on Log commands
+### error handling on TextBox command for Help Window in 2 locations
+### Addition of PrimeWire Theme
+### Additional Modes and Functions for Search Methods: GetSearchQueryTag, GetSearchQueryAdvanced, GetSearchQueryDesc
+### Additional Functions for Search Methods: SearchAdvanced, SearchDesc
+### A temp-fix for the Lag issue thats been noticed of late with the if-handled check of host's on long lists of hosts.
+- Changes to service.py
+### Log command error handling
+### PrimeWire name changed in Log commands
+### "'1Ch." text left alone
+### "onechannelcache.db" filename left alone
+- Changes to utils.py
+### for PrimeWire name
+### Log command error handling
+- Changes to 1Channel_provider.py
+### for PrimeWire name
+### Log command error handling
+### "'1Ch'" text left alone
+- Changes to 1Channel_index.py
+### for error handling on Log commands.
+### for PrimeWire.ag
+- PrimeWire Graphics and Custom Theme
+- chagnes to settings.xml
+### PrimeWire Theme
+### Default Domain: http://www.primewire.ag
+
+[B]Version 2.0.2[/B]
+- 
+
 [B]Version 1.0.0[/B]
 - Fixed problems deleting favorites
 - Fixed Error in listing search results

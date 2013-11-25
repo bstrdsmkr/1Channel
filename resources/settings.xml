@@ -1,4 +1,24 @@
 <settings>
+    <category label="Miscellaneous">
+        <setting id="domain" type="labelenum" label="Domain"
+                 values="http://www.primewire.ag|http://www.1channel.ch|http://www.letmewatchthis.ch|http://www.1channel.ag|http://primewireproxy.co.uk|http://1channel.occupyuk.co.uk"
+                 default="http://www.primewire.ag"/>
+        <setting id="enableDomain" 	type="bool" label="Enable Custom Domain" default="false" visible="true"/>
+        <setting id="customDomain" 	type="text" label="Custom Domain" default="http://1channel.occupyuk.co.uk" enable="!eq(-1,false)" />
+        <setting id="theme" type="enum" label="30800" values="mikey1234|Glossy_Black|PrimeWire" default="1"/>
+        <setting id="auto-watch" type="bool" label="30801" default="true"/>
+        <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="30802" default="2"
+                 enable="!eq(-1,false)"/>
+        <setting id="use_remote_db" type="bool" label="Use a remote MySQL DB" default="False"/>
+        <setting id="db_address" type="text" label="    Address" enable="eq(-1,true)" default=""/>
+        <setting id="db_port" type="integer" label="    Port" enable="eq(-2,true)" default=""/>
+        <setting id="db_user" type="text" label="    Username" enable="eq(-3,true)" default=""/>
+        <setting id="db_pass" type="text" label="    Password" enable="eq(-4,true)" default="" option="hidden"/>
+        <setting id="db_name" type="text" label="    Database" enable="eq(-5,true)" default="1channel"/>
+        <setting id="migrateDB" type="action" label="    Migrate local DB..." enable="eq(-6,true)"
+                 action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=migrateDB)"/>
+    </category>
+
     <category label="Meta Data">
         <setting id="use-meta" type="bool" label="30600" default="true"/>
         <setting id="meta-path" type="action" label="30601" enable="!eq(-1,false)"
@@ -106,25 +126,9 @@
         <setting id="format-source" type="text" label="32000" default="[{q}] {h} {p} ({v} views)"/>
         <setting id="format-source-verified" type="text" label="32001" default="[COLOR gold]{L}[/COLOR]"/>
         <setting id="format-source-parts" type="text" label="32002" default="     {h} {p}"/>
+        <setting id="format-subscription-day" type="text" label="Subscription Day" default="[COLOR deeppink]%s[/COLOR]"/>
+        <setting id="format-subscription-day-tag" type="text" label="Subscription Day Brackets" default="[COLOR blueviolet][[/COLOR]%s[COLOR blueviolet]][/COLOR]"/>
 
-    </category>
-
-    <category label="Miscellaneous">
-        <setting id="domain" type="labelenum" label="Domain"
-                 values="http://www.1channel.ch|http://www.letmewatchthis.ch|http://www.1channel.ag|http://www.primewire.ag"
-                 default="http://www.letmewatchthis.ch"/>
-        <setting id="theme" type="enum" label="30800" values="mikey1234|Glossy_Black" default="1"/>
-        <setting id="auto-watch" type="bool" label="30801" default="true"/>
-        <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="30802" default="2"
-                 enable="!eq(-1,false)"/>
-        <setting id="use_remote_db" type="bool" label="Use a remote MySQL DB" default="False"/>
-        <setting id="db_address" type="text" label="    Address" enable="eq(-1,true)" default=""/>
-        <setting id="db_port" type="integer" label="    Port" enable="eq(-2,true)" default=""/>
-        <setting id="db_user" type="text" label="    Username" enable="eq(-3,true)" default=""/>
-        <setting id="db_pass" type="text" label="    Password" enable="eq(-4,true)" default="" option="hidden"/>
-        <setting id="db_name" type="text" label="    Database" enable="eq(-5,true)" default="1channel"/>
-        <setting id="migrateDB" type="action" label="    Migrate local DB..." enable="eq(-6,true)"
-                 action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=migrateDB)"/>
     </category>
 
     <category label="Website Integration">
