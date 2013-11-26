@@ -3,6 +3,17 @@ A lot of new features have been added to 1Channel recently, most importantly the
 
 [COLOR red]If you still have questions afterward, this addon is supported at [COLOR blue]www.XBMCHub.com[/COLOR],  [COLOR white][B]NOT[/B][/COLOR] xbmc.org[/COLOR].
 
+[COLOR blue][B]UK Users Blocked[/B][/COLOR]
+    As of November 21st, UK ISP's - BT, Sky, Virgin Media, O2, EE and TalkTalk have begun blocking various websites including PrimeWire (formerly 1Channel)
+    
+    To combat this, new domain options have been added to help our UK users bypass the restrictions.
+    
+    If you are on one of these ISP's and cannot access www.primewire.ag then open the addon settings and select one of the alternate domain names
+        - http://1channel.occupyuk.co.uk
+        - http://primewireproxy.co.uk
+    
+    If for any reason none of these domains work for you, please visit [COLOR blue]www.XBMCHub.com[/COLOR] for OFFICIAL support. You can also enter your own Custom Domain if any of the above do not work.
+
 [COLOR blue][B]Subscriptions' Day Menus[/B][/COLOR]
     A request had been heard for a while about adding the days of the week to either Favorites or Subscriptions.  Subscriptions now can include a Day marking of the current day they are added as, updated to the current day of the week, or the day marking removed.  Also you can view all subscriptions, or view subscriptions marked with a specific day of the week.  Psst!  Thank TwiztedZero for his suggested mind-control of me, if you come to like this.  You can also edit the label formating of this in addon-settings.
 
