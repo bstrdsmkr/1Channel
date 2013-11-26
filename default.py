@@ -844,7 +844,7 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
         subs = []
     html = '> >> <'
     page = 0
-    while html.find('> >> <') > -1 and page < 100:#10:
+    while html.find('> >> <') > -1 and page < 10:
         page += 1
         if page > 1:
             pageurl = '%s&page=%s' % (search_url, page)
@@ -905,7 +905,7 @@ def SearchDesc(section, query):
         subs = []
     html = '> >> <'
     page = 0
-    while html.find('> >> <') > -1 and page < 100:
+    while html.find('> >> <') > -1 and page < 10:
         page += 1
         if page > 1:
             pageurl = '%s&page=%s' % (search_url, page)
