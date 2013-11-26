@@ -130,7 +130,7 @@ def init_database():
             #todo: delete all non-unique bookmarks and try again
             pass
 
-		cur.execute('SELECT value FROM db_info WHERE setting = "version"')
+        cur.execute('SELECT value FROM db_info WHERE setting = "version"')
         db_ver = cur.fetchall() or [0]
         #todo: write version number comparison logic to handle letters and etc
         if _1CH.get_version() > db_ver[0]:
@@ -173,7 +173,9 @@ def init_database():
     sql = "REPLACE INTO db_info (setting, value) VALUES(%s,%s)"
     if DB == 'sqlite':
         sql = 'INSERT OR ' + sql.replace('%s', '?')
-    db.execute(sql, ('version', _1CH.get_version()))
+        db.execute(sql, ('version', _1CH.get_version()))
+    else:
+        cur.execute(sql, ('version', _1CH.get_version()))
     db.close()
 
 
