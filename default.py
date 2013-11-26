@@ -340,7 +340,8 @@ def get_sources(url, title, img, year, imdbnum, dialog):
     cookiejar = _1CH.get_profile()
     cookiejar = os.path.join(cookiejar, 'cookies')
     net.set_cookies(cookiejar)
-    html = net.http_GET(BASE_URL + url).content
+    #html = net.http_GET(BASE_URL + url).content
+    html = get_url(BASE_URL + url, cache_limit=2)
     net.save_cookies(cookiejar)
     adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
     adult = re.search(adultregex, html, re.DOTALL)
