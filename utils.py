@@ -64,12 +64,15 @@ def format_label_movie(info):
         year = info['premiered'][:4]
     else:
         year = ''
-    title = info['title']
     label = addon.get_setting('format-movie')
-    label = label.replace('{t}', title)
-    label = label.replace('{y}', year)
-    label = label.replace('{ft}', format_movie_title(title))
-    label = label.replace('{fy}', format_movie_year(year))
+    #label = label.replace('{t}', title)
+    #label = label.replace('{y}', year)
+    #label = label.replace('{ft}', format_movie_title(title))
+    #label = label.replace('{fy}', format_movie_year(year))
+    label = re.sub('\{t\}', info['title'])
+    label = re.sub('\{y\}', year)
+    label = re.sub('\{ft\}', format_movie_title(title))
+    label = re.sub('\{fy\}', format_movie_year(year))
     return label
 
 
