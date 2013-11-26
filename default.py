@@ -83,7 +83,7 @@ META_ON = _1CH.get_setting('use-meta') == 'true'
 FANART_ON = _1CH.get_setting('enable-fanart') == 'true'
 USE_POSTERS = _1CH.get_setting('use-posters') == 'true'
 POSTERS_FALLBACK = _1CH.get_setting('posters-fallback') == 'true'
-THEME_LIST = ['mikey1234', 'Glossy_Black', 'PrimeWire']
+THEME_LIST = ['Classic', 'Glossy_Black', 'PrimeWire']
 THEME = THEME_LIST[int(_1CH.get_setting('theme'))]
 THEME_PATH = os.path.join(_1CH.get_path(), 'art', 'themes', THEME)
 AUTO_WATCH = _1CH.get_setting('auto-watch') == 'true'

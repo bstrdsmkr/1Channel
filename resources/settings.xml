@@ -5,7 +5,7 @@
                  default="http://www.primewire.ag"/>
         <setting id="enableDomain" 	type="bool" label="Enable Custom Domain" default="false" visible="true"/>
         <setting id="customDomain" 	type="text" label="Custom Domain" default="http://1channel.occupyuk.co.uk" enable="!eq(-1,false)" />
-        <setting id="theme" type="enum" label="30800" values="mikey1234|Glossy_Black|PrimeWire" default="1"/>
+        <setting id="theme" type="enum" label="30800" values="Classic|Glossy_Black|PrimeWire" default="1"/>
         <setting id="auto-watch" type="bool" label="30801" default="true"/>
         <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="30802" default="2"
                  enable="!eq(-1,false)"/>
