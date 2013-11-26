@@ -69,10 +69,10 @@ def format_label_movie(info):
     #label = label.replace('{y}', year)
     #label = label.replace('{ft}', format_movie_title(title))
     #label = label.replace('{fy}', format_movie_year(year))
-    label = re.sub('\{t\}', info['title'])
-    label = re.sub('\{y\}', year)
-    label = re.sub('\{ft\}', format_movie_title(title))
-    label = re.sub('\{fy\}', format_movie_year(year))
+    label = re.sub('\{t\}', info['title'], label)
+    label = re.sub('\{y\}', year, label)
+    label = re.sub('\{ft\}', format_movie_title(info['title']), label)
+    label = re.sub('\{fy\}', format_movie_year(year), label)
     return label
 
 

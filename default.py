@@ -158,8 +158,7 @@ def init_database():
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (video_type, title, season, episode, year)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
         
-        db.execute('SELECT value FROM db_info WHERE setting = "version"')
-        db_ver = db.fetchall() or [0]
+        db_ver = db.execute('SELECT value FROM db_info WHERE setting = "version"').fetchall() or [0]
         #todo: write version number comparison logic to handle letters and etc
         if _1CH.get_version() > db_ver[0]:
 	        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
