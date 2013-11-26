@@ -123,13 +123,18 @@ def init_database():
         cur.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type VARCHAR(10), title VARCHAR(255), season INTEGER, episode INTEGER, year VARCHAR(10), bookmark VARCHAR(10))')
         cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response TEXT, timestamp TEXT)')
 
-        ### Note: I need to find a if statement to add 'day' column if it does not exist. ###
-        #try: 
-        #cur.execute('ALTER TABLE subscriptions ADD day TEXT IF NOT EXISTS subscriptions (day TEXT)')
+        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
+        #or there's nothing else we can do about it. Either way: ignore it and try to keep going
+        try: 
+            cur.execute('ALTER TABLE subscriptions ADD day TEXT')
         #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
-        #except: pass
-        try: cur.execute('CREATE UNIQUE INDEX unique_bmk ON bookmarks (video_type, title, season, episode, year)')
-        except: pass
+        except: #todo: catch the specific exception
+            pass
+        try: 
+            cur.execute('CREATE UNIQUE INDEX unique_bmk ON bookmarks (video_type, title, season, episode, year)')
+        except:
+            #todo: delete all non-unique bookmarks and try again
+            pass
 
     else:
         if not xbmcvfs.exists(os.path.dirname(DB_DIR)): 
@@ -146,12 +151,13 @@ def init_database():
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (video_type, title, season, episode, year)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
         
-        ### Note: I need to find a if statement to add 'day' column if it does not exist. ###
-        #try: 
-        #db.execute('ALTER TABLE subscriptions ADD day IF NOT EXISTS subscriptions (day)')
-        #db.execute('ALTER TABLE subscriptions ADD day IF COL_LENGTH(subscriptions, day) IS NULL')
-        #except: pass
-    db.commit()
+        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
+        #or there's nothing else we can do about it. Either way: ignore it and try to keep going
+        try: 
+            cur.execute('ALTER TABLE subscriptions ADD day')
+        #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
+        except: #todo: catch the specific exception
+            pass
     db.close()
 
 
