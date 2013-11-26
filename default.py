@@ -122,19 +122,25 @@ def init_database():
         cur.execute('CREATE TABLE IF NOT EXISTS subscriptions (url VARCHAR(255) UNIQUE, title TEXT, img TEXT, year TEXT, imdbnum TEXT, day TEXT)')
         cur.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type VARCHAR(10), title VARCHAR(255), season INTEGER, episode INTEGER, year VARCHAR(10), bookmark VARCHAR(10))')
         cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response TEXT, timestamp TEXT)')
-
-        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
-        #or there's nothing else we can do about it. Either way: ignore it and try to keep going
-        try: 
-            cur.execute('ALTER TABLE subscriptions ADD day TEXT')
-        #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
-        except: #todo: catch the specific exception
-            pass
+        cur.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
+        
         try: 
             cur.execute('CREATE UNIQUE INDEX unique_bmk ON bookmarks (video_type, title, season, episode, year)')
         except:
             #todo: delete all non-unique bookmarks and try again
             pass
+
+		cur.execute('SELECT value FROM db_info WHERE setting = "version"')
+        db_ver = cur.fetchall() or [0]
+        #todo: write version number comparison logic to handle letters and etc
+        if _1CH.get_version() > db_ver[0]:
+	        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
+	        #or there's nothing else we can do about it. Either way: ignore it and try to keep going
+	        try: 
+	            cur.execute('ALTER TABLE subscriptions ADD day TEXT')
+	        #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
+	        except: #todo: catch the specific exception
+	            pass
 
     else:
         if not xbmcvfs.exists(os.path.dirname(DB_DIR)): 
@@ -146,18 +152,28 @@ def init_database():
         db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum, day)')
         db.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type, title, season, episode, year, bookmark)')
         db.execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
+        db.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (video_type, title, season, episode, year)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
         
-        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
-        #or there's nothing else we can do about it. Either way: ignore it and try to keep going
-        try: 
-            cur.execute('ALTER TABLE subscriptions ADD day')
-        #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
-        except: #todo: catch the specific exception
-            pass
+        db.execute('SELECT value FROM db_info WHERE setting = "version"')
+        db_ver = db.fetchall() or [0]
+        #todo: write version number comparison logic to handle letters and etc
+        if _1CH.get_version() > db_ver[0]:
+	        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
+	        #or there's nothing else we can do about it. Either way: ignore it and try to keep going
+	        try: 
+	            cur.execute('ALTER TABLE subscriptions ADD day')
+	        #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
+	        except: #todo: catch the specific exception
+	            pass
+
+    sql = "REPLACE INTO db_info (setting, value) VALUES(%s,%s)"
+    if DB == 'sqlite':
+        sql = 'INSERT OR ' + sql.replace('%s', '?')
+    db.execute(sql, ('version', _1CH.get_version()))
     db.close()
 
 
