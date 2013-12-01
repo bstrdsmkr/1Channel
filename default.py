@@ -318,7 +318,65 @@ def get_url(url, cache_limit=8):
     cur.execute(sql, (url, body, now))
     db.commit()
     db.close()
-    return body.encode('utf-8')
+
+
+    if '<title>Are You a Robot?</title>' in body:
+        _1CH.log('bot detection')
+ 
+ 
+        ##
+        #this will download the captcha image and save it ti a file for use later
+        ##
+         
+        captchaimgurl = 'http://'+host+'/CaptchaSecurityImages.php'
+        captcha_save_path = xbmc.translatePath('special://userdata/addon_data/plugin.video.1channel/CaptchaSecurityImage.jpg')
+        req = urllib2.Request(captchaimgurl)
+        host = re.sub('http://', '', BASE_URL)
+        req.add_header('User-Agent', USER_AGENT)
+        req.add_header('Host', host)
+        req.add_header('Referer', BASE_URL)
+        response = urllib2.urlopen(req)
+        the_img = response.read()
+        with open(captcha_save_path,'wb') as f:
+            f.write(the_img)
+        ##
+        #now pop open dialog for input
+        ##
+       
+        img = xbmcgui.ControlImage(550,15,240,100,captcha_save_path)
+        wdlg = xbmcgui.WindowDialog()
+        wdlg.addControl(img)
+        wdlg.show()
+        kb = xbmc.Keyboard('', 'Type the letters in the image', False)
+        kb.doModal()
+        capcode = kb.getText()
+        if (kb.isConfirmed()):
+            userInput = kb.getText()
+        if userInput != '':
+            ##
+            #post back user string
+            ##
+           
+            wdlg.removeControl(img)    
+            capcode = kb.getText()
+            data = {'security_code':capcode,
+                    'not_robot':'I\'m Human! I Swear!'}
+            data = urllib.urlencode(data)
+            roboturl = 'http://'+host+'/are_you_a_robot.php'
+            req = urllib2.Request(roboturl)
+            host = re.sub('http://', '', BASE_URL)
+            req.add_header('User-Agent', USER_AGENT)
+            req.add_header('Host', host)
+            req.add_header('Referer', BASE_URL)
+            response = urllib2.urlopen(req, data)
+            get_url(url)
+           
+           
+        elif userInput == '':
+            dialog = xbmcgui.Dialog()
+            dialog.ok("Robot Check", "You must enter text in the image to continue")
+        wdlg.close()
+    return body
 
 
 def get_sources(url, title, img, year, imdbnum, dialog):
