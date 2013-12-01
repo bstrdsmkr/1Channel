@@ -312,12 +312,6 @@ def get_url(url, cache_limit=8):
 
     response.close()
 
-    sql = "REPLACE INTO url_cache (url,response,timestamp) VALUES(%s,%s,%s)"
-    if DB == 'sqlite':
-        sql = 'INSERT OR ' + sql.replace('%s', '?')
-    cur.execute(sql, (url, body, now))
-    db.commit()
-    db.close()
 
     if '<title>Are You a Robot?</title>' in body:
         _1CH.log('bot detection')
@@ -375,6 +369,14 @@ def get_url(url, cache_limit=8):
             dialog = xbmcgui.Dialog()
             dialog.ok("Robot Check", "You must enter text in the image to continue")
         wdlg.close()
+    else:
+        _1CH.log('Saveing to cache')
+        sql = "REPLACE INTO url_cache (url,response,timestamp) VALUES(%s,%s,%s)"
+        if DB == 'sqlite':
+            sql = 'INSERT OR ' + sql.replace('%s', '?')
+            cur.execute(sql, (url, body, now))
+            db.commit()
+            db.close()
     return body
 
 
