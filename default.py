@@ -373,8 +373,7 @@ def get_url(url, cache_limit=8):
                 sql_delete = sql_delete.replace('%s', '?')
             cur.execute(sql_delete, (url,))
             db.commit()
-            get_url(url)
-           
+            body = get_url(url)
            
         elif userInput == '':
             dialog = xbmcgui.Dialog()
