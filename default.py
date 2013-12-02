@@ -1247,12 +1247,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
     try: _1CH.log('Seasons for TV Show %s' % url)
     except: pass
-    net = Net()
-    cookiejar = _1CH.get_profile()
-    cookiejar = os.path.join(cookiejar, 'cookies')
-    net.set_cookies(cookiejar)
-    html = net.http_GET(BASE_URL + url).content
-    net.save_cookies(cookiejar)
+    html = get_url(BASE_URL+url)
     adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
     r = re.search(adultregex, html, re.DOTALL)
     if r:
