@@ -212,7 +212,7 @@ while not xbmc.abortRequested:
             if not (monitor.isPlaying() or is_scanning):
                 try: xbmc.log('PrimeWire: Service: Updating subscriptions')
                 except: pass
-                builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=UpdateSubscriptions)'
+                builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=update_subscriptions)'
                 xbmc.executebuiltin(builtin)
                 ADDON.setSetting('last_run', now.strftime("%Y-%m-%d %H:%M:%S.%f"))
             else:
