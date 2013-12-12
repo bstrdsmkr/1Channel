@@ -2566,6 +2566,26 @@ def fix_existing_strms():
                         target.write(new_content)
 
 
+def flush_cache():
+    dlg = xbmcgui.Dialog()
+    ln1 = 'Are you sure you want to '
+    ln2 = 'delete the url cache?'
+    ln3 = 'This will slow things down until rebuilt'
+    yes = 'Keep'
+    no = 'Delete'
+    ret = dlg.yesno('Flush web cache', ln1, ln2, ln3, yes, no)
+    if ret:
+        if DB == 'mysql':
+            sql = 'TRUNCATE TABLE url_cache'
+            db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
+        else:
+            sql = 'DELETE FROM url_cache'
+            db = orm.connect(DB_DIR)
+        cur = db.cursor()
+        cur.execute(sql)
+        db.commit()
+        db.close()    
+
 mode = _1CH.queries.get('mode', None)
 section = _1CH.queries.get('section', '')
 genre = _1CH.queries.get('genre', '')
@@ -2693,6 +2713,8 @@ elif mode == 'PageSelect':
     xbmc.executebuiltin(builtin)
 elif mode == 'refresh_meta':
     refresh_meta(video_type, title, imdbnum, alt_id, year)
+elif mode == 'flush_cache':
+    flush_cache()
 elif mode == 'migrateDB':
     migrate_to_mysql()
 elif mode == 'migrateFavs':
