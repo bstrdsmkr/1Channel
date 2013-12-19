@@ -14,9 +14,10 @@ _1CH = Addon2('plugin.video.1channel', sys.argv)
 
 #BASE_Address = 'www.primewire.ag'
 BASE_Address = _1CH.get_setting('domain').replace('http://','')
-if (tfalse(_1CH.get_setting("enableDomain"))==True) and (len(_1CH.get_setting("customDomain")) > 10):
+if (_1CH.get_setting("enableDomain")=='true') and (len(_1CH.get_setting("customDomain")) > 10):
 	BASE_Address=_1CH.get_setting("customDomain").replace('http://','')
-BASE_URL = 'http://'+BASE_Address
+if not BASE_Address.startswith('http'):
+    BASE_URL = 'http://'+BASE_Address
 
 display_name = 'PrimeWire'#'1Channel'
 #Label that will be displayed to the user representing this index
