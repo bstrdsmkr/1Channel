@@ -3,3 +3,5 @@
 /utils.pyc
 /.project
 /.pydevproject
+*.pyo
+*.pyc
