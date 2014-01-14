@@ -3,6 +3,8 @@ A lot of new features have been added to 1Channel recently, most importantly the
 
 [COLOR red]If you still have questions afterward, this addon is supported at [COLOR blue]www.XBMCHub.com[/COLOR],  [COLOR white][B]NOT[/B][/COLOR] xbmc.org[/COLOR].
 
+[COLOR blue][B]Mark library items as watched[/B][/COLOR]
+    Based on concepts from jded76 and code from lambda, watching items from .strm files in your library can now mark them as watched.
 [COLOR blue][B]UK Users Blocked[/B][/COLOR]
     As of November 21st, UK ISP's - BT, Sky, Virgin Media, O2, EE and TalkTalk have begun blocking various websites including PrimeWire (formerly 1Channel)
     

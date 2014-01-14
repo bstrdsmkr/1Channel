@@ -1,3 +1,11 @@
+[B]Version 2.2.0[/B]
+- Code cleanup
+- Clean up source sorting
+- Fix trailers
+- Mark library items as watched (jded76 and lambda)
+- Use library meta when playing from a stream
+- Update resume dialog
+
 [B]Version 2.1.0[/B]
 - New version courtesy Highway99 and XBMCHUB.com
 - Highway99 is credited with all the fixes below:

@@ -6,6 +6,7 @@ import datetime
 import _strptime
 # noinspection PyUnresolvedReferences
 import time
+import json
 
 import xbmc
 import xbmcgui
@@ -27,24 +28,18 @@ try:
                     DB_NAME is not None:
         import mysql.connector as database
 
-        try: xbmc.log('PrimeWire: Service: Loading MySQL as DB engine')
-        except: pass
+        xbmc.log('PrimeWire: Service: Loading MySQL as DB engine')
         DB = 'mysql'
     else:
-        try: xbmc.log('PrimeWire: Service: MySQL not enabled or not setup correctly')
-        except: pass
+        xbmc.log('PrimeWire: Service: MySQL not enabled or not setup correctly')
         raise ValueError('MySQL not enabled or not setup correctly')
 except:
     try:
         from sqlite3 import dbapi2 as database
-
-        try: xbmc.log('PrimeWire: Service: Loading sqlite3 as DB engine')
-        except: pass
+        xbmc.log('PrimeWire: Service: Loading sqlite3 as DB engine')
     except:
         from pysqlite2 import dbapi2 as database
-
-        try: xbmc.log('PrimeWire: Service: Loading pysqlite2 as DB engine')
-        except: pass
+        xbmc.log('PrimeWire: Service: Loading pysqlite2 as DB engine')
     DB = 'sqlite'
     db_dir = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
 
@@ -75,97 +70,102 @@ class Service(xbmc.Player):
         selection = int(ADDON.getSetting('subscription-interval'))
         self.hours = hours_list[selection]
         self.DB = ''
-        try: xbmc.log('PrimeWire: Service starting...')
-        except: pass
+        xbmc.log('PrimeWire: Service starting...')
+
 
     def reset(self):
-        try: xbmc.log('PrimeWire: Service: Resetting...')
-        except: pass
-        win = xbmcgui.Window(10000)
-        win.clearProperty('1ch.playing.title')
-        win.clearProperty('1ch.playing.year')
-        win.clearProperty('1ch.playing.imdb')
-        win.clearProperty('1ch.playing.season')
-        win.clearProperty('1ch.playing.episode')
+        xbmc.log('PrimeWire: Service: Resetting...')
 
         self._totalTime = 999999
         self._lastPos = 0
         self._sought = False
         self.tracking = False
-        self.imdbnum = ''
         self.video_type = ''
-        self.title = ''
-        self.season = ''
-        self.episode = ''
-        self.year = ''
+        self.win = xbmcgui.Window(10000)
+        self.win.setProperty('1ch.playing', '')
+        self.meta = ''
 
-    def check(self):
-        win = xbmcgui.Window(10000)
-        if win.getProperty('1ch.playing.title'):
-            return True
-        else:
-            return False
 
     def onPlayBackStarted(self):
-        try: xbmc.log('PrimeWire: Service: Playback started')
-        except: pass
-        self.tracking = self.check()
-        if self.tracking:
-            try: xbmc.log('PrimeWire: Service: tracking progress...')
-            except: pass
-            win = xbmcgui.Window(10000)
-            self.title = win.getProperty('1ch.playing.title')
-            self.imdb = win.getProperty('1ch.playing.imdb')
-            self.season = win.getProperty('1ch.playing.season')
-            self.year = win.getProperty('1ch.playing.year')
-            self.episode = win.getProperty('1ch.playing.episode')
-            if self.season or self.episode:
-                self.video_type = 'tvshow'
-            else:
-                self.video_type = 'movie'
+        xbmc.log('PrimeWire: Service: Playback started')
+        meta = self.win.getProperty('1ch.playing')
+        if meta: #Playback is ours
+            xbmc.log('PrimeWire: Service: tracking progress...')
+            self.tracking = True
+            self.meta = json.loads(meta)
+            self.video_type = 'tvshow' if 'episode' in self.meta else 'movie'
             self._totalTime = self.getTotalTime()
-            sql = 'SELECT bookmark FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?'
+            sql_stub = 'SELECT bookmark FROM bookmarks WHERE video_type=? AND title=?'
+            if   self.video_type == 'tvshow': sql_stub += ' AND season=? AND episode=?'
+            elif self.video_type == 'movie':  sql_stub += ' AND year=?'
             if DB == 'mysql':
-                sql = sql.replace('?', '%s')
+                sql_stub = sql_stub.replace('?', '%s')
                 db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
             else:
                 db = database.connect(db_dir)
             cur = db.cursor()
-            cur.execute(sql, (self.video_type, unicode(self.title, 'utf-8'), self.season, self.episode, self.year))
+            print self.meta
+            if not 'year'    in self.meta: self.meta['year']    = None
+            if not 'imdb'    in self.meta: self.meta['imdb']    = None
+            if not 'season'  in self.meta: self.meta['season']  = None
+            if not 'episode' in self.meta: self.meta['episode'] = None
+            bmark_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
+            if self.video_type == 'tvshow':
+                cur.execute(sql_stub, (self.video_type, bmark_title, self.meta['season'], self.meta['episode']))
+            elif self.video_type == 'movie':
+                cur.execute(sql_stub, (self.video_type, bmark_title, self.meta['year']))
             bookmark = cur.fetchone()
             db.close()
             if bookmark:
                 bookmark = float(bookmark[0])
-                if not (self._sought and (bookmark - 30 > 0)):
-                    question = 'Resume %s from %s?' % (self.title, format_time(bookmark))
+                if not (self._sought and bookmark):
+                    question = 'Resume %s from %s?' % (bmark_title, format_time(bookmark))
+                    ln2 = '' if self.video_type == 'movie' else 'Season %s Episode %s' %(self.meta['season'], self.meta['episode'])
                     resume = xbmcgui.Dialog()
-                    resume = resume.yesno(self.title, '', question, '', 'Start from beginning', 'Resume')
+                    resume = resume.yesno(bmark_title, '', question, ln2, 'Start from beginning', 'Resume')
                     if resume: self.seekTime(bookmark)
                     self._sought = True
 
     def onPlayBackStopped(self):
-        try: xbmc.log('PrimeWire: Playback Stopped')
-        except: pass
-        if self.tracking:
+        xbmc.log('PrimeWire: Playback Stopped')
+        #Is the item from our addon?
+        if xbmc.getInfoLabel('Container.FolderPath').startswith(sys.argv[0]):
             playedTime = int(self._lastPos)
             watched_values = [.7, .8, .9]
             min_watched_percent = watched_values[int(ADDON.getSetting('watched-percent'))]
             percent = int((playedTime / self._totalTime) * 100)
             pTime = format_time(playedTime)
             tTime = format_time(self._totalTime)
-            try: xbmc.log('PrimeWire: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
-            except: pass
+            xbmc.log('PrimeWire: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
+            bmark_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
             if playedTime == 0 and self._totalTime == 999999:
                 raise RuntimeError('XBMC silently failed to start playback')
             elif ((playedTime / self._totalTime) > min_watched_percent) and (
-                        self.video_type == 'movie' or (self.season and self.episode)):
-                try: xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')
-                except: pass
-                if self.video_type == 'movie':
-                    videotype = 'movie'
-                else:
-                    videotype = 'episode'
-                ChangeWatched(self.imdb, videotype, self.title, self.season, self.episode, self.year, watched=7)
+                        self.video_type == 'movie' or (self.meta['season'] and self.meta['episode'])):
+                xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')
+                videotype = 'movie' if self.video_type == 'movie' else 'episode'
+                if xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
+                    if videotype == 'episode':
+                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid": %s, "properties": ["playcount"]}, "id": 1}'
+                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'))
+                        result = json.loads(xbmc.executeJSONRPC(cmd))
+                        print result
+                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "playcount": %s}, "id": 1}'
+                        playcount = int(result['result']['episodedetails']['playcount']) + 1
+                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playcount)
+                        result = xbmc.executeJSONRPC(cmd)
+                        xbmc.log('PrimeWire: Marking .strm as watched: %s' %result)
+                    if videotype == 'movie':
+                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid": %s, "properties": ["playcount"]}, "id": 1}'
+                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'))
+                        result = json.loads(xbmc.executeJSONRPC(cmd))
+                        print result
+                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "playcount": %s}, "id": 1}'
+                        playcount = int(result['result']['moviedetails']['playcount']) + 1
+                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playcount)
+                        result = xbmc.executeJSONRPC(cmd)
+                        xbmc.log('PrimeWire: Marking .strm as watched: %s' %result)
+                ChangeWatched(self.meta['imdb'], videotype, bmark_title, self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
                 sql = 'DELETE FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?'
                 if DB == 'mysql':
                     sql = sql.replace('?', '%s')
@@ -173,12 +173,11 @@ class Service(xbmc.Player):
                 else:
                     db = database.connect(db_dir)
                 cur = db.cursor()
-                cur.execute(sql, (self.video_type, unicode(self.title, 'utf-8'), self.season, self.episode, self.year))
+                cur.execute(sql, (self.video_type, self.meta['title'], self.meta['season'], self.meta['episode'], self.meta['year']))
                 db.commit()
                 db.close()
             else:
-                try: xbmc.log('PrimeWire: Service: Threshold not met. Saving bookmark')
-                except: pass
+                xbmc.log('PrimeWire: Service: Threshold not met. Saving bookmark')
                 sql = 'REPLACE INTO bookmarks (video_type, title, season, episode, year, bookmark) VALUES(?,?,?,?,?,?)'
                 if DB == 'mysql':
                     sql = sql.replace('?', '%s')
@@ -187,15 +186,14 @@ class Service(xbmc.Player):
                     sql = 'INSERT or ' + sql
                     db = database.connect(db_dir)
                 cur = db.cursor()
-                cur.execute(sql, (self.video_type, unicode(self.title, 'utf-8'), self.season,
-                                  self.episode, self.year, playedTime))
+                cur.execute(sql, (self.video_type, bmark_title, self.meta['season'],
+                                  self.meta['episode'], self.meta['year'], playedTime))
                 db.commit()
                 db.close()
         self.reset()
 
     def onPlayBackEnded(self):
-        try: xbmc.log('PrimeWire: Playback completed')
-        except: pass
+        xbmc.log('PrimeWire: Playback completed')
         self.onPlayBackStopped()
 
 
@@ -210,17 +208,14 @@ while not xbmc.abortRequested:
         if elapsed > threshold:
             is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
             if not (monitor.isPlaying() or is_scanning):
-                try: xbmc.log('PrimeWire: Service: Updating subscriptions')
-                except: pass
+                xbmc.log('PrimeWire: Service: Updating subscriptions')
                 builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=update_subscriptions)'
                 xbmc.executebuiltin(builtin)
                 ADDON.setSetting('last_run', now.strftime("%Y-%m-%d %H:%M:%S.%f"))
             else:
-                try: xbmc.log('PrimeWire: Service: Busy... Postponing subscription update')
-                except: pass
+                xbmc.log('PrimeWire: Service: Busy... Postponing subscription update')
     while monitor.tracking and monitor.isPlayingVideo():
         monitor._lastPos = monitor.getTime()
         xbmc.sleep(1000)
     xbmc.sleep(1000)
-try: xbmc.log('PrimeWire: Service: shutting down...')
-except: pass
+xbmc.log('PrimeWire: Service: shutting down...')
