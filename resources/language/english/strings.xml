@@ -35,7 +35,8 @@
 	<string id="30808">       Clean Up subscriptions for ended shows</string>
 	<string id="30809">       During Playback?</string>
 
-	<string id="30905">Auto-play</string>
+	<string id="30906">Use dialogs for source selection</string>
+    <string id="30905">Auto-play</string>
 	<string id="30900">Enable sorting of sources</string>
 	<string id="30901">     Host Ranking (coma separated)</string>
 	<string id="30902">     Sort by:</string>

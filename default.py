@@ -440,8 +440,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                 hosters = multikeysort(hosters, sort_order, functions={'host': rank_host})
     if not hosters:
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
-    if dialog and _1CH.get_setting(
-            'auto-play') == 'false':  # we're comming from a .strm file and can't create a directory so we have to pop a
+    if ((dialog or (_1CH.get_setting('use-dialogs') == 'true')) and (_1CH.get_setting('auto-play') == 'false')):  # we're comming from a .strm file and can't create a directory so we have to pop a
         sources = []                  # dialog if auto-play isn't on
         img = xbmc.getInfoImage('ListItem.Thumb')
         for item in hosters:
@@ -574,6 +573,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
     listitem = xbmcgui.ListItem(path=url, iconImage="DefaultVideo.png", thumbnailImage=poster)
     # listitem.setProperty('ResumeTime', str(resume['position']))
     # listitem.setProperty('TotalTime', str(resume['total']))
+    listitem.setProperty('IsPlayable', 'true')
     listitem.setInfo(type = "Video", infoLabels = meta)
     listitem.setPath(stream_url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
@@ -1152,7 +1152,12 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         nextmode = 'GetSources'
         section = 'movie'
         video_type = 'movie'
-        folder = _1CH.get_setting('auto-play') == 'false'
+        # folder = (_1CH.get_setting('auto-play') == 'false') or (_1CH.get_setting('use-dialogs') == 'false')
+        # folder = False
+        if (_1CH.get_setting('auto-play') == 'false') or (_1CH.get_setting('use-dialogs') == 'true'):
+            folder = False
+        else:
+            folder = True
         subs = []
 
     html = get_url(pageurl)
@@ -1313,7 +1318,7 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
     eplist = eplist.encode('utf-8')
     r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
     episodes = re.finditer(r, eplist, re.DOTALL)
-    folder = _1CH.get_setting('auto-play') == 'false'
+
     for ep in episodes:
         epurl, eptitle = ep.groups()
         eptitle = re.sub(r'<[^<]+?>', '', eptitle.strip())
@@ -1326,7 +1331,14 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
                    'title': ShowTitle, 'img': img}
         li_url = _1CH.build_plugin_url(queries)
         listitem = build_listitem('episode', ShowTitle, year, img, epurl, imdbnum, season, epnum)
-        listitem.setProperty('IsPlayable', 'true')
+        if _1CH.get_setting('auto-play') == 'false':
+            folder = False
+            listitem.setProperty('IsPlayable', 'true')
+        elif _1CH.get_setting('use-dialogs') == 'true':
+            folder = False
+            listitem.setProperty('IsPlayable', 'true')
+        else:
+            folder = True
 
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
                                     isFolder=folder)
