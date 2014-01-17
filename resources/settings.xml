@@ -29,7 +29,7 @@
         <setting id="use-posters" type="bool" label="30603" enable="!eq(-3,false)" default="false"/>
         <setting id="posters-fallback" type="bool" label="30604" enable="!eq(-1,true)" default="true"/>
     </category>
-
+<!-- 
     <category label="Install Meta Data">
         <setting type="action" label="30720"
                  action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=install_local_metapack)"/>
@@ -63,7 +63,7 @@
         <setting type="action" label="30719"
                  action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=install_metapack&title=MetaPack-movie-U-123.zip)"/>
     </category>
-
+ -->
     <category label="Auto-View">
         <setting id="auto-view" type="bool" label="Enable Automatic View" default="false"/>
         <setting id="movies-view" type="number" label="Movies View" default="503" enable="!eq(-1,false)"/>
@@ -89,6 +89,7 @@
     </category>
 
     <category label="Sources">
+        <setting id="use-dialogs" type="bool" label="30906" default="true"/>
         <setting id="auto-play" type="bool" label="30905" default="false"/>
         <setting id="sorting-enabled" type="bool" label="30900" default="false"/>
         <setting id="host-rank" type="text" label="30901" enable="!eq(-1,false)"/>

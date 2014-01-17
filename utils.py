@@ -11,6 +11,36 @@ from t0mm0.common.addon import Addon
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
 
+try:
+    DB_NAME = _1CH.get_setting('db_name')
+    DB_USER = _1CH.get_setting('db_user')
+    DB_PASS = _1CH.get_setting('db_pass')
+    DB_ADDR = _1CH.get_setting('db_address')
+
+    if _1CH.get_setting('use_remote_db') == 'true' and \
+                    DB_ADDR is not None and \
+                    DB_USER is not None and \
+                    DB_PASS is not None and \
+                    DB_NAME is not None:
+        import mysql.connector as orm
+
+        _1CH.log('Loading MySQL as DB engine')
+        DB = 'mysql'
+    else:
+        _1CH.log('MySQL not enabled or not setup correctly')
+        raise ValueError('MySQL not enabled or not setup correctly')
+except:
+    try:
+        from sqlite3 import dbapi2 as orm
+
+        _1CH.log('Loading sqlite3 as DB engine')
+    except:
+        from pysqlite2 import dbapi2 as orm
+
+        _1CH.log('pysqlite2 as DB engine')
+    DB = 'sqlite'
+    __translated__ = xbmc.translatePath("special://database")
+    DB_DIR = os.path.join(__translated__, 'onechannelcache.db')
 
 def format_label_tvshow(info):
     if 'premiered' in info:
