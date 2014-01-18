@@ -119,7 +119,8 @@ class Service(xbmc.Player):
                 cur.execute(sql_stub, (self.video_type, bmark_title, self.meta['year']))
             bookmark = cur.fetchone()
             db.close()
-            if bookmark:
+
+            if bookmark and (ADDON.getSetting('use-dialogs') == 'false'):
                 bookmark = float(bookmark[0])
                 if not (self._sought and bookmark):
                     question = 'Resume %s from %s?' % (bmark_title, format_time(bookmark))

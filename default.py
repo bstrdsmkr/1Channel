@@ -461,7 +461,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
         PlaySource(source, title, img, year, imdbnum, video_type, season, episode, strm=True)
     else:
         try:
-            if _1CH.get_setting('auto-play') == 'false': raise # skips the next line and goes into the else clause
+            if _1CH.get_setting('auto-play') == 'false': raise Exception, 'auto-play disabled'
             dlg = xbmcgui.DialogProgress()
             line1 = 'Trying Sources...'
             dlg.create('PrimeWire', line1)
@@ -540,9 +540,6 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
         meta = {'label' : title, 'title' : title}
         poster = ''
 
-    #print '############ %s' %(xbmc.getInfoLabel('ListItem.FileName'))
-    #print '############ %s' %(xbmc.getInfoLabel('Container.FolderPath'))
-    #print '############ %s' %(xbmc.getInfoLabel('ListItem.DBID'))
     if xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
         #we're playing from a .strm file
         if video_type == 'episode':
@@ -577,13 +574,6 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
     listitem.setInfo(type = "Video", infoLabels = meta)
     listitem.setPath(stream_url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
-
-
-def TrackProgress(player):
-    while player._playbackLock:
-        if player.isPlayingVideo():
-            player._trackPosition()
-            xbmc.sleep(250)
 
 
 def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
@@ -1152,12 +1142,6 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         nextmode = 'GetSources'
         section = 'movie'
         video_type = 'movie'
-        # folder = (_1CH.get_setting('auto-play') == 'false') or (_1CH.get_setting('use-dialogs') == 'false')
-        # folder = False
-        if (_1CH.get_setting('auto-play') == 'false') or (_1CH.get_setting('use-dialogs') == 'true'):
-            folder = False
-        else:
-            folder = True
         subs = []
 
     html = get_url(pageurl)
@@ -1180,7 +1164,11 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
             li = build_listitem(video_type, title, year, thumb, resurl, subs=subs)
             imdb = li.getProperty('imdb')
             img = li.getProperty('img')
-            li.setProperty('IsPlayable', 'true')
+            if (_1CH.get_setting('auto-play') == 'false') and (_1CH.get_setting('use-dialogs') == 'false'):
+                folder = True
+            else:
+                folder = False
+                li.setProperty('IsPlayable', 'true')
             queries = {'mode': nextmode, 'title': title, 'url': resurl,
                        'img': img, 'imdbnum': imdb,
                        'video_type': video_type, 'year': year}
@@ -1331,14 +1319,11 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
                    'title': ShowTitle, 'img': img}
         li_url = _1CH.build_plugin_url(queries)
         listitem = build_listitem('episode', ShowTitle, year, img, epurl, imdbnum, season, epnum)
-        if _1CH.get_setting('auto-play') == 'false':
-            folder = False
-            listitem.setProperty('IsPlayable', 'true')
-        elif _1CH.get_setting('use-dialogs') == 'true':
-            folder = False
-            listitem.setProperty('IsPlayable', 'true')
-        else:
+        if (_1CH.get_setting('auto-play') == 'false') and (_1CH.get_setting('use-dialogs') == 'false'):
             folder = True
+        else:
+            folder = False
+            listitem.setProperty('IsPlayable', 'true')
 
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
                                     isFolder=folder)
