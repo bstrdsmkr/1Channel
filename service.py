@@ -120,7 +120,7 @@ class Service(xbmc.Player):
             bookmark = cur.fetchone()
             db.close()
 
-            if bookmark and (ADDON.getSetting('use-dialogs') == 'false'):
+            if bookmark and self.use_custom_resume():
                 bookmark = float(bookmark[0])
                 if not (self._sought and bookmark):
                     question = 'Resume %s from %s?' % (bmark_title, format_time(bookmark))
@@ -141,13 +141,14 @@ class Service(xbmc.Player):
             pTime = format_time(playedTime)
             tTime = format_time(self._totalTime)
             xbmc.log('PrimeWire: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
+            print self.meta
             bmark_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
+            videotype = 'movie' if self.video_type == 'movie' else 'episode'
             if playedTime == 0 and self._totalTime == 999999:
                 raise RuntimeError('XBMC silently failed to start playback')
             elif ((playedTime / self._totalTime) > min_watched_percent) and (
                         self.video_type == 'movie' or (self.meta['season'] and self.meta['episode'])):
                 xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')
-                videotype = 'movie' if self.video_type == 'movie' else 'episode'
                 if xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
                     if videotype == 'episode':
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid": %s, "properties": ["playcount"]}, "id": 1}'
@@ -194,11 +195,31 @@ class Service(xbmc.Player):
                                   self.meta['episode'], self.meta['year'], playedTime))
                 db.commit()
                 db.close()
+                if xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
+                    if videotype == 'episode':
+                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "resume": {"position": %s}}, "id": 1}'
+                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playedTime)
+                        result = xbmc.executeJSONRPC(cmd)
+                        xbmc.log('PrimeWire: Saving Bookmark for strm file: %s' %result)
+                    if videotype == 'movie':
+                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "resume": {"position": %s}}, "id": 1}'
+                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playedTime)
+                        result = xbmc.executeJSONRPC(cmd)
+                        xbmc.log('PrimeWire: Saving Bookmark for strm file: %s' %result)
         self.reset()
 
     def onPlayBackEnded(self):
         xbmc.log('PrimeWire: Playback completed')
         self.onPlayBackStopped()
+    
+    def use_custom_resume(self):
+        xbmc_version = xbmc.getInfoLabel("System.BuildVersion")
+        is_gotham = int(xbmc_version[:2]) >= 13 #e.g. "13.0-ALPHA11 Git:20131231-8eb49b3"
+        if (not is_gotham) and xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
+            return True
+        if (ADDON.getSetting('use-dialogs') == 'false'):
+            return True
+        return False
 
 
 monitor = Service()
