@@ -92,26 +92,26 @@
         <setting id="use-dialogs" type="bool" label="30906" default="true"/>
         <setting id="auto-play" type="bool" label="30905" default="false"/>
         <setting id="sorting-enabled" type="bool" label="30900" default="false"/>
-        <setting id="host-rank" type="text" label="30901" enable="!eq(-1,false)"/>
+        <setting id="host-rank" type="text" label="30901" visible="!eq(-1,false)"/>
         <setting id="first-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30902"
-                 default="0" enable="!eq(-1,false)"/>
-        <setting id="first-sort-reversed" type="bool" label="30903" default="false" enable="gt(-1,0)+!eq(-2,false)"/>
+                 default="0" visible="!eq(-2,false)"/>
+        <setting id="first-sort-reversed" type="bool" label="30903" default="false" visible="gt(-1,0)+!eq(-3,false)"/>
         <setting id="second-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30904"
-                 default="0" enable="gt(-2,0)+!eq(-3,false)"/>
+                 default="0" visible="gt(-2,0)+!eq(-4,false)"/>
         <setting id="second-sort-reversed" type="bool" label="30903" default="true"
-                 enable="gt(-1,0)+gt(-3,0)+!eq(-4,false)"/>
+                 visible="gt(-1,0)+gt(-3,0)+!eq(-5,false)"/>
         <setting id="third-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30904"
-                 default="0" enable="gt(-2,0)+gt(-4,0)+!eq(-5,false)"/>
+                 default="0" visible="gt(-2,0)+gt(-4,0)+!eq(-6,false)"/>
         <setting id="third-sort-reversed" type="bool" label="30903" default="true"
-                 enable="gt(-1,0)+gt(-3,0)+gt(-5,0)+!eq(-6,false)"/>
+                 visible="gt(-1,0)+gt(-3,0)+gt(-5,0)+!eq(-7,false)"/>
         <setting id="fourth-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30904"
-                 default="0" enable="gt(-2,0)+gt(-4,0)+gt(-6,0)+!eq(-7,false)"/>
+                 default="0" visible="gt(-2,0)+gt(-4,0)+gt(-6,0)+!eq(-8,false)"/>
         <setting id="fourth-sort-reversed" type="bool" label="30903" default="true"
-                 enable="gt(-1,0)+gt(-3,0)+gt(-5,0)+gt(-7,0)+!eq(-8,false)"/>
+                 visible="gt(-1,0)+gt(-3,0)+gt(-5,0)+gt(-7,0)+!eq(-9,false)"/>
         <setting id="fifth-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30904"
-                 default="0" enable="gt(-2,0)+gt(-4,0)+gt(-6,0)+gt(-8,0)+!eq(-9,false)"/>
+                 default="0" visible="gt(-2,0)+gt(-4,0)+gt(-6,0)+gt(-8,0)+!eq(-10,false)"/>
         <setting id="fifth-sort-reversed" type="bool" label="30903" default="true"
-                 enable="gt(-1,0)+gt(-3,0)+gt(-5,0)+gt(-7,0)+gt(-9,0)+!eq(-10,false)"/>
+                 visible="gt(-1,0)+gt(-3,0)+gt(-5,0)+gt(-7,0)+gt(-9,0)+!eq(-11,false)"/>
     </category>
 
     <category label="Label Formatting">

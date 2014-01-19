@@ -536,7 +536,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
             meta = xbmc.executeJSONRPC(cmd)
             meta = json.loads(meta)
             meta = meta['result']['episodedetails']
-            meta['tvshowtitle'] = meta['showtitle']
+            meta['TVShowTitle'] = meta['showtitle']
             meta['duration'] = meta['runtime']
             meta['premiered'] = meta['firstaired']
             resume = meta.pop('resume')
@@ -1156,7 +1156,10 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
             li = build_listitem(video_type, title, year, thumb, resurl, subs=subs)
             imdb = li.getProperty('imdb')
             img = li.getProperty('img')
-            if (_1CH.get_setting('auto-play') == 'false') and (_1CH.get_setting('use-dialogs') == 'false'):
+            
+            if video_type == 'tvshow':
+                folder = True
+            elif (_1CH.get_setting('auto-play') == 'false') and (_1CH.get_setting('use-dialogs') == 'false'):
                 folder = True
             else:
                 folder = False
@@ -1316,8 +1319,6 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
         else:
             folder = False
             listitem.setProperty('IsPlayable', 'true')
-        
-        print '############################%s' % folder
 
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
                                     isFolder=folder)
