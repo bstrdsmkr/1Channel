@@ -2026,15 +2026,15 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
                         strm_string = _1CH.build_plugin_url(queries)
                         try: _1CH.log('Writing strm: %s' % strm_string)
                         except: pass
-                        # if not xbmcvfs.exists(final_path):
+                        if not xbmcvfs.exists(final_path):
                         #temp disabled bc of change in .strm format. Reenable in next version
-                        try:
-                            file_desc = xbmcvfs.File(final_path, 'w')
-                            file_desc.write(strm_string)
-                            file_desc.close()
-                        except Exception, e:
-                            try: _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
-                            except: pass
+                            try:
+                                file_desc = xbmcvfs.File(final_path, 'w')
+                                file_desc.write(strm_string)
+                                file_desc.close()
+                            except Exception, e:
+                                try: _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
+                                except: pass
 
     elif video_type == 'movie':
         save_path = _1CH.get_setting('movie-folder')
