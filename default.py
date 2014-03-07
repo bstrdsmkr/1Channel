@@ -2024,11 +2024,11 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
                         queries = {'mode': 'GetSources', 'url': epurl, 'imdbnum': '', 'title': show_title, 'img': '',
                                    'dialog': 1, 'video_type': 'episode'}
                         strm_string = _1CH.build_plugin_url(queries)
-                        try: _1CH.log('Writing strm: %s' % strm_string)
-                        except: pass
                         if not xbmcvfs.exists(final_path):
                         #temp disabled bc of change in .strm format. Reenable in next version
                             try:
+                                try: _1CH.log('Writing strm: %s' % strm_string)
+                                except: pass
                                 file_desc = xbmcvfs.File(final_path, 'w')
                                 file_desc.write(strm_string)
                                 file_desc.close()
