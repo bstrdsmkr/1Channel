@@ -207,7 +207,6 @@ while not xbmc.abortRequested:
         last_run = datetime.datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S.%f")
         elapsed = now - last_run
         threshold = datetime.timedelta(hours=hours)
-        threshold = datetime.timedelta(minutes=5)
         #xbmc.log("Update Status: %s of %s" % (elapsed,threshold))
         if elapsed > threshold:
             is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
