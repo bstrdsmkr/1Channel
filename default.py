@@ -1417,7 +1417,8 @@ def browse_favorites_website(section):
     else:
         db = orm.connect(DB_DIR)
     cur = db.cursor()
-    local_favs = cur.execute(sql).fetchall()
+    cur.execute(sql)
+    local_favs = cur.fetchall()
 
     if local_favs:
         _1CH.add_item({'mode': 'migrateFavs'}, {'title': 'Upload Local Favorites'})
