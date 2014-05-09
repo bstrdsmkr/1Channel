@@ -546,6 +546,13 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
     try: _1CH.log('Attempting to play url: %s' % url)
     except: pass
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
+    
+    #If urlresolver returns false then the video url was not resolved.
+    if not type(stream_url) is str and not type(stream_url) is unicode:
+        try: _1CH.logs('Could not resove url: %s' % url) 
+        except: pass
+        return
+        
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing.title', title)
     win.setProperty('1ch.playing.year', year)
@@ -1452,11 +1459,11 @@ def browse_favorites_website(section):
         folder = _1CH.get_setting('auto-play') == 'false'
         subs = []
 
-    pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
+    pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
     regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
     for item in regex.finditer(html):
         link, img, year, title, delete = item.groups()
-        if len(year) != 4:
+        if not year or len(year) != 4:
             year = ''
 
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
