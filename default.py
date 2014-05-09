@@ -549,7 +549,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
     
     #If urlresolver returns false then the video url was not resolved.
     if not type(stream_url) is str and not type(stream_url) is unicode:
-        try: _1CH.logs('Could not resove url: %s' % url) 
+        try: _1CH.log('Could not resove url: %s' % url) 
         except: pass
         return
         
