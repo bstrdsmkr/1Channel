@@ -115,7 +115,7 @@ def init_database():
     try: _1CH.log('Building PrimeWire Database')
     except: pass
     if DB == 'mysql':
-        db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
+        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
         cur = db.cursor()
         cur.execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
         cur.execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
