@@ -2031,17 +2031,26 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
                         queries = {'mode': 'GetSources', 'url': epurl, 'imdbnum': '', 'title': show_title, 'img': '',
                                    'dialog': 1, 'video_type': 'episode'}
                         strm_string = _1CH.build_plugin_url(queries)
-                        try: _1CH.log('Writing strm: %s' % strm_string)
-                        except: pass
-                        # if not xbmcvfs.exists(final_path):
-                        #temp disabled bc of change in .strm format. Reenable in next version
+
+                        old_strm_string=''
                         try:
-                            file_desc = xbmcvfs.File(final_path, 'w')
-                            file_desc.write(strm_string)
-                            file_desc.close()
-                        except Exception, e:
-                            try: _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
-                            except: pass
+                            f = xbmcvfs.File(final_path, 'r')
+                            old_strm_string = f.read()
+                            f.close()
+                        except:  pass
+
+                        #print "Old String: %s; New String %s" %(old_strm_string,strm_string)
+                        # string will be blank if file doesn't exist or is blank
+                        if strm_string != old_strm_string:
+                            try:
+                                try: _1CH.log('Writing strm: %s' % strm_string)
+                                except: pass
+                                file_desc = xbmcvfs.File(final_path, 'w')
+                                file_desc.write(strm_string)
+                                file_desc.close()
+                            except Exception, e:
+                                try: _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
+                                except: pass
 
     elif video_type == 'movie':
         save_path = _1CH.get_setting('movie-folder')

@@ -11,6 +11,7 @@ import xbmc
 import xbmcgui
 import xbmcaddon
 
+hours_list = [.5, 1, 2, 5, 10, 15, 24]
 
 ADDON = xbmcaddon.Addon(id='plugin.video.1channel')
 
@@ -71,9 +72,6 @@ class Service(xbmc.Player):
         self.reset()
 
         self.last_run = 0
-        hours_list = [2, 5, 10, 15, 24]
-        selection = int(ADDON.getSetting('subscription-interval'))
-        self.hours = hours_list[selection]
         self.DB = ''
         try: xbmc.log('PrimeWire: Service starting...')
         except: pass
@@ -204,23 +202,32 @@ while not xbmc.abortRequested:
     if ADDON.getSetting('auto-update-subscriptions') == 'true':
         now = datetime.datetime.now()
         last_run = ADDON.getSetting('last_run')
+        hours = hours_list[int(ADDON.getSetting('subscription-interval'))]
+
         last_run = datetime.datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S.%f")
         elapsed = now - last_run
-        threshold = datetime.timedelta(hours=monitor.hours)
+        threshold = datetime.timedelta(hours=hours)
+        #xbmc.log("Update Status: %s of %s" % (elapsed,threshold))
         if elapsed > threshold:
             is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
-            if not (monitor.isPlaying() or is_scanning):
-                try: xbmc.log('PrimeWire: Service: Updating subscriptions')
-                except: pass
-                builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=update_subscriptions)'
-                xbmc.executebuiltin(builtin)
-                ADDON.setSetting('last_run', now.strftime("%Y-%m-%d %H:%M:%S.%f"))
+            if not is_scanning:
+                during_playback = ADDON.getSetting('during-playback')
+                if during_playback == 'true' or not monitor.isPlaying():
+                    try: xbmc.log('PrimeWire: Service: Updating subscriptions')
+                    except: pass
+                    builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=update_subscriptions)'
+                    xbmc.executebuiltin(builtin)
+                    ADDON.setSetting('last_run', now.strftime("%Y-%m-%d %H:%M:%S.%f"))
+                else:
+                    try: xbmc.log('PrimeWire: Service: Playing... Busy... Postponing subscription update')
+                    except: pass
             else:
-                try: xbmc.log('PrimeWire: Service: Busy... Postponing subscription update')
+                try: xbmc.log('PrimeWire: Service: Scanning... Busy... Postponing subscription update')
                 except: pass
-    while monitor.tracking and monitor.isPlayingVideo():
+
+    if monitor.tracking and monitor.isPlayingVideo():
         monitor._lastPos = monitor.getTime()
-        xbmc.sleep(1000)
+
     xbmc.sleep(1000)
 try: xbmc.log('PrimeWire: Service: shutting down...')
 except: pass
