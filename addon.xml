@@ -6,7 +6,7 @@
         <import addon="script.module.urlresolver"/>
         <import addon="script.module.t0mm0.common"/>
         <import addon="script.module.metahandler" />
-        <import addon="script.module.myconnpy" />
+        <import addon="script.module.myconnpy" version="1.0.12" />
     </requires>
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video</provides>
