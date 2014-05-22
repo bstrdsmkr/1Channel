@@ -201,7 +201,7 @@ def upgrade_db():
     for table in ('subscriptions', 'favorites'):
         sql = "UPDATE %s SET url = replace(url, 'http://www.1channel.ch', '')" % table
         if DB == 'mysql':
-            db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
+            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
         else:
             db = orm.connect(DB_DIR)
         cur = db.cursor()
