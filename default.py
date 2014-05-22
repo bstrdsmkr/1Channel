@@ -124,6 +124,9 @@ def init_database():
         cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
         cur.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
         
+        #Need to update cache column to a bigger data type
+        cur.execute('ALTER TABLE url_cache MODIFY COLUMN response MEDIUMBLOB')
+        
         try: 
             cur.execute('CREATE UNIQUE INDEX unique_bmk ON bookmarks (video_type, title, season, episode, year)')
         except:
@@ -276,7 +279,10 @@ def get_url(url, cache_limit=8):
         if age < limit:
             _1CH.log('Returning cached result for %s' % url)
             db.close()
-            return cached[1].encode('utf-8')
+            if DB == 'mysql':
+                return cached[1]
+            else:
+                return cached[1].encode('utf-8')
         else:
             _1CH.log('Cache too old. Requesting from internet')
     else:
@@ -343,6 +349,9 @@ def get_url(url, cache_limit=8):
         body = unicode(body, 'iso-8859-1')
         parser = HTMLParser.HTMLParser()
         body = parser.unescape(body)
+
+        if DB == 'mysql':
+            body = body.encode('utf-8')
     except:
         dialog = xbmcgui.Dialog()
         dialog.ok("Connection failed", "Failed to connect to url", url)
