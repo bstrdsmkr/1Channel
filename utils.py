@@ -186,7 +186,7 @@ def flush_cache():
     if ret:
         if DB == 'mysql':
             sql = 'TRUNCATE TABLE url_cache'
-            db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
+            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
         else:
             sql = 'DELETE FROM url_cache'
             db = orm.connect(DB_DIR)
@@ -301,7 +301,7 @@ def migrate_to_mysql():
 
     DB_DIR = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
     sqlite_db = sqlite.connect(DB_DIR)
-    mysql_db = orm.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDR, buffered=True)
+    mysql_db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
     table_count = 1
     record_count = 1
     all_tables = ['favorites', 'subscriptions', 'bookmarks']
