@@ -5,6 +5,9 @@
 - Mark library items as watched (jded76 and lambda)
 - Use library meta when playing from a stream
 - Update resume dialog
+- Fix MySQL connection arguments
+- Changed MySQL column url_cache.response to a MEDIUMBLOB to handle larger pages
+- Switched from t0mm0.common to addon.common
 
 [B]Version 2.1.1[/B]
 - Bump python version to 2.1.0 for Gotham support - No longer works on Eden

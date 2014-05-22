@@ -36,8 +36,8 @@ import xbmcaddon
 import xbmcplugin
 import HTMLParser
 from operator import itemgetter
-from t0mm0.common.addon import Addon
-from t0mm0.common.net import Net
+from addon.common.addon import Addon
+from addon.common.net import Net
 try: from metahandler import metahandlers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
 try: from metahandler import metacontainers
@@ -1199,7 +1199,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         _1CH.add_directory(
             {'mode': 'GetFilteredResults', 'section': section, 'genre': genre, 'letter': letter, 'sort': sort,
              'page': page},
-            meta, menu_items, True, art('nextpage.png'), art('fanart.png'), is_folder=True)
+            meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
 
     if video_type == 'tvshow':
         set_view('tvshows', 'tvshows-view')

@@ -7,7 +7,7 @@ import xbmcplugin
 
 # from functools import wraps
 
-from t0mm0.common.addon import Addon
+from addon.common.addon import Addon
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
 
