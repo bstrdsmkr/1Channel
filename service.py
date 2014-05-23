@@ -104,7 +104,7 @@ class Service(xbmc.Player):
             elif self.video_type == 'movie':  sql_stub += ' AND year=?'
             if DB == 'mysql':
                 sql_stub = sql_stub.replace('?', '%s')
-                db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+                db = database.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
             else:
                 db = database.connect(db_dir)
             cur = db.cursor()
@@ -141,7 +141,6 @@ class Service(xbmc.Player):
             pTime = format_time(playedTime)
             tTime = format_time(self._totalTime)
             xbmc.log('PrimeWire: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
-            print self.meta
             bmark_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
             videotype = 'movie' if self.video_type == 'movie' else 'episode'
             if playedTime == 0 and self._totalTime == 999999:
@@ -174,7 +173,7 @@ class Service(xbmc.Player):
                 sql = 'DELETE FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?'
                 if DB == 'mysql':
                     sql = sql.replace('?', '%s')
-                    db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+                    db = database.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
                 else:
                     db = database.connect(db_dir)
                 cur = db.cursor()
@@ -186,7 +185,7 @@ class Service(xbmc.Player):
                 sql = 'REPLACE INTO bookmarks (video_type, title, season, episode, year, bookmark) VALUES(?,?,?,?,?,?)'
                 if DB == 'mysql':
                     sql = sql.replace('?', '%s')
-                    db = database.connect(DB_NAME, DB_USER, DB_PASS, DB_ADDRESS, buffered=True)
+                    db = database.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
                 else:
                     sql = 'INSERT or ' + sql
                     db = database.connect(db_dir)
