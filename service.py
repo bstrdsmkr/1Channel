@@ -12,7 +12,7 @@ import xbmc
 import xbmcgui
 import xbmcaddon
 
-hours_list = [.5, 1, 2, 5, 10, 15, 24]
+hours_list = [2, 5, 10, 15, 24]
 
 ADDON = xbmcaddon.Addon(id='plugin.video.1channel')
 

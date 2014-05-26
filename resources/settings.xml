@@ -82,7 +82,7 @@
                  default="special://userdata/addon_data/plugin.video.1channel/Movies"/>
         <setting id="auto-update-subscriptions" type="bool" label="30805" default="false"/>
         <setting id="during-playback" type="bool" label="30809" default="true" enable="eq(-1,true)"/>
-        <setting id="subscription-interval" type="enum" values="30m|1h|2h|5h|10h|15h|24h" label="30806" default="3"
+        <setting id="subscription-interval" type="enum" values="2h|5h|10h|15h|24h" label="30806" default="3"
                  enable="eq(-2,true)"/>
         <setting id="library-update" type="bool" label="30807" default="true" enable="eq(-3,true)"/>
         <setting id="cleanup-subscriptions" type="bool" label="30808" default="true" enable="eq(-4,true)"/>
