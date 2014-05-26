@@ -577,8 +577,11 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
     win.setProperty('1ch.playing', json.dumps(meta))
     
     listitem = xbmcgui.ListItem(path=url, iconImage="DefaultVideo.png", thumbnailImage=poster)
-    # listitem.setProperty('ResumeTime', str(resume['position']))
-    # listitem.setProperty('TotalTime', str(resume['total']))
+
+    if (_1CH.get_setting('use-dialogs') == 'true'):
+        listitem.setProperty('ResumeTime', str(resume['position']))
+        listitem.setProperty('TotalTime', str(resume['total']))
+
     listitem.setProperty('IsPlayable', 'true')
     listitem.setInfo(type = "Video", infoLabels = meta)
     listitem.setPath(stream_url)
