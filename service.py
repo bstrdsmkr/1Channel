@@ -98,7 +98,6 @@ class Service(xbmc.Player):
             self.tracking = True
             self.meta = json.loads(meta)
             self.video_type = 'tvshow' if 'episode' in self.meta else 'movie'
-            self._totalTime = self.getTotalTime()
             sql_stub = 'SELECT bookmark FROM bookmarks WHERE video_type=? AND title=?'
             if   self.video_type == 'tvshow': sql_stub += ' AND season=? AND episode=?'
             elif self.video_type == 'movie':  sql_stub += ' AND year=?'
@@ -129,6 +128,10 @@ class Service(xbmc.Player):
                     resume = resume.yesno(bmark_title, '', question, ln2, 'Start from beginning', 'Resume')
                     if resume: self.seekTime(bookmark)
                     self._sought = True
+
+            time.sleep(1)
+            self._totalTime = self.getTotalTime()
+            print "Total Time: %s"   % (str(self.getTotalTime()))
 
     def onPlayBackStopped(self):
         xbmc.log('PrimeWire: Playback Stopped')
@@ -194,15 +197,15 @@ class Service(xbmc.Player):
                                   self.meta['episode'], self.meta['year'], playedTime))
                 db.commit()
                 db.close()
-                if xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
+                if not self.use_custom_resume():
                     if videotype == 'episode':
-                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "resume": {"position": %s}}, "id": 1}'
-                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playedTime)
+                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "resume": {"position": %s, "total": %s}}, "id": 1}'
+                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playedTime, self._totalTime)
                         result = xbmc.executeJSONRPC(cmd)
                         xbmc.log('PrimeWire: Saving Bookmark for strm file: %s' %result)
                     if videotype == 'movie':
-                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "resume": {"position": %s}}, "id": 1}'
-                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playedTime)
+                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "resume": {"position": %s, "total": %s}}, "id": 1}'
+                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playedTime, self._totalTime)
                         result = xbmc.executeJSONRPC(cmd)
                         xbmc.log('PrimeWire: Saving Bookmark for strm file: %s' %result)
         self.reset()
