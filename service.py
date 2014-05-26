@@ -98,8 +98,6 @@ class Service(xbmc.Player):
             self.tracking = True
             self.meta = json.loads(meta)
             self.video_type = 'tvshow' if 'episode' in self.meta else 'movie'
-            self._totalTime = self.getTotalTime()
-            #print "Total Time: %s"   % (str(self._totalTime))
             sql_stub = 'SELECT bookmark FROM bookmarks WHERE video_type=? AND title=?'
             if   self.video_type == 'tvshow': sql_stub += ' AND season=? AND episode=?'
             elif self.video_type == 'movie':  sql_stub += ' AND year=?'
@@ -130,6 +128,10 @@ class Service(xbmc.Player):
                     resume = resume.yesno(bmark_title, '', question, ln2, 'Start from beginning', 'Resume')
                     if resume: self.seekTime(bookmark)
                     self._sought = True
+
+            time.sleep(1)
+            self._totalTime = self.getTotalTime()
+            print "Total Time: %s"   % (str(self.getTotalTime()))
 
     def onPlayBackStopped(self):
         xbmc.log('PrimeWire: Playback Stopped')
