@@ -549,6 +549,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
         meta = {'label' : title, 'title' : title}
         poster = ''
 
+    resume = None
     if xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
         #we're playing from a .strm file
         if video_type == 'episode':
@@ -578,8 +579,8 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
     
     listitem = xbmcgui.ListItem(path=url, iconImage="DefaultVideo.png", thumbnailImage=poster)
 
-    if (_1CH.get_setting('use-dialogs') == 'true'):
-        #print "Setting native resume: %s of %s" %(str(resume['position']),str(resume['total']))
+    if (_1CH.get_setting('use-dialogs') == 'true' and resume):
+        print "Setting native resume: %s of %s" %(str(resume['position']),str(resume['total']))
         listitem.setProperty('ResumeTime', str(resume['position']))
         listitem.setProperty('TotalTime', str(resume['total']))
 
