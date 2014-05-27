@@ -20,7 +20,6 @@
 # pylint: disable=W0621
 import re
 import os
-import os
 import sys
 import json
 import time
@@ -39,9 +38,9 @@ from operator import itemgetter
 from addon.common.addon import Addon
 from addon.common.net import Net
 try: from metahandler import metahandlers
-except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
+except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000, %s)" % ('Import Failed','metahandler', ICON_PATH)); pass
 try: from metahandler import metacontainers
-except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
+except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000, %s)" % ('Import Failed','metahandler', ICON_PATH)); pass
 from utils import *
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
@@ -86,6 +85,8 @@ THEME_LIST = ['Classic', 'Glossy_Black', 'PrimeWire']
 THEME = THEME_LIST[int(_1CH.get_setting('theme'))]
 THEME_PATH = os.path.join(_1CH.get_path(), 'art', 'themes', THEME)
 AUTO_WATCH = _1CH.get_setting('auto-watch') == 'true'
+ADDON_PATH = _1CH.get_path()
+ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
 BASE_URL = _1CH.get_setting('domain')
@@ -202,11 +203,11 @@ def save_favorite(fav_type, name, url, img, year):
             ok_message = '<div class="ok_message">Movie added to favorites'
             error_message = '<div class="error_message">This video is already'
             if ok_message in html:
-                builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000)'
-                xbmc.executebuiltin(builtin)
+                builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
+                xbmc.executebuiltin(builtin % ICON_PATH)
             elif error_message in html:
-                builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000)'
-                xbmc.executebuiltin(builtin)
+                builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
+                xbmc.executebuiltin(builtin % ICON_PATH)
             else:
                 _1CH.log('Unable to confirm success')
                 _1CH.log(html)
@@ -219,11 +220,11 @@ def save_favorite(fav_type, name, url, img, year):
         try:
             title = urllib.unquote_plus(unicode(name, 'latin1'))
             cursor.execute(statement, (fav_type, title, url, year))
-            builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000)'
-            xbmc.executebuiltin(builtin)
+            builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
+            xbmc.executebuiltin(builtin % ICON_PATH)
         except orm.IntegrityError:
-            builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000)'
-            xbmc.executebuiltin(builtin)
+            builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
+            xbmc.executebuiltin(builtin % ICON_PATH)
         db.commit()
         db.close()
 
@@ -1978,17 +1979,17 @@ def add_subscription(url, title, img, year, imdbnum, day=''):
         		cur.execute('ALTER TABLE subscriptions ADD day TEXT')
         		cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
         	except:
-        		builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000)" % title
+        		builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         		xbmc.executebuiltin(builtin)
         		xbmc.executebuiltin('Container.Update')
         		return
         db.commit()
         db.close()
         add_to_library('tvshow', url, title, img, year, imdbnum)
-        builtin = "XBMC.Notification(Subscribe,Subscribed to '%s',2000)" % title
+        builtin = "XBMC.Notification(Subscribe,Subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)
     except orm.IntegrityError:
-        builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000)" % title
+        builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)
     xbmc.executebuiltin('Container.Update')
 
@@ -2339,7 +2340,7 @@ elif mode == 'install_local_metapack':
     install_local_zip(source)
 elif mode == 'add_to_library':
     add_to_library(video_type, url, title, img, year, imdbnum)
-    builtin = "XBMC.Notification(Add to Library,Added '%s' to library,2000)" % title
+    builtin = "XBMC.Notification(Add to Library,Added '%s' to library,2000, %s)" % (title, ICON_PATH)
     xbmc.executebuiltin(builtin)
 elif mode == 'update_subscriptions':
     update_subscriptions()
