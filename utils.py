@@ -48,6 +48,7 @@ def connect_db():
         db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
     else:
         db = orm.connect(DB_DIR)
+        db.text_factory = str
     return db
 
 

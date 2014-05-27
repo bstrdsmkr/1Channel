@@ -271,10 +271,7 @@ def get_url(url, cache_limit=8):
         if age < limit:
             _1CH.log('Returning cached result for %s' % url)
             db.close()
-            if DB == 'mysql':
-                return cached[1]
-            else:
-                return cached[1].encode('utf-8')
+            return cached[1]
         else:
             _1CH.log('Cache too old. Requesting from internet')
     else:
@@ -341,9 +338,7 @@ def get_url(url, cache_limit=8):
         body = unicode(body, 'iso-8859-1')
         parser = HTMLParser.HTMLParser()
         body = parser.unescape(body)
-
-        if DB == 'mysql':
-            body = body.encode('utf-8')
+        body = body.encode('utf-8')
     except:
         dialog = xbmcgui.Dialog()
         dialog.ok("Connection failed", "Failed to connect to url", url)
