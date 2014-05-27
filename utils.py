@@ -42,6 +42,15 @@ except:
     __translated__ = xbmc.translatePath("special://database")
     DB_DIR = os.path.join(__translated__, 'onechannelcache.db')
 
+    
+def connect_db():
+    if DB == 'mysql':
+        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
+    else:
+        db = orm.connect(DB_DIR)
+    return db
+
+
 def format_label_tvshow(info):
     if 'premiered' in info:
         year = info['premiered'][:4]
@@ -184,12 +193,11 @@ def flush_cache():
     no = 'Delete'
     ret = dlg.yesno('Flush web cache', ln1, ln2, ln3, yes, no)
     if ret:
+        db = connect_db()
         if DB == 'mysql':
             sql = 'TRUNCATE TABLE url_cache'
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
         else:
             sql = 'DELETE FROM url_cache'
-            db = orm.connect(DB_DIR)
         cur = db.cursor()
         cur.execute(sql)
         db.commit()
@@ -200,10 +208,7 @@ def upgrade_db():
     _1CH.log('Upgrading db...')
     for table in ('subscriptions', 'favorites'):
         sql = "UPDATE %s SET url = replace(url, 'http://www.1channel.ch', '')" % table
-        if DB == 'mysql':
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-        else:
-            db = orm.connect(DB_DIR)
+        db = connect_db()
         cur = db.cursor()
         cur.execute(sql)
         db.commit()

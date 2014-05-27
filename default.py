@@ -114,8 +114,8 @@ def art(name):
 
 def init_database():
     _1CH.log('Building PrimeWire Database')
+    db = connect_db()
     if DB == 'mysql':
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
         cur = db.cursor()
         cur.execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
         cur.execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
@@ -149,7 +149,6 @@ def init_database():
         if not xbmcvfs.exists(os.path.dirname(DB_DIR)): 
         	try: xbmcvfs.mkdirs(os.path.dirname(DB_DIR))
         	except: os.path.mkdir(os.path.dirname(DB_DIR))
-        db = orm.connect(DB_DIR)
         db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
         db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
         db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum, day)')
@@ -213,10 +212,8 @@ def save_favorite(fav_type, name, url, img, year):
                 _1CH.log(html)
     else:
         statement = 'INSERT INTO favorites (type, name, url, year) VALUES (%s,%s,%s,%s)'
-        if DB == 'mysql':
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-        else:
-            db = orm.connect(DB_DIR)
+        db = connect_db()
+        if DB == 'sqlite':
             statement = statement.replace("%s", "?")
         cursor = db.cursor()
         try:
@@ -251,10 +248,8 @@ def delete_favorite(fav_type, name, url):
 
     else:
         sql_del = 'DELETE FROM favorites WHERE type=%s AND name=%s AND url=%s'
-        if DB == 'mysql':
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-        else:
-            db = orm.connect(DB_DIR)
+        db = connect_db()
+        if DB == 'sqlite':
             sql_del = sql_del.replace('%s', '?')
         cursor = db.cursor()
         cursor.execute(sql_del, (fav_type, name, url))
@@ -264,10 +259,7 @@ def delete_favorite(fav_type, name, url):
 
 def get_url(url, cache_limit=8):
     _1CH.log('Fetching URL: %s' % url)
-    if DB == 'mysql':
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-    else:
-        db = orm.connect(DB_DIR)
+    db = connect_db()
     cur = db.cursor()
     now = time.time()
     limit = 60 * 60 * cache_limit
@@ -624,10 +616,7 @@ def GetSearchQuery(section):
             if search_text == '!#repair meta': repair_missing_images()
             if search_text == '!#install all meta': install_all_meta()
             if search_text.startswith('!#sql'):
-                if DB == 'mysql':
-                    db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-                else:
-                    db = orm.connect(DB_DIR)
+                db = connect_db()
                 db.execute(search_text[5:])
                 db.commit()
                 db.close()
@@ -663,10 +652,7 @@ def GetSearchQueryTag(section):
             if search_text == '!#repair meta': repair_missing_images()
             if search_text == '!#install all meta': install_all_meta()
             if search_text.startswith('!#sql'):
-                if DB == 'mysql':
-                    db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-                else:
-                    db = orm.connect(DB_DIR)
+                db = connect_db()
                 db.execute(search_text[5:])
                 db.commit()
                 db.close()
@@ -750,10 +736,7 @@ def GetSearchQueryAdvanced(section):
             if search_text == '!#repair meta': repair_missing_images()
             if search_text == '!#install all meta': install_all_meta()
             if search_text.startswith('!#sql'):
-                if DB == 'mysql':
-                    db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-                else:
-                    db = orm.connect(DB_DIR)
+                db = connect_db()
                 db.execute(search_text[5:])
                 db.commit()
                 db.close()
@@ -782,10 +765,7 @@ def GetSearchQueryDesc(section):
             if search_text == '!#repair meta': repair_missing_images()
             if search_text == '!#install all meta': install_all_meta()
             if search_text.startswith('!#sql'):
-                if DB == 'mysql':
-                    db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-                else:
-                    db = orm.connect(DB_DIR)
+                db = connect_db()
                 db.execute(search_text[5:])
                 db.commit()
                 db.close()
@@ -807,10 +787,7 @@ def Search(section, query):
         nextmode = 'TVShowSeasonList'
         video_type = 'tvshow'
         folder = True
-        if DB == 'mysql':
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-        else:
-            db = orm.connect(DB_DIR)
+        db = connect_db()
         cur = db.cursor()
         cur.execute('SELECT url FROM subscriptions')
         subscriptions = cur.fetchall()
@@ -887,10 +864,7 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
         nextmode = 'TVShowSeasonList'
         video_type = 'tvshow'
         folder = True
-        if DB == 'mysql':
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-        else:
-            db = orm.connect(DB_DIR)
+        db = connect_db()
         cur = db.cursor()
         cur.execute('SELECT url FROM subscriptions')
         subscriptions = cur.fetchall()
@@ -948,10 +922,7 @@ def SearchDesc(section, query):
         nextmode = 'TVShowSeasonList'
         video_type = 'tvshow'
         folder = True
-        if DB == 'mysql':
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-        else:
-            db = orm.connect(DB_DIR)
+        db = connect_db()
         cur = db.cursor()
         cur.execute('SELECT url FROM subscriptions')
         subscriptions = cur.fetchall()
@@ -1141,10 +1112,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         nextmode = 'TVShowSeasonList'
         video_type = 'tvshow'
         folder = True
-        if DB == 'mysql':
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-        else:
-            db = orm.connect(DB_DIR)
+        db = connect_db()
         cur = db.cursor()
         cur.execute('SELECT url FROM subscriptions')
         subscriptions = cur.fetchall()
@@ -1226,12 +1194,11 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
         html = html.decode('iso-8859-1').encode('utf-8')
         net.save_cookies(cookiejar)
 
+    db = connect_db()
     if DB == 'mysql':
         sql = 'INSERT INTO seasons(season,contents) VALUES(%s,%s) ON DUPLICATE KEY UPDATE contents = VALUES(contents)'
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True, autocommit=True)
     else:
         sql = 'INSERT or REPLACE into seasons (season,contents) VALUES(?,?)'
-        db = orm.connect(DB_DIR)
 
     try:
         new_imdb = re.search('mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"', html).group(1)
@@ -1310,11 +1277,9 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
 
 def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
     sql = 'SELECT contents FROM seasons WHERE season=?'
+    db = connect_db()
     if DB == 'mysql':
         sql = sql.replace('?', '%s')
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-    else:
-        db = orm.connect(DB_DIR)
     cur = db.cursor()
     cur.execute(sql, (season,))
     eplist = cur.fetchone()[0]
@@ -1350,11 +1315,9 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
 
 def browse_favorites(section):
     sql = 'SELECT type, name, url, year FROM favorites WHERE type = ? ORDER BY name'
+    db = connect_db()
     if DB == 'mysql':
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
         sql = sql.replace('?', '%s')
-    else:
-        db = orm.connect(DB_DIR)
     cur = db.cursor()
     if section == 'tv':
         set_view('tvshows', 'tvshows-view')
@@ -1400,11 +1363,9 @@ def browse_favorites(section):
 
 def browse_favorites_website(section):
     sql = 'SELECT count(*) FROM favorites'
+    db = connect_db()
     if DB == 'mysql':
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
         sql = sql.replace('?', '%s')
-    else:
-        db = orm.connect(DB_DIR)
     cur = db.cursor()
     local_favs = cur.execute(sql).fetchall()
 
@@ -1427,10 +1388,7 @@ def browse_favorites_website(section):
         video_type = 'tvshow'
         nextmode = 'TVShowSeasonList'
         folder = True
-        if DB == 'mysql':
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-        else:
-            db = orm.connect(DB_DIR)
+        db = connect_db()
         cur = db.cursor()
         cur.execute('SELECT url FROM subscriptions')
         subs = cur.fetchall()
@@ -1464,11 +1422,9 @@ def browse_favorites_website(section):
 def migrate_favs_to_web():
     init_database()
     sql = 'SELECT type, name, url, year FROM favorites ORDER BY name'
+    db = connect_db()
     if DB == 'mysql':
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
         sql = sql.replace('?', '%s')
-    else:
-        db = orm.connect(DB_DIR)
     cur = db.cursor()
     cur.execute(sql)
     all_favs = cur.fetchall()
@@ -1528,10 +1484,7 @@ def get_by_letter(letter, section):
         video_type = 'tvshow'
         nextmode = 'TVShowSeasonList'
         folder = True
-        if DB == 'mysql':
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-        else:
-            db = orm.connect(DB_DIR)
+        db = connect_db()
         cur = db.cursor()
         cur.execute('SELECT url FROM subscriptions')
         subs = cur.fetchall()
@@ -2018,11 +1971,9 @@ def add_subscription(url, title, img, year, imdbnum, day=''):
         if len(day)==0: day=datetime.date.today().strftime('%A')
         elif day==' ': day=''
         sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum, day) VALUES (?,?,?,?,?,?)' #sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?,?,?,?,?)'
+        db = connect_db()
         if DB == 'mysql':
-            db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
             sql = sql.replace('?', '%s')
-        else:
-            db = orm.connect(DB_DIR)
         cur = db.cursor()
         try: 
         	cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
@@ -2048,10 +1999,9 @@ def add_subscription(url, title, img, year, imdbnum, day=''):
 
 def cancel_subscription(url, title, img, year, imdbnum):
     sql_delete = 'DELETE FROM subscriptions WHERE url=? AND title=? AND year=?'
+    db = connect_db()
     if DB == 'mysql':
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
         sql_delete = sql_delete.replace('?', '%s')
-    else: db = orm.connect(DB_DIR)
     db_cur = db.cursor()
     title = unicode(title, 'utf-8')
     db_cur.execute(sql_delete, (url, title, year))
@@ -2061,9 +2011,7 @@ def cancel_subscription(url, title, img, year, imdbnum):
 
 
 def update_subscriptions():
-    if DB == 'mysql':
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-    else: db = orm.connect(DB_DIR)
+    db = connect_db()
     cur = db.cursor()
     cur.execute('SELECT * FROM subscriptions')
     subs = cur.fetchall()
@@ -2077,10 +2025,9 @@ def update_subscriptions():
 def clean_up_subscriptions():
     _1CH.log('Cleaning up dead subscriptions')
     sql_delete = 'DELETE FROM subscriptions WHERE url=?'
+    db = connect_db()
     if DB == 'mysql':
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
         sql_delete = sql_delete.replace('?', '%s')
-    else: db = orm.connect(DB_DIR)
     cur = db.cursor()
     cur.execute('SELECT * FROM subscriptions')
     subs = cur.fetchall()
@@ -2114,8 +2061,7 @@ def manage_subscriptions(day=''):
     	d='Saturday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
     	d='Sunday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
     set_view('tvshows', 'tvshows-view')
-    if DB == 'mysql': db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-    else: db = orm.connect(DB_DIR)
+    db = connect_db()
     cur = db.cursor()
     S='SELECT * FROM subscriptions'
     if len(day) > 0: S+=' WHERE day = "%s"' % (day)
