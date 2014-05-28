@@ -362,6 +362,7 @@ def rank_host(source):
 
 
 def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
+    from metahandler import metahandlers
     __metaget__ = metahandlers.MetaData()
     search_title = new_title if new_title else old_title
     if video_type == 'tvshow':
@@ -377,27 +378,28 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
     print 'search_meta: %s' % search_meta
 
     option_list = ['Manual Search...']
-    for option in search_meta:
-        if 'year' in option:
-            disptitle = '%s (%s)' % (option['title'], option['year'])
-        else:
-            disptitle = option['title']
-        option_list.append(disptitle)
-    dialog = xbmcgui.Dialog()
-    index = dialog.select('Choose', option_list)
+    if search_meta:
+        for option in search_meta:
+            if 'year' in option:
+                disptitle = '%s (%s)' % (option['title'], option['year'])
+            else:
+                disptitle = option['title']
+            option_list.append(disptitle)
+        dialog = xbmcgui.Dialog()
+        index = dialog.select('Choose', option_list)
 
-    if index == 0:
-        refresh_meta_manual(video_type, old_title, imdb, alt_id, year)
-    elif index > -1:
-        new_imdb_id = search_meta[index - 1]['imdb_id']
+        if index == 0:
+            refresh_meta_manual(video_type, old_title, imdb, alt_id, year)
+        elif index > -1:
+            new_imdb_id = search_meta[index - 1]['imdb_id']
 
-        #Temporary workaround for metahandlers problem:
-        #Error attempting to delete from cache table: no such column: year
-        if video_type == 'tvshow': year = ''
+            #Temporary workaround for metahandlers problem:
+            #Error attempting to delete from cache table: no such column: year
+            if video_type == 'tvshow': year = ''
 
-        _1CH.log(search_meta[index - 1])
-        __metaget__.update_meta(video_type, old_title, imdb, year=year)
-        xbmc.executebuiltin('Container.Refresh')
+            _1CH.log(search_meta[index - 1])
+            __metaget__.update_meta(video_type, old_title, imdb, year=year)
+            xbmc.executebuiltin('Container.Refresh')
 
 
 def refresh_meta_manual(video_type, old_title, imdb, alt_id, year):
