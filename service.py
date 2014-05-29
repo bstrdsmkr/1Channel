@@ -139,7 +139,7 @@ class Service(xbmc.Player):
     def onPlayBackStopped(self):
         xbmc.log('PrimeWire: Playback Stopped')
         #Is the item from our addon?
-        if xbmc.getInfoLabel('Container.FolderPath').startswith(sys.argv[0]):
+        if self.tracking:
             playedTime = int(self._lastPos)
             watched_values = [.7, .8, .9]
             min_watched_percent = watched_values[int(ADDON.getSetting('watched-percent'))]
