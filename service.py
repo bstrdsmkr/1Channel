@@ -129,9 +129,12 @@ class Service(xbmc.Player):
                     if resume: self.seekTime(bookmark)
                     self._sought = True
 
-            time.sleep(1)
-            self._totalTime = self.getTotalTime()
-            print "Total Time: %s"   % (str(self.getTotalTime()))
+            self._totalTime=0
+            while self._totalTime == 0:
+                time.sleep(1)
+                self._totalTime = self.getTotalTime()
+                print "Total Time: %s"   % (self._totalTime)
+
 
     def onPlayBackStopped(self):
         xbmc.log('PrimeWire: Playback Stopped')
