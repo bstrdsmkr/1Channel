@@ -158,8 +158,13 @@ def init_database():
         db.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
-        db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_movie_bmk ON bookmarks (video_type, title, year)')
-        db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_episode_bmk ON bookmarks (video_type, title, season, episode)')
+        
+        #Fix previous index errors on bookmark table
+        db.execute('DROP INDEX IF EXISTS unique_movie_bmk') # get rid of faulty index that might exist
+        db.execute('DROP INDEX IF EXISTS unique_episode_bmk') # get rid of faulty index that might exist
+        db.execute('DROP INDEX IF EXISTS unique_bmk') # drop this index too just in case it was wrong
+
+        db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (video_type, title, season, episode, year)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
         
         db_ver = db.execute('SELECT value FROM db_info WHERE setting = "version"').fetchall() or [0]
@@ -1281,7 +1286,6 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
     cur.execute(sql, (season,))
     eplist = cur.fetchone()[0]
     db.close()
-    eplist = eplist.encode('utf-8')
     r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
     episodes = re.finditer(r, eplist, re.DOTALL)
 
