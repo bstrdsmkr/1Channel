@@ -556,6 +556,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
             meta['premiered'] = meta['firstaired']
             resume = meta.pop('resume')
             poster = meta['thumbnail']
+            meta['DBID']=xbmc.getInfoLabel('ListItem.DBID')
             
         if video_type == 'movie':
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "playcount", "runtime", "director", "originaltitle", "lastplayed", "fanart", "thumbnail", "file", "resume", "year", "dateadded"]}, "id": 1}'
@@ -566,6 +567,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
             meta['duration'] = meta['runtime']
             resume = meta.pop('resume')
             poster = meta['thumbnail']
+            meta['DBID']=xbmc.getInfoLabel('ListItem.DBID')
     
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing', json.dumps(meta))
