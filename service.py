@@ -107,11 +107,12 @@ class Service(xbmc.Player):
             else:
                 db = database.connect(db_dir)
             cur = db.cursor()
-            if not 'year'    in self.meta: self.meta['year']    = None
+            if not 'year'    in self.meta: self.meta['year']    = ''
             if not 'imdb'    in self.meta: self.meta['imdb']    = None
-            if not 'season'  in self.meta: self.meta['season']  = None
-            if not 'episode' in self.meta: self.meta['episode'] = None
+            if not 'season'  in self.meta: self.meta['season']  = ''
+            if not 'episode' in self.meta: self.meta['episode'] = ''
             bmark_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
+            bmark_title = bmark_title.strip()
             if self.video_type == 'tvshow':
                 cur.execute(sql_stub, (self.video_type, bmark_title, self.meta['season'], self.meta['episode']))
             elif self.video_type == 'movie':
@@ -140,7 +141,7 @@ class Service(xbmc.Player):
         xbmc.log('PrimeWire: Playback Stopped')
         #Is the item from our addon?
         if self.tracking:
-            DBID = self.meta['DBID'] if 'DBID' in self.meta else ''
+            DBID = self.meta['DBID'] if 'DBID' in self.meta else None
             playedTime = int(self._lastPos)
             watched_values = [.7, .8, .9]
             min_watched_percent = watched_values[int(ADDON.getSetting('watched-percent'))]
@@ -149,6 +150,7 @@ class Service(xbmc.Player):
             tTime = format_time(self._totalTime)
             xbmc.log('PrimeWire: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
             bmark_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
+            bmark_title = bmark_title.strip()
             videotype = 'movie' if self.video_type == 'movie' else 'episode'
             if playedTime == 0 and self._totalTime == 999999:
                 raise RuntimeError('XBMC silently failed to start playback')
