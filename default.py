@@ -529,8 +529,8 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid
 
     #metadata is enabled
     if META_ON:
-        if xbmc.getInfoLabel('Container.FolderPath').startswith(sys.argv[0]):
-            #we're not playing from a file
+        if not dbid or int(dbid) <= 0:
+            #we're not playing from a library item
             if video_type == 'episode':
                 meta = __metaget__.get_episode_meta(title, imdbnum, season, episode)
                 meta['TVShowTitle'] = title
@@ -545,8 +545,8 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid
         poster = ''
 
     resume = None
-    if xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
-        #we're playing from a .strm file
+    if dbid and int(dbid) > 0:
+        #we're playing from a library item
         if video_type == 'episode':
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "firstaired", "playcount", "runtime", "director", "productioncode", "season", "episode", "originaltitle", "showtitle", "lastplayed", "fanart", "thumbnail", "dateadded", "resume"]}, "id": 1}'
             cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'))
@@ -558,7 +558,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid
             meta['premiered'] = meta['firstaired']
             resume = meta.pop('resume')
             poster = meta['thumbnail']
-            if dbid: meta['DBID']=dbid
+            meta['DBID']=dbid
             
         if video_type == 'movie':
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "playcount", "runtime", "director", "originaltitle", "lastplayed", "fanart", "thumbnail", "file", "resume", "year", "dateadded"]}, "id": 1}'
@@ -569,7 +569,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid
             meta['duration'] = meta['runtime']
             resume = meta.pop('resume')
             poster = meta['thumbnail']
-            if dbid: meta['DBID']=dbid
+            meta['DBID']=dbid
     
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing', json.dumps(meta))
