@@ -1,3 +1,8 @@
+[B]Version 2.3.0[/B]
+- Corrected bug in SQLite bookmarks table, improper index was being created
+- Fix duplicate bookmarks/resumes
+- Fix for native bookmarks/resumes
+
 [B]Version 2.2.0[/B]
 - Code cleanup
 - Clean up source sorting
