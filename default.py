@@ -510,7 +510,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             _1CH.end_of_directory()
 
 
-def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid, strm=False, ):
+def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid=None, strm=False, ):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
     
