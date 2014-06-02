@@ -365,6 +365,8 @@ def get_url(url, cache_limit=8):
 def get_sources(url, title, img, year, imdbnum, dialog):
     url = urllib.unquote(url)
     _1CH.log('Getting sources from: %s' % url)
+    
+    dbid=xbmc.getInfoLabel('ListItem.DBID')
 
     pattern = r'tv-\d{1,10}-(.*)/season-(\d{1,4})-episode-(\d{1,4})'
     match = re.search(pattern, url, re.IGNORECASE | re.DOTALL)
@@ -460,7 +462,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             except:
                 _1CH.log('Error while trying to resolve %s' % url)
         source = urlresolver.choose_source(sources).get_url()
-        PlaySource(source, title, img, year, imdbnum, video_type, season, episode, strm=True)
+        PlaySource(source, title, img, year, imdbnum, video_type, season, episode, dbid, strm=True)
     else:
         try:
             if _1CH.get_setting('auto-play') == 'false': raise Exception, 'auto-play disabled'
@@ -477,7 +479,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                     label = format_label_source(source)
                     dlg.update(percent, line1, label)
                     try:
-                        PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode)
+                        PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode,dbid)
                         dlg.close()
                         success = True
                         break  # Playback was successful, break out of the loop
@@ -508,7 +510,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             _1CH.end_of_directory()
 
 
-def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm=False):
+def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid, strm=False, ):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
     
@@ -527,8 +529,8 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
 
     #metadata is enabled
     if META_ON:
-        if xbmc.getInfoLabel('Container.FolderPath').startswith(sys.argv[0]):
-            #we're not playing from a file
+        if not dbid or int(dbid) <= 0:
+            #we're not playing from a library item
             if video_type == 'episode':
                 meta = __metaget__.get_episode_meta(title, imdbnum, season, episode)
                 meta['TVShowTitle'] = title
@@ -543,8 +545,8 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
         poster = ''
 
     resume = None
-    if xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
-        #we're playing from a .strm file
+    if dbid and int(dbid) > 0:
+        #we're playing from a library item
         if video_type == 'episode':
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "firstaired", "playcount", "runtime", "director", "productioncode", "season", "episode", "originaltitle", "showtitle", "lastplayed", "fanart", "thumbnail", "dateadded", "resume"]}, "id": 1}'
             cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'))
@@ -556,6 +558,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
             meta['premiered'] = meta['firstaired']
             resume = meta.pop('resume')
             poster = meta['thumbnail']
+            meta['DBID']=dbid
             
         if video_type == 'movie':
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "playcount", "runtime", "director", "originaltitle", "lastplayed", "fanart", "thumbnail", "file", "resume", "year", "dateadded"]}, "id": 1}'
@@ -566,6 +569,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, strm
             meta['duration'] = meta['runtime']
             resume = meta.pop('resume')
             poster = meta['thumbnail']
+            meta['DBID']=dbid
     
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing', json.dumps(meta))

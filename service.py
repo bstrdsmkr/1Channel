@@ -107,11 +107,12 @@ class Service(xbmc.Player):
             else:
                 db = database.connect(db_dir)
             cur = db.cursor()
-            if not 'year'    in self.meta: self.meta['year']    = None
+            if not 'year'    in self.meta: self.meta['year']    = ''
             if not 'imdb'    in self.meta: self.meta['imdb']    = None
-            if not 'season'  in self.meta: self.meta['season']  = None
-            if not 'episode' in self.meta: self.meta['episode'] = None
+            if not 'season'  in self.meta: self.meta['season']  = ''
+            if not 'episode' in self.meta: self.meta['episode'] = ''
             bmark_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
+            bmark_title = bmark_title.strip()
             if self.video_type == 'tvshow':
                 cur.execute(sql_stub, (self.video_type, bmark_title, self.meta['season'], self.meta['episode']))
             elif self.video_type == 'movie':
@@ -140,6 +141,7 @@ class Service(xbmc.Player):
         xbmc.log('PrimeWire: Playback Stopped')
         #Is the item from our addon?
         if self.tracking:
+            DBID = self.meta['DBID'] if 'DBID' in self.meta else None
             playedTime = int(self._lastPos)
             watched_values = [.7, .8, .9]
             min_watched_percent = watched_values[int(ADDON.getSetting('watched-percent'))]
@@ -148,31 +150,33 @@ class Service(xbmc.Player):
             tTime = format_time(self._totalTime)
             xbmc.log('PrimeWire: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
             bmark_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
+            bmark_title = bmark_title.strip()
             videotype = 'movie' if self.video_type == 'movie' else 'episode'
             if playedTime == 0 and self._totalTime == 999999:
                 raise RuntimeError('XBMC silently failed to start playback')
             elif ((playedTime / self._totalTime) > min_watched_percent) and (
                         self.video_type == 'movie' or (self.meta['season'] and self.meta['episode'])):
                 xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')
-                if xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
+                # meta['DBID'] only gets set for strms in default.py
+                if DBID:
                     if videotype == 'episode':
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid": %s, "properties": ["playcount"]}, "id": 1}'
-                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'))
+                        cmd = cmd %(DBID)
                         result = json.loads(xbmc.executeJSONRPC(cmd))
                         print result
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "playcount": %s}, "id": 1}'
                         playcount = int(result['result']['episodedetails']['playcount']) + 1
-                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playcount)
+                        cmd = cmd %(DBID, playcount)
                         result = xbmc.executeJSONRPC(cmd)
                         xbmc.log('PrimeWire: Marking .strm as watched: %s' %result)
                     if videotype == 'movie':
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid": %s, "properties": ["playcount"]}, "id": 1}'
-                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'))
+                        cmd = cmd %(DBID)
                         result = json.loads(xbmc.executeJSONRPC(cmd))
                         print result
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "playcount": %s}, "id": 1}'
                         playcount = int(result['result']['moviedetails']['playcount']) + 1
-                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playcount)
+                        cmd = cmd %(DBID, playcount)
                         result = xbmc.executeJSONRPC(cmd)
                         xbmc.log('PrimeWire: Marking .strm as watched: %s' %result)
                 ChangeWatched(self.meta['imdb'], videotype, bmark_title, self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
@@ -200,15 +204,16 @@ class Service(xbmc.Player):
                                   self.meta['episode'], self.meta['year'], playedTime))
                 db.commit()
                 db.close()
+
                 if not self.use_custom_resume():
                     if videotype == 'episode':
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "resume": {"position": %s, "total": %s}}, "id": 1}'
-                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playedTime, self._totalTime)
+                        cmd = cmd %(DBID, playedTime, self._totalTime)
                         result = xbmc.executeJSONRPC(cmd)
                         xbmc.log('PrimeWire: Saving Bookmark for strm file: %s' %result)
                     if videotype == 'movie':
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "resume": {"position": %s, "total": %s}}, "id": 1}'
-                        cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'), playedTime, self._totalTime)
+                        cmd = cmd %(DBID, playedTime, self._totalTime)
                         result = xbmc.executeJSONRPC(cmd)
                         xbmc.log('PrimeWire: Saving Bookmark for strm file: %s' %result)
         self.reset()
@@ -220,12 +225,11 @@ class Service(xbmc.Player):
     def use_custom_resume(self):
         xbmc_version = xbmc.getInfoLabel("System.BuildVersion")
         is_gotham = int(xbmc_version[:2]) >= 13 #e.g. "13.0-ALPHA11 Git:20131231-8eb49b3"
-        if (not is_gotham) and xbmc.getInfoLabel('ListItem.FileName').endswith('.strm'):
-            return True
-        if (ADDON.getSetting('use-dialogs') == 'false'):
-            return True
-        return False
 
+        if (not is_gotham or 'DBID' not in self.meta or ADDON.getSetting('use-dialogs') == 'false'):
+            return True
+        
+        return False
 
 monitor = Service()
 while not xbmc.abortRequested:
