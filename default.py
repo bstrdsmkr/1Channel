@@ -545,30 +545,27 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid
         meta = {'label' : title, 'title' : title}
         poster = ''
 
-    resume = None
     if dbid and int(dbid) > 0:
         #we're playing from a library item
         if video_type == 'episode':
-            cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "firstaired", "playcount", "runtime", "director", "productioncode", "season", "episode", "originaltitle", "showtitle", "lastplayed", "fanart", "thumbnail", "dateadded", "resume"]}, "id": 1}'
-            cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'))
+            cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "firstaired", "playcount", "runtime", "director", "productioncode", "season", "episode", "originaltitle", "showtitle", "lastplayed", "fanart", "thumbnail", "dateadded"]}, "id": 1}'
+            cmd = cmd %(dbid)
             meta = xbmc.executeJSONRPC(cmd)
             meta = json.loads(meta)
             meta = meta['result']['episodedetails']
             meta['TVShowTitle'] = meta['showtitle']
             meta['duration'] = meta['runtime']
             meta['premiered'] = meta['firstaired']
-            resume = meta.pop('resume')
             poster = meta['thumbnail']
             meta['DBID']=dbid
             
         if video_type == 'movie':
-            cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "playcount", "runtime", "director", "originaltitle", "lastplayed", "fanart", "thumbnail", "file", "resume", "year", "dateadded"]}, "id": 1}'
-            cmd = cmd %(xbmc.getInfoLabel('ListItem.DBID'))
+            cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "playcount", "runtime", "director", "originaltitle", "lastplayed", "fanart", "thumbnail", "file", "year", "dateadded"]}, "id": 1}'
+            cmd = cmd %(dbid)
             meta = xbmc.executeJSONRPC(cmd)
             meta = json.loads(meta)
             meta = meta['result']['moviedetails']
             meta['duration'] = meta['runtime']
-            resume = meta.pop('resume')
             poster = meta['thumbnail']
             meta['DBID']=dbid
     
@@ -576,11 +573,6 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid
     win.setProperty('1ch.playing', json.dumps(meta))
     
     listitem = xbmcgui.ListItem(path=url, iconImage="DefaultVideo.png", thumbnailImage=poster)
-
-    if (_1CH.get_setting('use-dialogs') == 'true' and resume):
-        print "Setting native resume: %s of %s" %(str(resume['position']),str(resume['total']))
-        listitem.setProperty('ResumeTime', str(resume['position']))
-        listitem.setProperty('TotalTime', str(resume['total']))
 
     listitem.setProperty('IsPlayable', 'true')
     listitem.setInfo(type = "Video", infoLabels = meta)

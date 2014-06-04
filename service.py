@@ -82,7 +82,6 @@ class Service(xbmc.Player):
 
         self._totalTime = 999999
         self._lastPos = 0
-        self._sought = False
         self.tracking = False
         self.video_type = ''
         self.win = xbmcgui.Window(10000)
@@ -98,37 +97,10 @@ class Service(xbmc.Player):
             self.tracking = True
             self.meta = json.loads(meta)
             self.video_type = 'tvshow' if 'episode' in self.meta else 'movie'
-            sql_stub = 'SELECT bookmark FROM bookmarks WHERE video_type=? AND title=?'
-            if   self.video_type == 'tvshow': sql_stub += ' AND season=? AND episode=?'
-            elif self.video_type == 'movie':  sql_stub += ' AND year=?'
-            if DB == 'mysql':
-                sql_stub = sql_stub.replace('?', '%s')
-                db = database.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-            else:
-                db = database.connect(db_dir)
-            cur = db.cursor()
             if not 'year'    in self.meta: self.meta['year']    = ''
             if not 'imdb'    in self.meta: self.meta['imdb']    = None
             if not 'season'  in self.meta: self.meta['season']  = ''
             if not 'episode' in self.meta: self.meta['episode'] = ''
-            bmark_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
-            bmark_title = bmark_title.strip()
-            if self.video_type == 'tvshow':
-                cur.execute(sql_stub, (self.video_type, bmark_title, self.meta['season'], self.meta['episode']))
-            elif self.video_type == 'movie':
-                cur.execute(sql_stub, (self.video_type, bmark_title, self.meta['year']))
-            bookmark = cur.fetchone()
-            db.close()
-
-            if bookmark and self.use_custom_resume():
-                bookmark = float(bookmark[0])
-                if not (self._sought and bookmark):
-                    question = 'Resume %s from %s?' % (bmark_title, format_time(bookmark))
-                    ln2 = '' if self.video_type == 'movie' else 'Season %s Episode %s' %(self.meta['season'], self.meta['episode'])
-                    resume = xbmcgui.Dialog()
-                    resume = resume.yesno(bmark_title, '', question, ln2, 'Start from beginning', 'Resume')
-                    if resume: self.seekTime(bookmark)
-                    self._sought = True
 
             self._totalTime=0
             while self._totalTime == 0:
@@ -149,8 +121,6 @@ class Service(xbmc.Player):
             pTime = format_time(playedTime)
             tTime = format_time(self._totalTime)
             xbmc.log('PrimeWire: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
-            bmark_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
-            bmark_title = bmark_title.strip()
             videotype = 'movie' if self.video_type == 'movie' else 'episode'
             if playedTime == 0 and self._totalTime == 999999:
                 raise RuntimeError('XBMC silently failed to start playback')
@@ -180,57 +150,12 @@ class Service(xbmc.Player):
                         result = xbmc.executeJSONRPC(cmd)
                         xbmc.log('PrimeWire: Marking .strm as watched: %s' %result)
                 ChangeWatched(self.meta['imdb'], videotype, bmark_title, self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
-                sql = 'DELETE FROM bookmarks WHERE video_type=? AND title=? AND season=? AND episode=? AND year=?'
-                if DB == 'mysql':
-                    sql = sql.replace('?', '%s')
-                    db = database.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-                else:
-                    db = database.connect(db_dir)
-                cur = db.cursor()
-                cur.execute(sql, (self.video_type, self.meta['title'], self.meta['season'], self.meta['episode'], self.meta['year']))
-                db.commit()
-                db.close()
-            else:
-                xbmc.log('PrimeWire: Service: Threshold not met. Saving bookmark')
-                sql = 'REPLACE INTO bookmarks (video_type, title, season, episode, year, bookmark) VALUES(?,?,?,?,?,?)'
-                if DB == 'mysql':
-                    sql = sql.replace('?', '%s')
-                    db = database.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-                else:
-                    sql = 'INSERT or ' + sql
-                    db = database.connect(db_dir)
-                cur = db.cursor()
-                cur.execute(sql, (self.video_type, bmark_title, self.meta['season'],
-                                  self.meta['episode'], self.meta['year'], playedTime))
-                db.commit()
-                db.close()
-
-                if not self.use_custom_resume():
-                    if videotype == 'episode':
-                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "resume": {"position": %s, "total": %s}}, "id": 1}'
-                        cmd = cmd %(DBID, playedTime, self._totalTime)
-                        result = xbmc.executeJSONRPC(cmd)
-                        xbmc.log('PrimeWire: Saving Bookmark for strm file: %s' %result)
-                    if videotype == 'movie':
-                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "resume": {"position": %s, "total": %s}}, "id": 1}'
-                        cmd = cmd %(DBID, playedTime, self._totalTime)
-                        result = xbmc.executeJSONRPC(cmd)
-                        xbmc.log('PrimeWire: Saving Bookmark for strm file: %s' %result)
         self.reset()
 
     def onPlayBackEnded(self):
         xbmc.log('PrimeWire: Playback completed')
         self.onPlayBackStopped()
-    
-    def use_custom_resume(self):
-        xbmc_version = xbmc.getInfoLabel("System.BuildVersion")
-        is_gotham = int(xbmc_version[:2]) >= 13 #e.g. "13.0-ALPHA11 Git:20131231-8eb49b3"
-
-        if (not is_gotham or 'DBID' not in self.meta or ADDON.getSetting('use-dialogs') == 'false'):
-            return True
         
-        return False
-
 monitor = Service()
 while not xbmc.abortRequested:
     if ADDON.getSetting('auto-update-subscriptions') == 'true':
