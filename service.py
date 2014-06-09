@@ -20,10 +20,10 @@ try:
     DB_NAME = ADDON.getSetting('db_name')
     DB_USER = ADDON.getSetting('db_user')
     DB_PASS = ADDON.getSetting('db_pass')
-    DB_ADDRESS = ADDON.getSetting('db_address')
+    DB_ADDR = ADDON.getSetting('db_address')
 
     if ADDON.getSetting('use_remote_db') == 'true' and \
-                    DB_ADDRESS is not None and \
+                    DB_ADDR is not None and \
                     DB_USER is not None and \
                     DB_PASS is not None and \
                     DB_NAME is not None:
