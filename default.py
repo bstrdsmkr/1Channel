@@ -461,7 +461,8 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             except:
                 _1CH.log('Error while trying to resolve %s' % url)
         source = urlresolver.choose_source(sources).get_url()
-        PlaySource(source, title, img, year, imdbnum, video_type, season, episode, dbid, strm=True)
+        try: PlaySource(source, title, img, year, imdbnum, video_type, season, episode, dbid, strm=True)
+        except: pass
     else:
         try:
             if _1CH.get_setting('auto-play') == 'false': raise Exception, 'auto-play disabled'
@@ -479,14 +480,15 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                     dlg.update(percent, line1, label)
                     try:
                         PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode,dbid)
-                        dlg.close()
-                        success = True
-                        break  # Playback was successful, break out of the loop
                     except Exception, e:  # Playback failed, try the next one
                         dlg.update(percent, line1, label, str(e))
                         _1CH.log('%s source failed. Trying next source...' % source['host'])
                         _1CH.log(str(e))
                         count += 1
+                    else:
+                        dlg.close()
+                        success = True
+                        break  # Playback was successful, break out of the loop
         except:
             for item in hosters:
                 _1CH.log(item)
@@ -515,9 +517,9 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid
     
     #If urlresolver returns false then the video url was not resolved.
     if not type(stream_url) is str and not type(stream_url) is unicode:
-        try: _1CH.log('Could not resove url: %s' % url) 
+        try: _1CH.log('Could not resolve url: %s' % url) 
         except: pass
-        return
+        raise
         
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing.title', title)
@@ -2289,7 +2291,8 @@ elif mode == 'GetSources':
 elif mode == 'PlaySource':
     import urlresolver
 
-    PlaySource(url, title, img, year, imdbnum, video_type, season, episode)
+    try: PlaySource(url, title, img, year, imdbnum, video_type, season, episode)
+    except: pass
 elif mode == 'PlayTrailer':
     import urlresolver
 
