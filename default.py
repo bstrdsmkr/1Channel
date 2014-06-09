@@ -156,6 +156,7 @@ def init_database():
         db.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type, title, season, episode, year, bookmark)')
         db.execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
         db.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
+        db.execute('CREATE TABLE IF NOT EXISTS new_bkmark (url TEXT PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
         db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
         
@@ -367,6 +368,11 @@ def get_sources(url, title, img, year, imdbnum, dialog):
     
     dbid=xbmc.getInfoLabel('ListItem.DBID')
 
+    resume_point = 0
+    if bookmark_exists(url) and get_resume_choice(url):
+        resume_point = get_bookmark(url)
+    print "Resume: %s" %(resume_point)
+    
     pattern = r'tv-\d{1,10}-(.*)/season-(\d{1,4})-episode-(\d{1,4})'
     match = re.search(pattern, url, re.IGNORECASE | re.DOTALL)
     if match:
@@ -461,7 +467,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             except:
                 _1CH.log('Error while trying to resolve %s' % url)
         source = urlresolver.choose_source(sources).get_url()
-        try: PlaySource(source, title, img, year, imdbnum, video_type, season, episode, dbid, strm=True)
+        try: PlaySource(source, title, img, year, imdbnum, video_type, season, episode, resume_point, dbid, strm=True)
         except: pass
     else:
         try:
@@ -479,7 +485,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                     label = format_label_source(source)
                     dlg.update(percent, line1, label)
                     try:
-                        PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode,dbid)
+                        PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode, resume_point, dbid)
                     except Exception, e:  # Playback failed, try the next one
                         dlg.update(percent, line1, label, str(e))
                         _1CH.log('%s source failed. Trying next source...' % source['host'])
@@ -511,7 +517,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             _1CH.end_of_directory()
 
 
-def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid=None, strm=False, ):
+def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, resume_point, dbid=None, strm=False, ):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
     
@@ -527,6 +533,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid
     win.setProperty('1ch.playing.imdb', imdbnum)
     win.setProperty('1ch.playing.season', str(season))
     win.setProperty('1ch.playing.episode', str(episode))
+    win.setProperty('1ch.playing.url',_1CH.queries.get('url', ''))
 
     #metadata is enabled
     if META_ON:
@@ -573,6 +580,10 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid
     win.setProperty('1ch.playing', json.dumps(meta))
     
     listitem = xbmcgui.ListItem(path=url, iconImage="DefaultVideo.png", thumbnailImage=poster)
+    
+    print "Setting resume to: %s" %(resume_point)
+    listitem.setProperty('ResumeTime', str(resume_point))
+    listitem.setProperty('Totaltime', str(99999)) # dummy value
 
     listitem.setProperty('IsPlayable', 'true')
     listitem.setInfo(type = "Video", infoLabels = meta)

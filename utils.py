@@ -474,3 +474,25 @@ def format_eta(seconds):
         # prof.dump_stats(datapath)
         # return retval
         # return wrapper
+
+def bookmark_exists(url):
+    return get_bookmark(url) != None
+
+def get_bookmark(url):
+    return 60.0
+
+def set_bookmark(url,offset):
+    pass
+
+# returns true if user chooses to resume
+def get_resume_choice(url):
+    question = 'Bookmark set at %s' % (format_time(get_bookmark(url)))
+    return  xbmcgui.Dialog().yesno('Resume?', None, question, None, 'Start from beginning', 'Resume')
+
+def format_time(seconds):
+    minutes, seconds = divmod(seconds, 60)
+    if minutes > 60:
+        hours, minutes = divmod(minutes, 60)
+        return "%02d:%02d:%02d" % (hours, minutes, seconds)
+    else:
+        return "%02d:%02d" % (minutes, seconds)

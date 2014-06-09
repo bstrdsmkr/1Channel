@@ -11,6 +11,7 @@ import json
 import xbmc
 import xbmcgui
 import xbmcaddon
+from utls import set_bookmark
 
 hours_list = [2, 5, 10, 15, 24]
 
@@ -44,7 +45,6 @@ except:
     DB = 'sqlite'
     db_dir = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
 
-
 def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)
     if minutes > 60:
@@ -53,13 +53,11 @@ def format_time(seconds):
     else:
         return "%02d:%02d" % (minutes, seconds)
 
-
 def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched=''):
     from metahandler import metahandlers
 
     metaget = metahandlers.MetaData(False)
     metaget.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
-
 
 class Service(xbmc.Player):
     def __init__(self, *args, **kwargs):
@@ -79,6 +77,7 @@ class Service(xbmc.Player):
         win.clearProperty('1ch.playing.imdb')
         win.clearProperty('1ch.playing.season')
         win.clearProperty('1ch.playing.episode')
+        win.clearProperty('1ch.playing.url')
 
         self._totalTime = 999999
         self._lastPos = 0
@@ -87,6 +86,7 @@ class Service(xbmc.Player):
         self.win = xbmcgui.Window(10000)
         self.win.setProperty('1ch.playing', '')
         self.meta = ''
+        self.video_url=''
 
 
     def onPlayBackStarted(self):
@@ -101,13 +101,13 @@ class Service(xbmc.Player):
             if not 'imdb'    in self.meta: self.meta['imdb']    = None
             if not 'season'  in self.meta: self.meta['season']  = ''
             if not 'episode' in self.meta: self.meta['episode'] = ''
+            self.video_url = self.win.getProperty('1ch.playing.url')
 
             self._totalTime=0
             while self._totalTime == 0:
                 time.sleep(1)
                 self._totalTime = self.getTotalTime()
                 print "Total Time: %s"   % (self._totalTime)
-
 
     def onPlayBackStopped(self):
         xbmc.log('PrimeWire: Playback Stopped')
@@ -150,6 +150,9 @@ class Service(xbmc.Player):
                         result = xbmc.executeJSONRPC(cmd)
                         xbmc.log('PrimeWire: Marking .strm as watched: %s' %result)
                 ChangeWatched(self.meta['imdb'], videotype, bmark_title, self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
+        else:
+            xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark')
+            set_bookmark(self.video_url,playedTime)
         self.reset()
 
     def onPlayBackEnded(self):
