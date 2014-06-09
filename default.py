@@ -344,7 +344,6 @@ def get_url(url, cache_limit=8):
         body = unicode(body, 'iso-8859-1')
         parser = HTMLParser.HTMLParser()
         body = parser.unescape(body)
-        body = body.encode('utf-8')
     except:
         dialog = xbmcgui.Dialog()
         dialog.ok("Connection failed", "Failed to connect to url", url)
