@@ -585,8 +585,10 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, prim
     
     listitem = xbmcgui.ListItem(path=url, iconImage="DefaultVideo.png", thumbnailImage=poster)
     
+    resume_point=0
     if resume: 
         resume_point = get_bookmark(primewire_url)
+        
     _1CH.log("Playing Video from: %s secs"  % (resume_point))
     listitem.setProperty('ResumeTime', str(resume_point))
     listitem.setProperty('Totaltime', str(99999)) # dummy value to force resume to work
