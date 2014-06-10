@@ -128,7 +128,7 @@ class Service(xbmc.Player):
 
             self._totalTime=0
             while self._totalTime == 0:
-                time.sleep(1)
+                xbmc.sleep(1000)
                 self._totalTime = self.getTotalTime()
                 print "Total Time: %s"   % (self._totalTime)
 
