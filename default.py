@@ -368,9 +368,9 @@ def get_sources(url, title, img, year, imdbnum, dialog):
     
     dbid=xbmc.getInfoLabel('ListItem.DBID')
     
-    resume_point = 0
-    if bookmark_exists(url) and get_resume_choice(url):
-        resume_point = get_bookmark(url)
+    resume = False
+    if bookmark_exists(url):
+        resume = get_resume_choice(url)
 
     pattern = r'tv-\d{1,10}-(.*)/season-(\d{1,4})-episode-(\d{1,4})'
     match = re.search(pattern, url, re.IGNORECASE | re.DOTALL)
@@ -471,8 +471,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
         else:
             return
 
-        try: PlaySource(source, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume_point, dbid, strm=True)
-        except: pass
+        PlaySource(source, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid, strm=True)
         
     else:
         try:
@@ -490,7 +489,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                     label = format_label_source(source)
                     dlg.update(percent, line1, label)
                     try:
-                        PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode, primewire_url, resume_point, dbid)
+                        PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
                     except Exception, e:  # Playback failed, try the next one
                         dlg.update(percent, line1, label, str(e))
                         _1CH.log('%s source failed. Trying next source...' % source['host'])
@@ -506,7 +505,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                 label = format_label_source(item)
                 _1CH.add_directory({'mode': 'PlaySource', 'url': item['url'], 'title': title,
                                     'img': img, 'year': year, 'imdbnum': imdbnum,
-                                    'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume_point': resume_point},
+                                    'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
                                    infolabels={'title': label}, is_folder=False, img=img, fanart=art('fanart.png'))
                 if item['multi-part']:
                     partnum = 2
@@ -515,14 +514,14 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                         partnum += 1
                         _1CH.add_directory({'mode': 'PlaySource', 'url': part, 'title': title,
                                             'img': img, 'year': year, 'imdbnum': imdbnum,
-                                            'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume_point': resume_point},
+                                            'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
                                            infolabels={'title': label}, is_folder=False, img=img,
                                            fanart=art('fanart.png'))
 
             _1CH.end_of_directory()
 
 
-def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume_point, dbid=None, strm=False):
+def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid=None, strm=False):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
     
@@ -586,6 +585,8 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, prim
     
     listitem = xbmcgui.ListItem(path=url, iconImage="DefaultVideo.png", thumbnailImage=poster)
     
+    if resume: 
+        resume_point = get_bookmark(primewire_url)
     _1CH.log("Playing Video from: %s secs"  % (resume_point))
     listitem.setProperty('ResumeTime', str(resume_point))
     listitem.setProperty('Totaltime', str(99999)) # dummy value to force resume to work
@@ -2298,7 +2299,7 @@ tvdbnum = _1CH.queries.get('tvdbnum', '')
 alt_id = _1CH.queries.get('alt_id', '')
 dialog = _1CH.queries.get('dialog', '')
 day = _1CH.queries.get('day', '')
-resume_point = _1CH.queries.get('resume_point', 0)
+resume = _1CH.queries.get('resume', False)
 primewire_url = _1CH.queries.get('primewire_url', '')
 
 _1CH.log(_1CH.queries)
@@ -2313,7 +2314,7 @@ elif mode == 'GetSources':
 elif mode == 'PlaySource':
     import urlresolver
 
-    try: PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume_point)
+    try: PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume)
     except: pass
 elif mode == 'PlayTrailer':
     import urlresolver
