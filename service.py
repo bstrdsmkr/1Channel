@@ -78,7 +78,7 @@ class Service(xbmc.Player):
         self.win = xbmcgui.Window(10000)
         self.win.setProperty('1ch.playing', '')
         self.meta = ''
-        self.video_url=''
+        self.primewire_url=''
 
 
     def onPlayBackStarted(self):
@@ -93,7 +93,7 @@ class Service(xbmc.Player):
             if not 'imdb'    in self.meta: self.meta['imdb']    = None
             if not 'season'  in self.meta: self.meta['season']  = ''
             if not 'episode' in self.meta: self.meta['episode'] = ''
-            self.video_url = self.win.getProperty('1ch.playing.url')
+            self.primewire_url = self.win.getProperty('1ch.playing.url')
 
             self._totalTime=0
             while self._totalTime == 0:
@@ -143,10 +143,10 @@ class Service(xbmc.Player):
                         xbmc.log('PrimeWire: Marking movie .strm as watched: %s' %result)
                 video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
                 ChangeWatched(self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
-                utils.clear_bookmark(self.video_url)
+                utils.clear_bookmark(self.primewire_url)
             else:
-                xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark on %s to %s seconds' % (self.video_url,playedTime))
-                utils.set_bookmark(self.video_url,playedTime)
+                xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark on %s to %s seconds' % (self.primewire_url,playedTime))
+                utils.set_bookmark(self.primewire_url,playedTime)
         self.reset()
 
     def onPlayBackEnded(self):
