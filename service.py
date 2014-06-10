@@ -11,7 +11,6 @@ import json
 import xbmc
 import xbmcgui
 import xbmcaddon
-from utls import set_bookmark
 
 hours_list = [2, 5, 10, 15, 24]
 
@@ -45,6 +44,12 @@ except:
     DB = 'sqlite'
     db_dir = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
 
+def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched=''):
+    from metahandler import metahandlers
+
+    metaget = metahandlers.MetaData(False)
+    metaget.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
+
 def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)
     if minutes > 60:
@@ -53,12 +58,30 @@ def format_time(seconds):
     else:
         return "%02d:%02d" % (minutes, seconds)
 
-def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched=''):
-    from metahandler import metahandlers
-
-    metaget = metahandlers.MetaData(False)
-    metaget.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
-
+def set_bookmark(url,offset):
+    if not url: return
+    sql = "REPLACE INTO new_bkmark (url, resumepoint) VALUES(?,?)"
+    if DB=='mysql':
+        sql = sql.replace('?', '%s')
+        db = database.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDRESS, buffered=True)
+    else:
+        db = database.connect(db_dir)
+    db.execute(sql,(url,offset))
+    db.commit()
+    db.close()
+    
+def clear_bookmark(url):
+    if not url: return
+    sql = "DELETE FROM new_bkmark WHERE url=?"
+    if DB=='mysql':
+        sql = sql.replace('?', '%s')
+        db = database.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDRESS, buffered=True)
+    else:
+        db = database.connect(db_dir)
+    db.execute(sql,(url,))
+    db.commit()
+    db.close()
+    
 class Service(xbmc.Player):
     def __init__(self, *args, **kwargs):
         xbmc.Player.__init__(self, *args, **kwargs)
@@ -138,7 +161,7 @@ class Service(xbmc.Player):
                         playcount = int(result['result']['episodedetails']['playcount']) + 1
                         cmd = cmd %(DBID, playcount)
                         result = xbmc.executeJSONRPC(cmd)
-                        xbmc.log('PrimeWire: Marking .strm as watched: %s' %result)
+                        xbmc.log('PrimeWire: Marking episode .strm as watched: %s' %result)
                     if videotype == 'movie':
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid": %s, "properties": ["playcount"]}, "id": 1}'
                         cmd = cmd %(DBID)
@@ -148,11 +171,13 @@ class Service(xbmc.Player):
                         playcount = int(result['result']['moviedetails']['playcount']) + 1
                         cmd = cmd %(DBID, playcount)
                         result = xbmc.executeJSONRPC(cmd)
-                        xbmc.log('PrimeWire: Marking .strm as watched: %s' %result)
-                ChangeWatched(self.meta['imdb'], videotype, bmark_title, self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
-        else:
-            xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark')
-            set_bookmark(self.video_url,playedTime)
+                        xbmc.log('PrimeWire: Marking movie .strm as watched: %s' %result)
+                video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
+                ChangeWatched(self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
+                clear_bookmark(self.video_url)
+            else:
+                xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark')
+                set_bookmark(self.video_url,playedTime)
         self.reset()
 
     def onPlayBackEnded(self):

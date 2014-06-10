@@ -478,16 +478,27 @@ def format_eta(seconds):
 def bookmark_exists(url):
     return get_bookmark(url) != None
 
+# return the bookmark for the requested url or 0 if not found
 def get_bookmark(url):
-    return 60.0
+    if not url: return None
+    db = connect_db()
+    cur = db.cursor()
+    sql="SELECT resumepoint FROM new_bkmark where url=?"
+    if DB=='mysql':
+        sql = sql.replace('?', '%s')
+    
+    cur.execute(sql, (url,))
+    bookmark = cur.fetchone()
+    db.close()
+    if bookmark:
+        return bookmark[0]
+    else:
+        return None
 
-def set_bookmark(url,offset):
-    pass
-
-# returns true if user chooses to resume
+# returns true if user chooses to resume, else false
 def get_resume_choice(url):
-    question = 'Bookmark set at %s' % (format_time(get_bookmark(url)))
-    return  xbmcgui.Dialog().yesno('Resume?', None, question, None, 'Start from beginning', 'Resume')
+    question = 'Resume from %s' % (format_time(get_bookmark(url)))
+    return xbmcgui.Dialog().yesno('Resume?', question, None, None, 'Start from beginning', 'Resume')
 
 def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)

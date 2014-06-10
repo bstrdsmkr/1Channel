@@ -45,7 +45,6 @@ from utils import *
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
 
-
 try:
     DB_NAME = _1CH.get_setting('db_name')
     DB_USER = _1CH.get_setting('db_user')
@@ -367,12 +366,11 @@ def get_sources(url, title, img, year, imdbnum, dialog):
     _1CH.log('Getting sources from: %s' % url)
     
     dbid=xbmc.getInfoLabel('ListItem.DBID')
-
+    
     resume_point = 0
     if bookmark_exists(url) and get_resume_choice(url):
         resume_point = get_bookmark(url)
-    print "Resume: %s" %(resume_point)
-    
+
     pattern = r'tv-\d{1,10}-(.*)/season-(\d{1,4})-episode-(\d{1,4})'
     match = re.search(pattern, url, re.IGNORECASE | re.DOTALL)
     if match:
@@ -581,7 +579,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, resu
     
     listitem = xbmcgui.ListItem(path=url, iconImage="DefaultVideo.png", thumbnailImage=poster)
     
-    print "Setting resume to: %s" %(resume_point)
+    _1CH.log("Resuming Video at: %s secs"  % (resume_point))
     listitem.setProperty('ResumeTime', str(resume_point))
     listitem.setProperty('Totaltime', str(99999)) # dummy value
 
