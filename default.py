@@ -506,7 +506,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                 _1CH.add_directory({'mode': 'PlaySource', 'url': item['url'], 'title': title,
                                     'img': img, 'year': year, 'imdbnum': imdbnum,
                                     'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
-                                   infolabels={'title': label}, is_folder=False, img=img, fanart=art('fanart.png'))
+                                   infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img, fanart=art('fanart.png'))
                 if item['multi-part']:
                     partnum = 2
                     for part in item['parts']:
@@ -515,7 +515,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                         _1CH.add_directory({'mode': 'PlaySource', 'url': part, 'title': title,
                                             'img': img, 'year': year, 'imdbnum': imdbnum,
                                             'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
-                                           infolabels={'title': label}, is_folder=False, img=img,
+                                           infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img,
                                            fanart=art('fanart.png'))
 
             _1CH.end_of_directory()
@@ -2278,6 +2278,10 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
             listitem = xbmcgui.ListItem(disp_title, iconImage=img,
                                         thumbnailImage=img)
             listitem.addContextMenuItems(menu_items, replaceItems=True)
+
+    # Hack resumetime & totaltime to prevent XBMC from popping up a resume dialog if a native bookmark is set. UGH! 
+    listitem.setProperty('resumetime',str(0))
+    listitem.setProperty('totaltime',str(1))
     return listitem
 
 
