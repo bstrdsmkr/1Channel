@@ -145,7 +145,7 @@ class Service(xbmc.Player):
                 ChangeWatched(self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
                 utils.clear_bookmark(self.video_url)
             else:
-                xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark on %s to %s' % (self.video_url,playedTime))
+                xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark on %s to %s seconds' % (self.video_url,playedTime))
                 utils.set_bookmark(self.video_url,playedTime)
         self.reset()
 
