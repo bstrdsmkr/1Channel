@@ -364,6 +364,7 @@ def get_url(url, cache_limit=8):
 def get_sources(url, title, img, year, imdbnum, dialog):
     url = urllib.unquote(url)
     _1CH.log('Getting sources from: %s' % url)
+    primewire_url = url
     
     dbid=xbmc.getInfoLabel('ListItem.DBID')
     
@@ -469,9 +470,10 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             source=source.get_url()
         else:
             return
-        
-        try: PlaySource(source, title, img, year, imdbnum, video_type, season, episode, resume_point, dbid, strm=True)
+
+        try: PlaySource(source, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume_point, dbid, strm=True)
         except: pass
+        
     else:
         try:
             if _1CH.get_setting('auto-play') == 'false': raise Exception, 'auto-play disabled'
@@ -488,7 +490,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                     label = format_label_source(source)
                     dlg.update(percent, line1, label)
                     try:
-                        PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode, resume_point, dbid)
+                        PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode, primewire_url, resume_point, dbid)
                     except Exception, e:  # Playback failed, try the next one
                         dlg.update(percent, line1, label, str(e))
                         _1CH.log('%s source failed. Trying next source...' % source['host'])
@@ -504,7 +506,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                 label = format_label_source(item)
                 _1CH.add_directory({'mode': 'PlaySource', 'url': item['url'], 'title': title,
                                     'img': img, 'year': year, 'imdbnum': imdbnum,
-                                    'video_type': video_type, 'season': season, 'episode': episode},
+                                    'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume_point': resume_point},
                                    infolabels={'title': label}, is_folder=False, img=img, fanart=art('fanart.png'))
                 if item['multi-part']:
                     partnum = 2
@@ -513,14 +515,14 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                         partnum += 1
                         _1CH.add_directory({'mode': 'PlaySource', 'url': part, 'title': title,
                                             'img': img, 'year': year, 'imdbnum': imdbnum,
-                                            'video_type': video_type, 'season': season, 'episode': episode},
+                                            'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume_point': resume_point},
                                            infolabels={'title': label}, is_folder=False, img=img,
                                            fanart=art('fanart.png'))
 
             _1CH.end_of_directory()
 
 
-def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, resume_point, dbid=None, strm=False, ):
+def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume_point, dbid=None, strm=False):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
     
@@ -536,7 +538,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, resu
     win.setProperty('1ch.playing.imdb', imdbnum)
     win.setProperty('1ch.playing.season', str(season))
     win.setProperty('1ch.playing.episode', str(episode))
-    win.setProperty('1ch.playing.url',_1CH.queries.get('url', ''))
+    win.setProperty('1ch.playing.url',primewire_url)
 
     #metadata is enabled
     if META_ON:
@@ -2296,6 +2298,8 @@ tvdbnum = _1CH.queries.get('tvdbnum', '')
 alt_id = _1CH.queries.get('alt_id', '')
 dialog = _1CH.queries.get('dialog', '')
 day = _1CH.queries.get('day', '')
+resume_point = _1CH.queries.get('resume_point', 0)
+primewire_url = _1CH.queries.get('primewire_url', '')
 
 _1CH.log(_1CH.queries)
 _1CH.log(sys.argv)
@@ -2309,7 +2313,7 @@ elif mode == 'GetSources':
 elif mode == 'PlaySource':
     import urlresolver
 
-    try: PlaySource(url, title, img, year, imdbnum, video_type, season, episode)
+    try: PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume_point)
     except: pass
 elif mode == 'PlayTrailer':
     import urlresolver
