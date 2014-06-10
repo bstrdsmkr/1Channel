@@ -11,6 +11,7 @@ import json
 import xbmc
 import xbmcgui
 import xbmcaddon
+import utils
 
 hours_list = [2, 5, 10, 15, 24]
 
@@ -50,38 +51,6 @@ def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='
     metaget = metahandlers.MetaData(False)
     metaget.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
 
-def format_time(seconds):
-    minutes, seconds = divmod(seconds, 60)
-    if minutes > 60:
-        hours, minutes = divmod(minutes, 60)
-        return "%02d:%02d:%02d" % (hours, minutes, seconds)
-    else:
-        return "%02d:%02d" % (minutes, seconds)
-
-def set_bookmark(url,offset):
-    if not url: return
-    sql = "REPLACE INTO new_bkmark (url, resumepoint) VALUES(?,?)"
-    if DB=='mysql':
-        sql = sql.replace('?', '%s')
-        db = database.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDRESS, buffered=True)
-    else:
-        db = database.connect(db_dir)
-    db.execute(sql,(url,offset))
-    db.commit()
-    db.close()
-    
-def clear_bookmark(url):
-    if not url: return
-    sql = "DELETE FROM new_bkmark WHERE url=?"
-    if DB=='mysql':
-        sql = sql.replace('?', '%s')
-        db = database.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDRESS, buffered=True)
-    else:
-        db = database.connect(db_dir)
-    db.execute(sql,(url,))
-    db.commit()
-    db.close()
-    
 class Service(xbmc.Player):
     def __init__(self, *args, **kwargs):
         xbmc.Player.__init__(self, *args, **kwargs)
@@ -141,8 +110,8 @@ class Service(xbmc.Player):
             watched_values = [.7, .8, .9]
             min_watched_percent = watched_values[int(ADDON.getSetting('watched-percent'))]
             percent = int((playedTime / self._totalTime) * 100)
-            pTime = format_time(playedTime)
-            tTime = format_time(self._totalTime)
+            pTime = utils.format_time(playedTime)
+            tTime = utils.format_time(self._totalTime)
             xbmc.log('PrimeWire: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
             videotype = 'movie' if self.video_type == 'movie' else 'episode'
             if playedTime == 0 and self._totalTime == 999999:
@@ -174,10 +143,10 @@ class Service(xbmc.Player):
                         xbmc.log('PrimeWire: Marking movie .strm as watched: %s' %result)
                 video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
                 ChangeWatched(self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
-                clear_bookmark(self.video_url)
+                utils.clear_bookmark(self.video_url)
             else:
-                xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark')
-                set_bookmark(self.video_url,playedTime)
+                xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark on %s to %s' % (self.video_url,playedTime))
+                utils.set_bookmark(self.video_url,playedTime)
         self.reset()
 
     def onPlayBackEnded(self):

@@ -10,7 +10,7 @@ from addon.common.net import Net
 
 from addon.common.addon import Addon
 
-_1CH = Addon('plugin.video.1channel', sys.argv)
+_1CH = Addon('plugin.video.1channel')
 
 try:
     DB_NAME = _1CH.get_setting('db_name')
@@ -475,6 +475,7 @@ def format_eta(seconds):
         # return retval
         # return wrapper
 
+# return true if bookmark exists
 def bookmark_exists(url):
     return get_bookmark(url) != None
 
@@ -499,6 +500,28 @@ def get_bookmark(url):
 def get_resume_choice(url):
     question = 'Resume from %s' % (format_time(get_bookmark(url)))
     return xbmcgui.Dialog().yesno('Resume?', question, None, None, 'Start from beginning', 'Resume')
+
+def set_bookmark(url,offset):
+    if not url: return
+    sql = "REPLACE INTO new_bkmark (url, resumepoint) VALUES(?,?)"
+    if DB=='mysql':
+        sql = sql.replace('?', '%s')
+
+    db = connect_db()
+    db.execute(sql,(url,offset))
+    db.commit()
+    db.close()
+    
+def clear_bookmark(url):
+    if not url: return
+    sql = "DELETE FROM new_bkmark WHERE url=?"
+    if DB=='mysql':
+        sql = sql.replace('?', '%s')
+
+    db = connect_db()
+    db.execute(sql,(url,))
+    db.commit()
+    db.close()
 
 def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)
