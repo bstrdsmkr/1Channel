@@ -464,7 +464,12 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                         partnum += 1
             except:
                 _1CH.log('Error while trying to resolve %s' % url)
-        source = urlresolver.choose_source(sources).get_url()
+        source = urlresolver.choose_source(sources)
+        if source:
+            source=source.get_url()
+        else:
+            return
+        
         try: PlaySource(source, title, img, year, imdbnum, video_type, season, episode, resume_point, dbid, strm=True)
         except: pass
     else:
