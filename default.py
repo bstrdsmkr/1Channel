@@ -1341,7 +1341,7 @@ def browse_favorites(section):
         video_type = 'movie'
         section = 'movie'
         subs = []
-        folder = _1CH.get_setting('auto-play') == 'false'
+        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
 
     cur.execute(sql, (section,))
     favs = cur.fetchall()
@@ -1357,6 +1357,8 @@ def browse_favorites(section):
 
         liz = build_listitem(video_type, title, year, img, favurl, extra_cms=menu_items, subs=subs)
         img = liz.getProperty('img')
+        if not folder: # should only be when it's a movie and dialog are off and autoplay is off
+            liz.setProperty('isPlayable','true')
         queries = {'mode': nextmode, 'title': title, 'url': favurl,
                    'img': img, 'video_type': video_type}
         li_url = _1CH.build_plugin_url(queries)
