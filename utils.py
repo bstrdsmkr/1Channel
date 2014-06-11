@@ -10,7 +10,10 @@ import xbmcplugin
 from addon.common.addon import Addon
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
-
+BASE_URL = _1CH.get_setting('domain')
+if (_1CH.get_setting("enableDomain")=='true') and (len(_1CH.get_setting("customDomain")) > 10):
+	BASE_URL = _1CH.get_setting("customDomain")
+   
 try:
     DB_NAME = _1CH.get_setting('db_name')
     DB_USER = _1CH.get_setting('db_user')
