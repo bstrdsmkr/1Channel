@@ -1202,7 +1202,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         set_view('tvshows', 'tvshows-view')
     elif video_type == 'movie':
         set_view('movies', 'movies-view')
-    _1CH.end_of_directory()
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 
 def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
@@ -1334,8 +1334,7 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
                                     isFolder=folder)
 
     set_view('episodes', 'episodes-view')
-    _1CH.end_of_directory()
-
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 def browse_favorites(section):
     sql = 'SELECT type, name, url, year FROM favorites WHERE type = ? ORDER BY name'
