@@ -1403,7 +1403,7 @@ def browse_favorites_website(section):
     else:
         video_type = 'movie'
         nextmode = 'GetSources'
-        folder = _1CH.get_setting('auto-play') == 'false'
+        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
         subs = []
 
     pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
@@ -1419,6 +1419,8 @@ def browse_favorites_website(section):
 
         liz = build_listitem(video_type, title, year, img, link, extra_cms=menu_items, subs=subs)
         img = liz.getProperty('img')
+        if not folder: # should only be when it's a movie and dialog are off and autoplay is off
+            liz.setProperty('isPlayable','true')
         queries = {'mode': nextmode, 'title': title, 'url': link,
                    'img': img, 'video_type': video_type}
         li_url = _1CH.build_plugin_url(queries)
