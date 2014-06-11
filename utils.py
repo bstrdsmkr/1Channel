@@ -4,6 +4,7 @@ import sys
 import xbmc
 import xbmcgui
 import xbmcplugin
+from addon.common.net import Net
 
 # from functools import wraps
 
@@ -274,6 +275,14 @@ def website_is_integrated():
 
 def login_and_retry(redirect):
     _1CH.log('Logging in for url %s' % redirect)
+    # needed here because login_and_retry was moved to utils. Probably better to pass in but this works and is quick but dirty.
+    USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
+                  "AppleWebKit/537.17 (KHTML, like Gecko)"
+                  "Chrome/24.0.1312.56")
+    BASE_URL = _1CH.get_setting('domain')
+    if (_1CH.get_setting("enableDomain")=='true') and (len(_1CH.get_setting("customDomain")) > 10):
+        BASE_URL = _1CH.get_setting("customDomain")
+
     user = _1CH.get_setting('username')
     passwd = _1CH.get_setting('passwd')
     url = BASE_URL + '/login.php'
