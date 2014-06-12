@@ -805,7 +805,7 @@ def Search(section, query):
         set_view('movies', 'movies-view')
         nextmode = 'GetSources'
         video_type = 'movie'
-        folder = _1CH.get_setting('auto-play') == 'false'
+        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
         subs = []
 
     html = '> >> <'
@@ -836,6 +836,8 @@ def Search(section, query):
                 li = build_listitem(video_type, title, year, img, resurl, subs=subs)
                 imdb = li.getProperty('imdb')
                 thumb = li.getProperty('img')
+                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
+                    li.setProperty('isPlayable','true')
 
                 queries = {'mode': nextmode, 'title': title, 'url': resurl,
                            'img': thumb, 'imdbnum': imdb,
@@ -881,7 +883,7 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
         set_view('movies', 'movies-view')
         nextmode = 'GetSources'
         video_type = 'movie'
-        folder = _1CH.get_setting('auto-play') == 'false'
+        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
         subs = []
     html = '> >> <'
     page = 0
@@ -907,6 +909,8 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
                 li = build_listitem(video_type, title, year, img, resurl, subs=subs)
                 imdb = li.getProperty('imdb')
                 thumb = li.getProperty('img')
+                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
+                    li.setProperty('isPlayable','true')
                 queries = {'mode': nextmode, 'title': title, 'url': resurl,
                            'img': thumb, 'imdbnum': imdb,
                            'video_type': video_type, 'year': year}
@@ -939,7 +943,7 @@ def SearchDesc(section, query):
         set_view('movies', 'movies-view')
         nextmode = 'GetSources'
         video_type = 'movie'
-        folder = _1CH.get_setting('auto-play') == 'false'
+        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
         subs = []
     html = '> >> <'
     page = 0
@@ -965,6 +969,9 @@ def SearchDesc(section, query):
                 li = build_listitem(video_type, title, year, img, resurl, subs=subs)
                 imdb = li.getProperty('imdb')
                 thumb = li.getProperty('img')
+                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
+                    li.setProperty('isPlayable','true')
+                
                 queries = {'mode': nextmode, 'title': title, 'url': resurl,
                            'img': thumb, 'imdbnum': imdb,
                            'video_type': video_type, 'year': year}
