@@ -123,6 +123,7 @@ def init_database():
         cur.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type VARCHAR(10), title VARCHAR(255), season INTEGER, episode INTEGER, year VARCHAR(10), bookmark VARCHAR(10))')
         cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
         cur.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
+        cur.execute('CREATE TABLE IF NOT EXISTS new_bkmark (url TEXT PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')
         
         #Need to update cache column to a bigger data type
         cur.execute('ALTER TABLE url_cache MODIFY COLUMN response MEDIUMBLOB')
