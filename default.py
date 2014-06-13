@@ -640,7 +640,12 @@ def GetSearchQuery(section):
                 db.commit()
                 db.close()
         else:
-            Search(section, keyboard.getText())
+            _1CH.end_of_directory() # empty directory to avoid GetDir error
+            #Search(section, keyboard.getText())
+            queries = {'mode': 'Search', 'section': section, 'query': keyboard.getText()}
+            pluginurl = _1CH.build_plugin_url(queries)
+            builtin = 'Container.Update(%s)' %(pluginurl)
+            xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
 
@@ -676,8 +681,14 @@ def GetSearchQueryTag(section):
                 db.commit()
                 db.close()
         else:
-            SearchAdvanced(section, keyboard.getText(), tag_text)
+            #SearchAdvanced(section, keyboard.getText(), tag_text)
             #SearchTag(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1')
+            _1CH.end_of_directory() # empty directory to avoid GetDir error
+            query=pack_query(title=keyboard.getText(), tag=tag_text)
+            queries = {'mode': 'SearchTag', 'section': section, 'query': query}
+            pluginurl = _1CH.build_plugin_url(queries)
+            builtin = 'Container.Update(%s)' %(pluginurl)
+            xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
 
@@ -760,8 +771,13 @@ def GetSearchQueryAdvanced(section):
                 db.commit()
                 db.close()
         else:
-            SearchAdvanced(section, keyboard.getText(), tag_text, True, country_text, genre_text, actor_text, director_text, year_text, month_text, decade_text)
-            #SearchTag(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1')
+            #SearchAdvanced(section, keyboard.getText(), tag_text, True, country_text, genre_text, actor_text, director_text, year_text, month_text, decade_text)
+            query=pack_query(keyboard.getText(), tag_text, country_text, genre_text, actor_text, director_text, year_text, month_text, decade_text)
+            _1CH.end_of_directory() # empty directory to avoid GetDir error
+            queries = {'mode': 'SearchAdvanced', 'section': section, 'query': query}
+            pluginurl = _1CH.build_plugin_url(queries)
+            builtin = 'Container.Update(%s)' %(pluginurl)
+            xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
 
@@ -789,7 +805,12 @@ def GetSearchQueryDesc(section):
                 db.commit()
                 db.close()
         else:
-            SearchDesc(section, keyboard.getText())
+            _1CH.end_of_directory() # empty directory to avoid GetDir error
+            #SearchDesc(section, keyboard.getText())
+            queries = {'mode': 'SearchDesc', 'section': section, 'query': keyboard.getText()}
+            pluginurl = _1CH.build_plugin_url(queries)
+            builtin = 'Container.Update(%s)' %(pluginurl)
+            xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
 
@@ -857,7 +878,7 @@ def Search(section, query):
                 li_url = _1CH.build_plugin_url(queries)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
                                             isFolder=folder, totalItems=total)
-    _1CH.end_of_directory()
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 
 def SearchAdvanced(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1'):
@@ -929,7 +950,7 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
                 li_url = _1CH.build_plugin_url(queries)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
                                             isFolder=folder, totalItems=total)
-    _1CH.end_of_directory()
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 
 def SearchDesc(section, query):
@@ -990,7 +1011,7 @@ def SearchDesc(section, query):
                 li_url = _1CH.build_plugin_url(queries)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
                                             isFolder=folder, totalItems=total)
-    _1CH.end_of_directory()
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 
 def AddonMenu():  # homescreen
@@ -2284,6 +2305,26 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
     listitem.setProperty('totaltime',str(1))
     return listitem
 
+def unpack_query(query):
+    expected_keys = ('title','tag','country','genre','actor','director','year','month','decade')
+    criteria=json.loads(query)
+    for key in expected_keys:
+        if key not in criteria: criteria[key]= ''
+
+    return criteria
+
+def pack_query(title='',tag='',country='',genre='',actor='',director='',year='',month='',decade=''):
+    criteria = {}
+    criteria['title']=title
+    criteria['tag']=tag
+    criteria['country']=country
+    criteria['genre']=genre
+    criteria['actor']=actor
+    criteria['director']=director
+    criteria['year']=year
+    criteria['month']=month
+    criteria['decade']=decade
+    return json.dumps(criteria)
 
 mode = _1CH.queries.get('mode', None)
 section = _1CH.queries.get('section', '')
@@ -2348,6 +2389,16 @@ elif mode == 'GetSearchQueryAdvanced':
     GetSearchQueryAdvanced(section)
 elif mode == 'GetSearchQueryDesc':
     GetSearchQueryDesc(section)
+elif mode == 'Search':
+    Search(section,query)
+elif mode == 'SearchTag':
+    criteria = unpack_query(query)
+    SearchAdvanced(section,criteria['title'],criteria['tag'])
+elif mode == 'SearchAdvanced':
+    criteria = unpack_query(query)
+    SearchAdvanced(section, criteria['title'], criteria['tag'], True, criteria['country'], criteria['genre'], criteria['actor'], criteria['director'], criteria['year'], criteria['month'], criteria['decade'])
+elif mode == 'SearchDesc':
+    SearchDesc(section,query)
 elif mode == '7000':  # Enables Remote Search
     Search(section, query)
 elif mode == 'browse_favorites':
