@@ -1382,7 +1382,7 @@ def browse_favorites(section):
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, liz,
                                     isFolder=folder)
 
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
     db.close()
 
 
@@ -1443,7 +1443,7 @@ def browse_favorites_website(section):
         li_url = _1CH.build_plugin_url(queries)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, liz,
                                     isFolder=folder)
-    _1CH.end_of_directory()
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 
 def migrate_favs_to_web():
@@ -1542,7 +1542,7 @@ def get_by_letter(letter, section):
         li_url = _1CH.build_plugin_url(queries)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
                                     isFolder=folder)
-    _1CH.end_of_directory()
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 
 def create_meta(video_type, title, year, thumb):
