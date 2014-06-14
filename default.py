@@ -644,7 +644,7 @@ def GetSearchQuery(section):
             #Search(section, keyboard.getText())
             queries = {'mode': 'Search', 'section': section, 'query': keyboard.getText()}
             pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s)' %(pluginurl)
+            builtin = 'Container.Update(%s,replace)' %(pluginurl)
             xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
@@ -687,7 +687,7 @@ def GetSearchQueryTag(section):
             query=pack_query(title=keyboard.getText(), tag=tag_text)
             queries = {'mode': 'SearchTag', 'section': section, 'query': query}
             pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s)' %(pluginurl)
+            builtin = 'Container.Update(%s,replace)' %(pluginurl)
             xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
@@ -776,7 +776,7 @@ def GetSearchQueryAdvanced(section):
             _1CH.end_of_directory() # empty directory to avoid GetDir error
             queries = {'mode': 'SearchAdvanced', 'section': section, 'query': query}
             pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s)' %(pluginurl)
+            builtin = 'Container.Update(%s,replace)' %(pluginurl)
             xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
@@ -809,7 +809,7 @@ def GetSearchQueryDesc(section):
             #SearchDesc(section, keyboard.getText())
             queries = {'mode': 'SearchDesc', 'section': section, 'query': keyboard.getText()}
             pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s)' %(pluginurl)
+            builtin = 'Container.Update(%s,replace)' %(pluginurl)
             xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
