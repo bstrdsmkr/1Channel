@@ -640,11 +640,10 @@ def GetSearchQuery(section):
                 db.commit()
                 db.close()
         else:
-            _1CH.end_of_directory() # empty directory to avoid GetDir error
             #Search(section, keyboard.getText())
             queries = {'mode': 'Search', 'section': section, 'query': keyboard.getText()}
             pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s,replace)' %(pluginurl)
+            builtin = 'Container.Update(%s)' %(pluginurl)
             xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
@@ -683,11 +682,10 @@ def GetSearchQueryTag(section):
         else:
             #SearchAdvanced(section, keyboard.getText(), tag_text)
             #SearchTag(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1')
-            _1CH.end_of_directory() # empty directory to avoid GetDir error
             query=pack_query(title=keyboard.getText(), tag=tag_text)
             queries = {'mode': 'SearchTag', 'section': section, 'query': query}
             pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s,replace)' %(pluginurl)
+            builtin = 'Container.Update(%s)' %(pluginurl)
             xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
@@ -773,10 +771,9 @@ def GetSearchQueryAdvanced(section):
         else:
             #SearchAdvanced(section, keyboard.getText(), tag_text, True, country_text, genre_text, actor_text, director_text, year_text, month_text, decade_text)
             query=pack_query(keyboard.getText(), tag_text, country_text, genre_text, actor_text, director_text, year_text, month_text, decade_text)
-            _1CH.end_of_directory() # empty directory to avoid GetDir error
             queries = {'mode': 'SearchAdvanced', 'section': section, 'query': query}
             pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s,replace)' %(pluginurl)
+            builtin = 'Container.Update(%s)' %(pluginurl)
             xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
@@ -805,11 +802,10 @@ def GetSearchQueryDesc(section):
                 db.commit()
                 db.close()
         else:
-            _1CH.end_of_directory() # empty directory to avoid GetDir error
             #SearchDesc(section, keyboard.getText())
             queries = {'mode': 'SearchDesc', 'section': section, 'query': keyboard.getText()}
             pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s,replace)' %(pluginurl)
+            builtin = 'Container.Update(%s)' %(pluginurl)
             xbmc.executebuiltin(builtin)
     else:
         BrowseListMenu(section)
@@ -1035,19 +1031,20 @@ def AddonMenu():  # homescreen
     # _1CH.add_directory({'mode': 'test'},   {'title':  'Test'}, img=art('settings.png'), fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-
 def BrowseListMenu(section=None):
     _1CH.log('Browse Options')
     _1CH.add_directory({'mode': 'BrowseAlphabetMenu', 'section': section}, {'title': 'A-Z'}, img=art('atoz.png'),
                        fanart=art('fanart.png'))
-    _1CH.add_directory({'mode': 'GetSearchQuery', 'section': section}, {'title': 'Search'}, img=art('search.png'),
-                       fanart=art('fanart.png'))
+
+    add_search_item({'mode': 'GetSearchQuery', 'section': section}, 'Search')
+    
     if website_is_integrated():
         _1CH.add_directory({'mode': 'browse_favorites_website', 'section': section}, {'title': 'Website Favourites'},
                            img=art('favourites.png'), fanart=art('fanart.png'))
     else:
         _1CH.add_directory({'mode': 'browse_favorites', 'section': section}, {'title': 'Favourites'},
                            img=art('favourites.png'), fanart=art('fanart.png'))
+        
     if section == 'tv':
         _1CH.add_directory({'mode': 'manage_subscriptions'}, {'title': 'Subscriptions'}, img=art('subscriptions.png'),
                            fanart=art('fanart.png'))
@@ -1063,14 +1060,20 @@ def BrowseListMenu(section=None):
                        {'title': 'Date released'}, img=art('date_released.png'), fanart=art('fanart.png'))
     _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'date'}, {'title': 'Date added'},
                        img=art('date_added.png'), fanart=art('fanart.png'))
-    _1CH.add_directory({'mode': 'GetSearchQueryDesc', 'section': section}, {'title': 'Search (+Description)'}, img=art('search.png'),
-                       fanart=art('fanart.png'))
-    _1CH.add_directory({'mode': 'GetSearchQueryTag', 'section': section}, {'title': 'Search (by Title & Tag)'}, img=art('search.png'),
-                       fanart=art('fanart.png'))
-    _1CH.add_directory({'mode': 'GetSearchQueryAdvanced', 'section': section}, {'title': 'Search (Advanced Search)'}, img=art('search.png'),
-                       fanart=art('fanart.png'))
+    
+    add_search_item({'mode': 'GetSearchQueryDesc', 'section': section}, 'Search (+Description)')
+    add_search_item({'mode': 'GetSearchQueryTag', 'section': section}, 'Search (by Title & Tag)')
+    add_search_item({'mode': 'GetSearchQueryAdvanced', 'section': section}, 'Search (Advanced Search)')
+    
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+# add searches as an items so they don't get added to the path history
+# _1CH.add_item doesn't work because it insists on adding non-folder items as playable
+def add_search_item(queries, label):
+    liz = xbmcgui.ListItem(label=label, iconImage=art('search.png'), thumbnailImage=art('search.png'))
+    liz.setProperty('fanart_image', art('fanart.png'))
+    liz_url = _1CH.build_plugin_url(queries)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
 def BrowseAlphabetMenu(section=None):
     _1CH.log('Browse by alphabet screen')
