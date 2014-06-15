@@ -1012,7 +1012,7 @@ def AddonMenu():  # homescreen
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
-def BrowseListMenu(section=None):
+def BrowseListMenu(section):
     _1CH.log('Browse Options')
     _1CH.add_directory({'mode': 'BrowseAlphabetMenu', 'section': section}, {'title': 'A-Z'}, img=art('atoz.png'),
                        fanart=art('fanart.png'))
@@ -1334,58 +1334,63 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
     set_view('episodes', 'episodes-view')
     _1CH.end_of_directory()
 
+def get_section_params(section):
+    section_params={}
+    if section == 'tv':
+        set_view('tvshows', 'tvshows-view')
+        section_params['nextmode'] = 'TVShowSeasonList'
+        section_params['video_type'] = 'tvshow'
+        section_params['folder'] = True
+        db = connect_db()
+        cur = db.cursor()
+        cur.execute('SELECT url FROM subscriptions')
+        subscriptions = cur.fetchall()
+        section_params['subs'] = [row[0] for row in subscriptions]
+    else:
+        set_view('movies', 'movies-view')
+        section_params['nextmode'] = 'GetSources'
+        section_params['video_type'] = 'movie'
+        section_params['folder'] = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
+        section_params['subs'] = []
+    return section_params
+
+def create_item(section_params,title,year,img,url,menu_items):
+        liz = build_listitem(section_params['video_type'], title, year, img, url, extra_cms=menu_items, subs=section_params['subs'])
+        img = liz.getProperty('img')
+        if not section_params['folder']: # should only be when it's a movie and dialog are off and autoplay is off
+            liz.setProperty('isPlayable','true')
+        queries = {'mode': section_params['nextmode'], 'title': title, 'url': url, 'img': img, 'video_type': section_params['video_type']}
+        liz_url = _1CH.build_plugin_url(queries)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,isFolder=section_params['folder'])
 
 def browse_favorites(section):
-    sql = 'SELECT type, name, url, year FROM favorites WHERE type = ? ORDER BY name'
+    if not section: section='movie'
+    sql = 'SELECT name, url, year FROM favorites WHERE type = ? ORDER BY name'
     db = connect_db()
     if DB == 'mysql':
         sql = sql.replace('?', '%s')
     cur = db.cursor()
-    if section == 'tv':
-        set_view('tvshows', 'tvshows-view')
-    else:
-        set_view('movies', 'movies-view')
-    if section == 'tv':
-        nextmode = 'TVShowSeasonList'
-        video_type = 'tvshow'
-        folder = True
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
-        subs = [row[0] for row in subscriptions]
-    else:
-        nextmode = 'GetSources'
-        video_type = 'movie'
-        section = 'movie'
-        subs = []
-        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
-
     cur.execute(sql, (section,))
     favs = cur.fetchall()
+    cur.close()
+    db.close()
+    
+    section_params = get_section_params(section)
+    
     for row in favs:
-        title = row[1]
-        favurl = row[2]
-        year = row[3]
-        img = ''
+        (title,favurl,year) = row
 
         remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' % (
             sys.argv[1], section, title, year, favurl)
         menu_items = [('Remove from Favorites', remfavstring)]
 
-        liz = build_listitem(video_type, title, year, img, favurl, extra_cms=menu_items, subs=subs)
-        img = liz.getProperty('img')
-        if not folder: # should only be when it's a movie and dialog are off and autoplay is off
-            liz.setProperty('isPlayable','true')
-        queries = {'mode': nextmode, 'title': title, 'url': favurl,
-                   'img': img, 'video_type': video_type}
-        li_url = _1CH.build_plugin_url(queries)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, liz,
-                                    isFolder=folder)
-
+        create_item(section_params,title,year,'',favurl,menu_items)
+        
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    db.close()
 
 
 def browse_favorites_website(section):
+    if not section: section='movies'
     sql = 'SELECT count(*) FROM favorites'
     db = connect_db()
     if DB == 'mysql':
@@ -1397,7 +1402,6 @@ def browse_favorites_website(section):
         _1CH.add_item({'mode': 'migrateFavs'}, {'title': 'Upload Local Favorites'})
 
     user = _1CH.get_setting('username')
-    section = 'movies' if not section else section
     url = '/profile.php?user=%s&fav&show=%s'
     url = BASE_URL + url % (user, section)
     cookiejar = _1CH.get_profile()
@@ -1408,19 +1412,7 @@ def browse_favorites_website(section):
     if not '<a href="/logout.php">[ Logout ]</a>' in html:
         html = login_and_retry(url)
 
-    if section == 'tv':
-        video_type = 'tvshow'
-        nextmode = 'TVShowSeasonList'
-        folder = True
-        db = connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subs = cur.fetchall()
-    else:
-        video_type = 'movie'
-        nextmode = 'GetSources'
-        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
-        subs = []
+    section_params = get_section_params(section)
 
     pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
     regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
@@ -1429,19 +1421,10 @@ def browse_favorites_website(section):
         if not year or len(year) != 4:
             year = ''
 
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-            {'mode': 'DeleteFav', 'section': section, 'title': title, 'url': link, 'year': year})
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': title, 'url': link, 'year': year})
         menu_items = [('Delete Favorite', runstring)]
 
-        liz = build_listitem(video_type, title, year, img, link, extra_cms=menu_items, subs=subs)
-        img = liz.getProperty('img')
-        if not folder: # should only be when it's a movie and dialog are off and autoplay is off
-            liz.setProperty('isPlayable','true')
-        queries = {'mode': nextmode, 'title': title, 'url': link,
-                   'img': img, 'video_type': video_type}
-        li_url = _1CH.build_plugin_url(queries)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, liz,
-                                    isFolder=folder)
+        create_item(section_params,title,year,img,link,menu_items)
     _1CH.end_of_directory()
 
 
