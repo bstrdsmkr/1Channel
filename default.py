@@ -1275,7 +1275,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
                 listitem.setInfo('video', temp)
                 listitem.setProperty('fanart_image', fanart)
                 queries = {'mode': 'TVShowEpisodeList', 'season': number,
-                           'imdbnum': imdbnum, 'title': title}
+                           'imdbnum': imdbnum, 'title': title, 'section': 'tv'}
                 li_url = _1CH.build_plugin_url(queries)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
                                             isFolder=True,
