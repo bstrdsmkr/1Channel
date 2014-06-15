@@ -91,7 +91,7 @@ ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
 BASE_URL = _1CH.get_setting('domain')
 if (_1CH.get_setting("enableDomain")=='true') and (len(_1CH.get_setting("customDomain")) > 10):
-	BASE_URL = _1CH.get_setting("customDomain")
+    BASE_URL = _1CH.get_setting("customDomain")
 
 USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
               "AppleWebKit/537.17 (KHTML, like Gecko)"
@@ -106,8 +106,8 @@ PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
 
 if not xbmcvfs.exists(_1CH.get_profile()): 
-	try: xbmcvfs.mkdirs(_1CH.get_profile())
-	except: os.path.mkdir(_1CH.get_profile())
+    try: xbmcvfs.mkdirs(_1CH.get_profile())
+    except: os.path.mkdir(_1CH.get_profile())
 
 def art(name): 
     return os.path.join(THEME_PATH, name)
@@ -138,18 +138,18 @@ def init_database():
         db_ver = cur.fetchall() or [0]
         #todo: write version number comparison logic to handle letters and etc
         if _1CH.get_version() > db_ver[0]:
-	        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
-	        #or there's nothing else we can do about it. Either way: ignore it and try to keep going
-	        try: 
-	            cur.execute('ALTER TABLE subscriptions ADD day TEXT')
-	        #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
-	        except: #todo: catch the specific exception
-	            pass
+            ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
+            #or there's nothing else we can do about it. Either way: ignore it and try to keep going
+            try: 
+                cur.execute('ALTER TABLE subscriptions ADD day TEXT')
+            #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
+            except: #todo: catch the specific exception
+                pass
 
     else:
         if not xbmcvfs.exists(os.path.dirname(DB_DIR)): 
-        	try: xbmcvfs.mkdirs(os.path.dirname(DB_DIR))
-        	except: os.path.mkdir(os.path.dirname(DB_DIR))
+            try: xbmcvfs.mkdirs(os.path.dirname(DB_DIR))
+            except: os.path.mkdir(os.path.dirname(DB_DIR))
         db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
         db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
         db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum, day)')
@@ -170,13 +170,13 @@ def init_database():
         db_ver = db.execute('SELECT value FROM db_info WHERE setting = "version"').fetchall() or [0]
         #todo: write version number comparison logic to handle letters and etc
         if _1CH.get_version() > db_ver[0]:
-	        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
-	        #or there's nothing else we can do about it. Either way: ignore it and try to keep going
-	        try: 
-	            cur.execute('ALTER TABLE subscriptions ADD day')
-	        #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
-	        except: #todo: catch the specific exception
-	            pass
+            ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
+            #or there's nothing else we can do about it. Either way: ignore it and try to keep going
+            try: 
+                cur.execute('ALTER TABLE subscriptions ADD day')
+            #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
+            except: #todo: catch the specific exception
+                pass
 
     sql = "REPLACE INTO db_info (setting, value) VALUES(%s,%s)"
     if DB == 'sqlite':
@@ -1052,13 +1052,9 @@ def BrowseAlphabetMenu(section=None):
     _1CH.log('Browse by alphabet screen')
     _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'alphabet', 'letter': '123'},
                        {'title': '#123'}, img=art('123.png'), fanart=art('fanart.png'))
-    # queries = {'mode': 'get_by_letter', 'video_type': section, 'letter': '#'}
-    # _1CH.add_directory(queries, {'title':  '#123'}, img=art('#.png'), fanart=art('fanart.png'))
     for character in AZ_DIRECTORIES:
         _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'alphabet', 'letter': character},
                            {'title': character}, img=art(character + '.png'), fanart=art('fanart.png'))
-        # queries = {'mode': 'get_by_letter', 'section': section, 'letter': character}
-        # _1CH.add_directory(queries, {'title':  character}, img=art(character+'.png'), fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
@@ -1071,29 +1067,29 @@ def BrowseByGenreMenu(section=None, letter=None): #2000
 
 
 def filename_filter_out_year(name=''):
-	try:
-		years=re.compile(' \((\d+)\)').findall('__'+name+'__')
-		for year in years: name=name.replace(' ('+year+')','')
-		name=name.replace('[B]','').replace('[/B]','').replace('[/COLOR]','').replace('[COLOR green]','')
-		name=name.strip()
-		return name
-	except: name.strip(); return name
+    try:
+        years=re.compile(' \((\d+)\)').findall('__'+name+'__')
+        for year in years: name=name.replace(' ('+year+')','')
+        name=name.replace('[B]','').replace('[/B]','').replace('[/COLOR]','').replace('[COLOR green]','')
+        name=name.strip()
+        return name
+    except: name.strip(); return name
 
 def add_contextsearchmenu(title, video_type, resurl=''):
     contextmenuitems = []
     nameonly=filename_filter_out_year(title); #print 'nameonly:  '+nameonly
     if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.solarmovie.so'):
-    	if video_type == 'tv':
-    		section = 'tv'
-    		contextmenuitems.append(('Find AirDates', 'XBMC.Container.Update(%s?mode=%s&title=%s)' % ('plugin://plugin.video.solarmovie.so/','SearchForAirDates',nameonly)))
-    	else: section = 'movies'
-    	contextmenuitems.append(('Search Solarmovie.so', 'XBMC.Container.Update(%s?mode=%s&section=%s&title=%s)' % ('plugin://plugin.video.solarmovie.so/','ApiSearch',section,nameonly)))
+        if video_type == 'tv':
+            section = 'tv'
+            contextmenuitems.append(('Find AirDates', 'XBMC.Container.Update(%s?mode=%s&title=%s)' % ('plugin://plugin.video.solarmovie.so/','SearchForAirDates',nameonly)))
+        else: section = 'movies'
+        contextmenuitems.append(('Search Solarmovie.so', 'XBMC.Container.Update(%s?mode=%s&section=%s&title=%s)' % ('plugin://plugin.video.solarmovie.so/','ApiSearch',section,nameonly)))
     #if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.kissanime'):
-    #	contextmenuitems.append(('Search KissAnime', 'XBMC.Container.Update(%s?mode=%s&pageno=1&pagecount=1&title=%s)' % ('plugin://plugin.video.kissanime/','Search',nameonly)))
+    #    contextmenuitems.append(('Search KissAnime', 'XBMC.Container.Update(%s?mode=%s&pageno=1&pagecount=1&title=%s)' % ('plugin://plugin.video.kissanime/','Search',nameonly)))
     #if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.merdb'):
-    #	if video_type == 'tv': section = 'tvshows'; surl='http://merdb.ru/tvshow/'
-    #	else: section = 'movies'; surl='http://merdb.ru/'
-    #	contextmenuitems.append(('Search MerDB', 'XBMC.Container.Update(%s?mode=%s&section=%s&url=%s&title=%s)' % ('plugin://plugin.video.merdb/','Search',section,urllib.quote_plus(surl),nameonly)))
+    #    if video_type == 'tv': section = 'tvshows'; surl='http://merdb.ru/tvshow/'
+    #    else: section = 'movies'; surl='http://merdb.ru/'
+    #    contextmenuitems.append(('Search MerDB', 'XBMC.Container.Update(%s?mode=%s&section=%s&url=%s&title=%s)' % ('plugin://plugin.video.merdb/','Search',section,urllib.quote_plus(surl),nameonly)))
     if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.icefilms'):
         contextmenuitems.append(('Search Icefilms',
                                  'XBMC.Container.Update(%s?mode=555&url=%s&search=%s&nextPage=%s)' % (
@@ -1212,6 +1208,9 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
         _1CH.log('Adult content url detected')
         adulturl = BASE_URL + r.group(1)
         headers = {'Referer': url}
+        net = Net()
+        cookiejar = _1CH.get_profile()
+        cookiejar = os.path.join(cookiejar, 'cookies')
         net.set_cookies(cookiejar)
         html = net.http_GET(adulturl, headers=headers).content
         html = html.decode('iso-8859-1').encode('utf-8')
@@ -1379,22 +1378,19 @@ def browse_favorites(section):
     
     for row in favs:
         (title,favurl,year) = row
-
+        
         remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' % (
             sys.argv[1], section, title, year, favurl)
         menu_items = [('Remove from Favorites', remfavstring)]
 
         create_item(section_params,title,year,'',favurl,menu_items)
-        
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    _1CH.end_of_directory()
 
 
 def browse_favorites_website(section):
     if not section: section='movies'
     sql = 'SELECT count(*) FROM favorites'
     db = connect_db()
-    if DB == 'mysql':
-        sql = sql.replace('?', '%s')
     cur = db.cursor()
     local_favs = cur.execute(sql).fetchall()
 
@@ -1418,8 +1414,7 @@ def browse_favorites_website(section):
     regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
     for item in regex.finditer(html):
         link, img, year, title, delete = item.groups()
-        if not year or len(year) != 4:
-            year = ''
+        if not year or len(year) != 4: year = ''
 
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': title, 'url': link, 'year': year})
         menu_items = [('Delete Favorite', runstring)]
@@ -1483,49 +1478,6 @@ def migrate_favs_to_web():
             # cur.execute(sql_delete, failures)
         else:
             cur.execute('DELETE FROM favorites')
-
-
-def get_by_letter(letter, section):
-    try: _1CH.log('Showing results for letter: %s' % letter)
-    except: pass
-    if section == 'tv':
-        url = '%s/alltvshows.php' % BASE_URL
-        video_type = 'tvshow'
-        nextmode = 'TVShowSeasonList'
-        folder = True
-        db = connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subs = cur.fetchall()
-    else:
-        url = '%s/allmovies.php' % BASE_URL
-        video_type = 'movie'
-        nextmode = 'GetSources'
-        folder = _1CH.get_setting('auto-play') == 'false'
-
-    html = get_url(url)
-    regex = r'<div class="regular_page">\s+<h1 class="titles">(.+)'
-    regex += r'<div class="clearer"></div>\s+</div>'
-    container = re.search(regex, html, re.DOTALL | re.I).group(1)
-    ltr_regex = '[%s]</h2>(.+?)<h2>' % letter
-    ltr_container = re.search(ltr_regex, container, re.DOTALL | re.I).group(1)
-    item_regex = r'<div class="all_movies_item">'
-    item_regex += r'<a href="(.+?)"> ?(.+?)</a> \[ (.+?) \]</div>'
-    listings = re.finditer(item_regex, ltr_container)
-    for item in listings:
-        resurl, title, year = item.groups()
-
-        listitem = build_listitem(video_type, title, year, img, resurl, subs=subs)
-        url = '%s/%s' % (BASE_URL, resurl)
-        # TODO: make a decision on handling meta here
-        queries = {'mode': nextmode, 'title': title, 'url': url,
-                   'img': meta['cover_url'], 'imdbnum': meta['imdb_id'],
-                   'video_type': video_type, 'year': year}
-        li_url = _1CH.build_plugin_url(queries)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
-                                    isFolder=folder)
-    _1CH.end_of_directory()
-
 
 def create_meta(video_type, title, year, thumb):
     try:
@@ -1646,7 +1598,7 @@ def create_meta_packs():
                 start_letter = letter
                 __metaget__.__del__()
                 shutil.rmtree(container.cache_path)
-                __metaget__ = metahandlers.MetaData(preparezip=prepare_zip)
+                __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
 
             if letters_completed <= letters_per_zip:
                 scan_by_letter(video_type, letter)
@@ -1985,16 +1937,16 @@ def add_subscription(url, title, img, year, imdbnum, day=''):
             sql = sql.replace('?', '%s')
         cur = db.cursor()
         try: 
-        	cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
+            cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
         except: ## Note: Temp-Fix for Adding the Extra COLUMN to the SQL TABLE ##
-        	try: 
-        		cur.execute('ALTER TABLE subscriptions ADD day TEXT')
-        		cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
-        	except:
-        		builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
-        		xbmc.executebuiltin(builtin)
-        		xbmc.executebuiltin('Container.Update')
-        		return
+            try: 
+                cur.execute('ALTER TABLE subscriptions ADD day TEXT')
+                cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
+            except:
+                builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
+                xbmc.executebuiltin(builtin)
+                xbmc.executebuiltin('Container.Update')
+                return
         db.commit()
         db.close()
         add_to_library('tvshow', url, title, img, year, imdbnum)
@@ -2062,13 +2014,13 @@ def manage_subscriptions(day=''):
     fanart = art('fanart.png')
     _1CH.add_directory({'day':'','mode':'manage_subscriptions'},{'title':D1Code % 'ALL'},is_folder=True,fanart=fanart,img=art('subscriptions.png'))
     if day=='':
-    	d='Monday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Tuesday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Wednesday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Thursday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Friday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Saturday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Sunday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Monday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Tuesday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Wednesday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Thursday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Friday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Saturday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Sunday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
     set_view('tvshows', 'tvshows-view')
     db = connect_db()
     cur = db.cursor()
@@ -2104,7 +2056,7 @@ def manage_subscriptions(day=''):
 
         # _1CH.add_item({'mode':'manage_subscriptions'},meta,menu_items,True,img,fanart,is_folder=True)
         try: 
-        	if len(sub[5]) > 0: meta['title']=(D2Code % (D1Code % (sub[5])))+' '+meta['title']
+            if len(sub[5]) > 0: meta['title']=(D2Code % (D1Code % (sub[5])))+' '+meta['title']
         except: pass
         listitem = xbmcgui.ListItem(meta['title'], iconImage=img, thumbnailImage=img)
         listitem.setInfo('video', meta)
@@ -2202,10 +2154,10 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
 
         if 'trailer_url' in meta:
             try:
-            	url = meta['trailer_url']
-            	url = url.encode('base-64').strip()
-            	runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'PlayTrailer', 'url': url})
-            	menu_items.append(('Watch Trailer', runstring,))
+                url = meta['trailer_url']
+                url = url.encode('base-64').strip()
+                runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'PlayTrailer', 'url': url})
+                menu_items.append(('Watch Trailer', runstring,))
             except: pass
 
         if meta['overlay'] == 6:
@@ -2304,8 +2256,6 @@ elif mode == 'BrowseListMenu':
     BrowseListMenu(section)
 elif mode == 'BrowseAlphabetMenu':
     BrowseAlphabetMenu(section)
-elif mode == 'get_by_letter':
-    get_by_letter(letter, section)
 elif mode == 'BrowseByGenreMenu':
     BrowseByGenreMenu(section)
 elif mode == 'GetFilteredResults':
