@@ -797,26 +797,9 @@ def Search(section, query):
     search_url = BASE_URL + '/index.php?search_keywords='
     search_url += urllib.quote_plus(query)
     search_url += '&key=' + r
-    if section == 'tv':
-        utils.set_view('tvshows', 'tvshows-view')
-        search_url += '&search_section=2'
-        nextmode = 'TVShowSeasonList'
-        video_type = 'tvshow'
-        folder = True
-        db = utils.connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
-        db.close()
-        subs = [row[0] for row in subscriptions]
-
-    else:
-        utils.set_view('movies', 'movies-view')
-        nextmode = 'GetSources'
-        video_type = 'movie'
-        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
-        subs = []
-
+    if section == 'tv':  search_url += '&search_section=2'
+    section_params = get_section_params(section)
+    
     html = '> >> <'
     page = 0
 
@@ -840,20 +823,8 @@ def Search(section, query):
         for s in regex:
             resurl, title, year, thumb = s.groups()
             if resurl not in resurls:
-                resurls.append(resurl)
-
-                li = build_listitem(video_type, title, year, img, resurl, subs=subs)
-                imdb = li.getProperty('imdb')
-                thumb = li.getProperty('img')
-                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
-                    li.setProperty('isPlayable','true')
-
-                queries = {'mode': nextmode, 'title': title, 'url': resurl,
-                           'img': thumb, 'imdbnum': imdb,
-                           'video_type': video_type, 'year': year}
-                li_url = _1CH.build_plugin_url(queries)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
-                                            isFolder=folder, totalItems=total)
+                resurls.append(resurl)                
+                create_item(section_params,title,year,thumb,resurl,total)
     _1CH.end_of_directory()
 
 
@@ -876,24 +847,9 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
     search_url += '&advanced=' + urllib.quote_plus(advanced)
     ###search_url += 'search_section=1&genre=&director=&actor_name=&country=&search_rating=0&year=0&month=0&decade=0&host=&advanced=1'
     search_url += '&key=' + r
-    if section == 'tv':
-        utils.set_view('tvshows', 'tvshows-view')
-        search_url += '&search_section=2'
-        nextmode = 'TVShowSeasonList'
-        video_type = 'tvshow'
-        folder = True
-        db = utils.connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
-        db.close()
-        subs = [row[0] for row in subscriptions]
-    else:
-        utils.set_view('movies', 'movies-view')
-        nextmode = 'GetSources'
-        video_type = 'movie'
-        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
-        subs = []
+    if section == 'tv': search_url += '&search_section=2'
+    section_params = get_section_params(section)
+
     html = '> >> <'
     page = 0
     while html.find('> >> <') > -1 and page < 10:
@@ -915,17 +871,7 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
             resurl, title, year, thumb = s.groups()
             if resurl not in resurls:
                 resurls.append(resurl)
-                li = build_listitem(video_type, title, year, img, resurl, subs=subs)
-                imdb = li.getProperty('imdb')
-                thumb = li.getProperty('img')
-                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
-                    li.setProperty('isPlayable','true')
-                queries = {'mode': nextmode, 'title': title, 'url': resurl,
-                           'img': thumb, 'imdbnum': imdb,
-                           'video_type': video_type, 'year': year}
-                li_url = _1CH.build_plugin_url(queries)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
-                                            isFolder=folder, totalItems=total)
+                create_item(section_params,title,year,thumb,resurl,total)
     _1CH.end_of_directory()
 
 
@@ -936,24 +882,8 @@ def SearchDesc(section, query):
     search_url += urllib.quote_plus(query)
     search_url += '&desc_search=1' ## 1 = Search Descriptions
     search_url += '&key=' + r
-    if section == 'tv':
-        utils.set_view('tvshows', 'tvshows-view')
-        search_url += '&search_section=2'
-        nextmode = 'TVShowSeasonList'
-        video_type = 'tvshow'
-        folder = True
-        db = utils.connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
-        db.close()
-        subs = [row[0] for row in subscriptions]
-    else:
-        utils.set_view('movies', 'movies-view')
-        nextmode = 'GetSources'
-        video_type = 'movie'
-        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
-        subs = []
+    if section == 'tv': search_url += '&search_section=2'
+    section_params = get_section_params(section)
     html = '> >> <'
     page = 0
     while html.find('> >> <') > -1 and page < 10:
@@ -975,18 +905,7 @@ def SearchDesc(section, query):
             resurl, title, year, thumb = s.groups()
             if resurl not in resurls:
                 resurls.append(resurl)
-                li = build_listitem(video_type, title, year, img, resurl, subs=subs)
-                imdb = li.getProperty('imdb')
-                thumb = li.getProperty('img')
-                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
-                    li.setProperty('isPlayable','true')
-                
-                queries = {'mode': nextmode, 'title': title, 'url': resurl,
-                           'img': thumb, 'imdbnum': imdb,
-                           'video_type': video_type, 'year': year}
-                li_url = _1CH.build_plugin_url(queries)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
-                                            isFolder=folder, totalItems=total)
+                create_item(section_params, title, year, thumb, resurl, total)
     _1CH.end_of_directory()
 
 
@@ -1114,6 +1033,15 @@ def add_contextsearchmenu(title, video_type, resurl=''):
 
     return contextmenuitems
 
+def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
+    liz = build_listitem(section_params['video_type'], title, year, img, url, imdbnum, season, episode, extra_cms=menu_items, subs=section_params['subs'])
+    img = liz.getProperty('img')
+    imdbnum = liz.getProperty('imdb')
+    if not section_params['folder']: # should only be when it's a movie and dialog are off and autoplay is off
+        liz.setProperty('isPlayable','true')
+    queries = {'mode': section_params['nextmode'], 'title': title, 'url': url, 'img': img, 'imdbnum': imdbnum, 'video_type': section_params['video_type']}
+    liz_url = _1CH.build_plugin_url(queries)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,section_params['folder'],totalItems)
 
 def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None):
     _1CH.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % (section, genre, letter, sort, page))
@@ -1126,23 +1054,9 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
     if page: pageurl += '&page=%s' % page
 
     page = int(page)+1 if page else 2
-    if section == 'tv':
-        nextmode = 'TVShowSeasonList'
-        video_type = 'tvshow'
-        folder = True
-        db = utils.connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
-        db.close()
-        subs = [row[0] for row in subscriptions]
 
-    else:
-        nextmode = 'GetSources'
-        section = 'movie'
-        video_type = 'movie'
-        subs = []
-
+    section_params = get_section_params(section)
+    
     html = get_url(pageurl)
 
     r = re.search('number_movies_result">([0-9,]+)', html)
@@ -1160,23 +1074,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         resurl, title, year, thumb = s.groups()
         if resurl not in resurls:
             resurls.append(resurl)
-            li = build_listitem(video_type, title, year, thumb, resurl, subs=subs)
-            imdb = li.getProperty('imdb')
-            img = li.getProperty('img')
-            
-            if video_type == 'tvshow':
-                folder = True
-            elif (_1CH.get_setting('auto-play') == 'false') and (_1CH.get_setting('use-dialogs') == 'false'):
-                folder = True
-            else:
-                folder = False
-                li.setProperty('IsPlayable', 'true')
-            queries = {'mode': nextmode, 'title': title, 'url': resurl,
-                       'img': img, 'imdbnum': imdb,
-                       'video_type': video_type, 'year': year}
-            li_url = _1CH.build_plugin_url(queries)
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
-                                        isFolder=folder, totalItems=total)
+            create_item(section_params,title,year,thumb,resurl,total)
 
     if html.find('> >> <') > -1:
         label = 'Skip to Page...'
@@ -1191,10 +1089,6 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
              'page': page},
             meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
 
-    if video_type == 'tvshow':
-        utils.set_view('tvshows', 'tvshows-view')
-    elif video_type == 'movie':
-        utils.set_view('movies', 'movies-view')
     _1CH.end_of_directory()
 
 
@@ -1307,6 +1201,8 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
     db.close()
     r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
     episodes = re.finditer(r, eplist, re.DOTALL)
+    
+    section_params = get_section_params('episode')
 
     for ep in episodes:
         epurl, eptitle = ep.groups()
@@ -1316,20 +1212,8 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
         season = int(re.search('/season-([0-9]{1,4})-', epurl).group(1))
         epnum = int(re.search('-episode-([0-9]{1,3})', epurl).group(1))
 
-        queries = {'mode': 'GetSources', 'url': epurl, 'imdbnum': imdbnum,
-                   'title': ShowTitle, 'img': img}
-        li_url = _1CH.build_plugin_url(queries)
-        listitem = build_listitem('episode', ShowTitle, year, img, epurl, imdbnum, season, epnum)
-        if (_1CH.get_setting('auto-play') == 'false') and (_1CH.get_setting('use-dialogs') == 'false'):
-            folder = True
-        else:
-            folder = False
-            listitem.setProperty('IsPlayable', 'true')
+        create_item(section_params, ShowTitle, year, img, epurl, imdbnum, season, epnum)
 
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
-                                    isFolder=folder)
-
-    utils.set_view('episodes', 'episodes-view')
     _1CH.end_of_directory()
 
 def get_section_params(section):
@@ -1344,6 +1228,12 @@ def get_section_params(section):
         cur.execute('SELECT url FROM subscriptions')
         subscriptions = cur.fetchall()
         section_params['subs'] = [row[0] for row in subscriptions]
+    elif section=='episode':
+        section_params['nextmode'] = 'GetSources'
+        section_params['video_type']='episode'
+        utils.set_view('episodes', 'episodes-view')
+        section_params['folder'] = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
+        section_params['subs'] = []
     else:
         utils.set_view('movies', 'movies-view')
         section_params['nextmode'] = 'GetSources'
@@ -1351,15 +1241,6 @@ def get_section_params(section):
         section_params['folder'] = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
         section_params['subs'] = []
     return section_params
-
-def create_item(section_params,title,year,img,url,menu_items):
-        liz = build_listitem(section_params['video_type'], title, year, img, url, extra_cms=menu_items, subs=section_params['subs'])
-        img = liz.getProperty('img')
-        if not section_params['folder']: # should only be when it's a movie and dialog are off and autoplay is off
-            liz.setProperty('isPlayable','true')
-        queries = {'mode': section_params['nextmode'], 'title': title, 'url': url, 'img': img, 'video_type': section_params['video_type']}
-        liz_url = _1CH.build_plugin_url(queries)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,isFolder=section_params['folder'])
 
 def browse_favorites(section):
     if not section: section='movie'
