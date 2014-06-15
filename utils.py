@@ -214,30 +214,7 @@ def upgrade_db():
         cur = db.cursor()
         cur.execute(sql)
         db.commit()
-        db.close()
-
-
-def fix_existing_strms():
-    for folder in ('tvshow-folder', 'movie-folder'):
-        save_path = _1CH.get_setting(folder)
-        save_path = xbmc.translatePath(save_path)
-        for root, dirs, files in os.walk(save_path):
-            for current_file in files:
-                if current_file.endswith('.strm'):
-                    _1CH.log("processing file: %s" % current_file)
-                    full_path = os.path.join(root, current_file)
-                    with open(full_path, 'r+') as target:
-                        content = target.read()
-                        target.seek(0)
-                        new_content = content.replace('&url=http%3A%2F%2Fwww.1channel.ch', '&url=')
-                        if not '&video_type=' in new_content:
-                            if folder == 'tvshow-folder':
-                                new_content += '&video_type=episode'
-                            elif folder == 'movie-folder':
-                                new_content += '&video_type=movie'
-                        _1CH.log('Writing new content: %s' % new_content)
-                        target.write(new_content)
-        
+        db.close()        
         
 class TextBox:
     # constants
