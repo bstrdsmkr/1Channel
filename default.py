@@ -1275,7 +1275,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
                 listitem.setInfo('video', temp)
                 listitem.setProperty('fanart_image', fanart)
                 queries = {'mode': 'TVShowEpisodeList', 'season': number,
-                           'imdbnum': imdbnum, 'title': title, 'section': 'tv'}
+                           'imdbnum': imdbnum, 'title': title}
                 li_url = _1CH.build_plugin_url(queries)
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
                                             isFolder=True,
@@ -2170,9 +2170,10 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
     menu_items = add_contextsearchmenu(title, section, resurl)
     menu_items = menu_items + extra_cms
 
-    queries = {'mode': 'SaveFav', 'section': section, 'title': title, 'url': resurl, 'year': year}
-    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
-    menu_items.append(('Add to Favorites', runstring), )
+    if video_type != 'episode':
+        queries = {'mode': 'SaveFav', 'section': section, 'title': title, 'url': resurl, 'year': year}
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
+        menu_items.append(('Add to Favorites', runstring), )
 
     queries = {'mode': 'add_to_library', 'video_type': video_type, 'title': title, 'img': img, 'year': year,
                'url': resurl}
