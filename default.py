@@ -461,34 +461,11 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             except:
                 _1CH.log('Error while trying to resolve %s' % url)
         source = urlresolver.choose_source(sources).get_url()
-        try: PlaySource(source, title, img, year, imdbnum, video_type, season, episode, dbid, strm=True)
-        except: pass
+        PlaySource(source, title, img, year, imdbnum, video_type, season, episode, dbid, strm=True)
     else:
         try:
             if _1CH.get_setting('auto-play') == 'false': raise Exception, 'auto-play disabled'
-            dlg = xbmcgui.DialogProgress()
-            line1 = 'Trying Sources...'
-            dlg.create('PrimeWire', line1)
-            total = len(hosters)
-            count = 1
-            success = False
-            while not (success or dlg.iscanceled() or xbmc.abortRequested):
-                for source in hosters:
-                    if dlg.iscanceled(): return
-                    percent = int((count * 100) / total)
-                    label = format_label_source(source)
-                    dlg.update(percent, line1, label)
-                    try:
-                        PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode,dbid)
-                    except Exception, e:  # Playback failed, try the next one
-                        dlg.update(percent, line1, label, str(e))
-                        _1CH.log('%s source failed. Trying next source...' % source['host'])
-                        _1CH.log(str(e))
-                        count += 1
-                    else:
-                        dlg.close()
-                        success = True
-                        break  # Playback was successful, break out of the loop
+
         except:
             for item in hosters:
                 _1CH.log(item)
@@ -510,17 +487,48 @@ def get_sources(url, title, img, year, imdbnum, dialog):
 
             _1CH.end_of_directory()
 
+        else:
+            dlg = xbmcgui.DialogProgress()
+            line1 = 'Trying Sources...'
+            dlg.create('PrimeWire', line1)
+            total = len(hosters)
+            count = 1
+            success = False
+            while not (success or dlg.iscanceled() or xbmc.abortRequested):
+                for source in hosters:
+                    if dlg.iscanceled(): return
+                    percent = int((count * 100) / total)
+                    label = format_label_source(source)
+                    dlg.update(percent, line1, label)
+                    try:
+                        if not PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode,dbid): 
+                            raise Exception, 'URL Decoding failed'
+                    except Exception, e:  # Playback failed, try the next one
+                        dlg.update(percent, line1, label, str(e))
+                        _1CH.log('%s source failed. Trying next source...' % source['host'])
+                        _1CH.log(str(e))
+                        count += 1
+                    else:
+                        success = True
+                        break  # Playback was successful, break out of the loop
+
+                else:
+                    _1CH.log('Playlist failed')
+                    dlg.update(100, 'Error', 'ALL SOURCES FAILED')
+                    while not dlg.iscanceled() or xbmc.abortRequested:
+                        xbmc.sleep(200)
+
+                dlg.close()
+                return success
 
 def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid=None, strm=False, ):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
-    
+
     #If urlresolver returns false then the video url was not resolved.
-    if not type(stream_url) is str and not type(stream_url) is unicode:
-        try: _1CH.log('Could not resolve url: %s' % url) 
-        except: pass
-        raise
-        
+    if not stream_url or not isinstance(stream_url, basestring):
+        return False
+
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing.title', title)
     win.setProperty('1ch.playing.year', year)
@@ -587,6 +595,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, dbid
     listitem.setPath(stream_url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
+    return True
 
 def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
     __metaget__.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
@@ -2303,8 +2312,7 @@ elif mode == 'GetSources':
 elif mode == 'PlaySource':
     import urlresolver
 
-    try: PlaySource(url, title, img, year, imdbnum, video_type, season, episode)
-    except: pass
+    PlaySource(url, title, img, year, imdbnum, video_type, season, episode)
 elif mode == 'PlayTrailer':
     import urlresolver
 
