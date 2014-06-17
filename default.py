@@ -805,7 +805,7 @@ def Search(section, query):
         set_view('movies', 'movies-view')
         nextmode = 'GetSources'
         video_type = 'movie'
-        folder = _1CH.get_setting('auto-play') == 'false'
+        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
         subs = []
 
     html = '> >> <'
@@ -836,6 +836,8 @@ def Search(section, query):
                 li = build_listitem(video_type, title, year, img, resurl, subs=subs)
                 imdb = li.getProperty('imdb')
                 thumb = li.getProperty('img')
+                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
+                    li.setProperty('isPlayable','true')
 
                 queries = {'mode': nextmode, 'title': title, 'url': resurl,
                            'img': thumb, 'imdbnum': imdb,
@@ -881,7 +883,7 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
         set_view('movies', 'movies-view')
         nextmode = 'GetSources'
         video_type = 'movie'
-        folder = _1CH.get_setting('auto-play') == 'false'
+        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
         subs = []
     html = '> >> <'
     page = 0
@@ -907,6 +909,8 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
                 li = build_listitem(video_type, title, year, img, resurl, subs=subs)
                 imdb = li.getProperty('imdb')
                 thumb = li.getProperty('img')
+                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
+                    li.setProperty('isPlayable','true')
                 queries = {'mode': nextmode, 'title': title, 'url': resurl,
                            'img': thumb, 'imdbnum': imdb,
                            'video_type': video_type, 'year': year}
@@ -939,7 +943,7 @@ def SearchDesc(section, query):
         set_view('movies', 'movies-view')
         nextmode = 'GetSources'
         video_type = 'movie'
-        folder = _1CH.get_setting('auto-play') == 'false'
+        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
         subs = []
     html = '> >> <'
     page = 0
@@ -965,6 +969,9 @@ def SearchDesc(section, query):
                 li = build_listitem(video_type, title, year, img, resurl, subs=subs)
                 imdb = li.getProperty('imdb')
                 thumb = li.getProperty('img')
+                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
+                    li.setProperty('isPlayable','true')
+                
                 queries = {'mode': nextmode, 'title': title, 'url': resurl,
                            'img': thumb, 'imdbnum': imdb,
                            'video_type': video_type, 'year': year}
@@ -1341,7 +1348,7 @@ def browse_favorites(section):
         video_type = 'movie'
         section = 'movie'
         subs = []
-        folder = _1CH.get_setting('auto-play') == 'false'
+        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
 
     cur.execute(sql, (section,))
     favs = cur.fetchall()
@@ -1357,6 +1364,8 @@ def browse_favorites(section):
 
         liz = build_listitem(video_type, title, year, img, favurl, extra_cms=menu_items, subs=subs)
         img = liz.getProperty('img')
+        if not folder: # should only be when it's a movie and dialog are off and autoplay is off
+            liz.setProperty('isPlayable','true')
         queries = {'mode': nextmode, 'title': title, 'url': favurl,
                    'img': img, 'video_type': video_type}
         li_url = _1CH.build_plugin_url(queries)
@@ -1401,7 +1410,7 @@ def browse_favorites_website(section):
     else:
         video_type = 'movie'
         nextmode = 'GetSources'
-        folder = _1CH.get_setting('auto-play') == 'false'
+        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
         subs = []
 
     pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
@@ -1417,6 +1426,8 @@ def browse_favorites_website(section):
 
         liz = build_listitem(video_type, title, year, img, link, extra_cms=menu_items, subs=subs)
         img = liz.getProperty('img')
+        if not folder: # should only be when it's a movie and dialog are off and autoplay is off
+            liz.setProperty('isPlayable','true')
         queries = {'mode': nextmode, 'title': title, 'url': link,
                    'img': img, 'video_type': video_type}
         li_url = _1CH.build_plugin_url(queries)
@@ -2159,9 +2170,10 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
     menu_items = add_contextsearchmenu(title, section, resurl)
     menu_items = menu_items + extra_cms
 
-    queries = {'mode': 'SaveFav', 'section': section, 'title': title, 'url': resurl, 'year': year}
-    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
-    menu_items.append(('Add to Favorites', runstring), )
+    if video_type != 'episode':
+        queries = {'mode': 'SaveFav', 'section': section, 'title': title, 'url': resurl, 'year': year}
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
+        menu_items.append(('Add to Favorites', runstring), )
 
     queries = {'mode': 'add_to_library', 'video_type': video_type, 'title': title, 'img': img, 'year': year,
                'url': resurl}
