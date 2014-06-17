@@ -512,7 +512,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                     label = format_label_source(source)
                     dlg.update(percent, line1, label)
                     try:
-                        if not PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode,dbid): 
+                        if not PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid): 
                             raise Exception, 'URL Decoding failed'
                     except Exception, e:  # Playback failed, try the next one
                         dlg.update(percent, line1, label, str(e))
