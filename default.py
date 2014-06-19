@@ -23,25 +23,25 @@ import os
 import sys
 import json
 import time
-import xbmc
 import string
 import urllib
 import urllib2
-import xbmcgui
-import xbmcvfs
 import datetime
 import metapacks
-import xbmcaddon
-import xbmcplugin
 import HTMLParser
 from operator import itemgetter
+import xbmc
+import xbmcgui
+import xbmcvfs
+import xbmcaddon
+import xbmcplugin
 from addon.common.addon import Addon
 from addon.common.net import Net
 try: from metahandler import metahandlers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
 try: from metahandler import metacontainers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
-from utils import *
+import utils
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
 
@@ -90,7 +90,7 @@ ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
 BASE_URL = _1CH.get_setting('domain')
 if (_1CH.get_setting("enableDomain")=='true') and (len(_1CH.get_setting("customDomain")) > 10):
-	BASE_URL = _1CH.get_setting("customDomain")
+    BASE_URL = _1CH.get_setting("customDomain")
 
 USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
               "AppleWebKit/537.17 (KHTML, like Gecko)"
@@ -105,8 +105,8 @@ PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
 
 if not xbmcvfs.exists(_1CH.get_profile()): 
-	try: xbmcvfs.mkdirs(_1CH.get_profile())
-	except: os.path.mkdir(_1CH.get_profile())
+    try: xbmcvfs.mkdirs(_1CH.get_profile())
+    except: os.mkdir(_1CH.get_profile())
 
 def art(name): 
     return os.path.join(THEME_PATH, name)
@@ -114,7 +114,7 @@ def art(name):
 
 def init_database():
     _1CH.log('Building PrimeWire Database')
-    db = connect_db()
+    db = utils.connect_db()
     if DB == 'mysql':
         cur = db.cursor()
         cur.execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
@@ -138,18 +138,18 @@ def init_database():
         db_ver = cur.fetchall() or [0]
         #todo: write version number comparison logic to handle letters and etc
         if _1CH.get_version() > db_ver[0]:
-	        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
-	        #or there's nothing else we can do about it. Either way: ignore it and try to keep going
-	        try: 
-	            cur.execute('ALTER TABLE subscriptions ADD day TEXT')
-	        #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
-	        except: #todo: catch the specific exception
-	            pass
+            ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
+            #or there's nothing else we can do about it. Either way: ignore it and try to keep going
+            try: 
+                cur.execute('ALTER TABLE subscriptions ADD day TEXT')
+            #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
+            except: #todo: catch the specific exception
+                pass
 
     else:
         if not xbmcvfs.exists(os.path.dirname(DB_DIR)): 
-        	try: xbmcvfs.mkdirs(os.path.dirname(DB_DIR))
-        	except: os.path.mkdir(os.path.dirname(DB_DIR))
+            try: xbmcvfs.mkdirs(os.path.dirname(DB_DIR))
+            except: os.mkdir(os.path.dirname(DB_DIR))
         db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
         db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
         db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum, day)')
@@ -171,13 +171,13 @@ def init_database():
         db_ver = db.execute('SELECT value FROM db_info WHERE setting = "version"').fetchall() or [0]
         #todo: write version number comparison logic to handle letters and etc
         if _1CH.get_version() > db_ver[0]:
-	        ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
-	        #or there's nothing else we can do about it. Either way: ignore it and try to keep going
-	        try: 
-	            cur.execute('ALTER TABLE subscriptions ADD day')
-	        #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
-	        except: #todo: catch the specific exception
-	            pass
+            ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
+            #or there's nothing else we can do about it. Either way: ignore it and try to keep going
+            try: 
+                cur.execute('ALTER TABLE subscriptions ADD day')
+            #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
+            except: #todo: catch the specific exception
+                pass
 
     sql = "REPLACE INTO db_info (setting, value) VALUES(%s,%s)"
     if DB == 'sqlite':
@@ -193,7 +193,7 @@ def save_favorite(fav_type, name, url, img, year):
     _1CH.log(log_msg % (fav_type, name, url, img, year))
     if fav_type != 'tv':
         fav_type = 'movie'
-    if website_is_integrated():
+    if utils.website_is_integrated():
         _1CH.log('Saving favorite to website')
         id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
         if id_num:
@@ -219,7 +219,7 @@ def save_favorite(fav_type, name, url, img, year):
                 _1CH.log(html)
     else:
         statement = 'INSERT INTO favorites (type, name, url, year) VALUES (%s,%s,%s,%s)'
-        db = connect_db()
+        db = utils.connect_db()
         if DB == 'sqlite':
             statement = statement.replace("%s", "?")
         cursor = db.cursor()
@@ -239,7 +239,7 @@ def delete_favorite(fav_type, name, url):
     if fav_type != 'tv':
         fav_type = 'movie'
     _1CH.log('Deleting Fav: %s\n %s\n %s\n' % (fav_type, name, url))
-    if website_is_integrated():
+    if utils.website_is_integrated():
         _1CH.log('Deleting favorite from website')
         id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
         if id_num:
@@ -255,7 +255,7 @@ def delete_favorite(fav_type, name, url):
 
     else:
         sql_del = 'DELETE FROM favorites WHERE type=%s AND name=%s AND url=%s'
-        db = connect_db()
+        db = utils.connect_db()
         if DB == 'sqlite':
             sql_del = sql_del.replace('%s', '?')
         cursor = db.cursor()
@@ -266,7 +266,7 @@ def delete_favorite(fav_type, name, url):
 
 def get_url(url, cache_limit=8):
     _1CH.log('Fetching URL: %s' % url)
-    db = connect_db()
+    db = utils.connect_db()
     cur = db.cursor()
     now = time.time()
     limit = 60 * 60 * cache_limit
@@ -370,8 +370,8 @@ def get_sources(url, title, img, year, imdbnum, dialog):
     dbid=xbmc.getInfoLabel('ListItem.DBID')
     
     resume = False
-    if bookmark_exists(url):
-        resume = get_resume_choice(url)
+    if utils.bookmark_exists(url):
+        resume = utils.get_resume_choice(url)
 
     pattern = r'tv-\d{1,10}-(.*)/season-(\d{1,4})-episode-(\d{1,4})'
     match = re.search(pattern, url, re.IGNORECASE | re.DOTALL)
@@ -446,7 +446,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                 hosters.append(item)
 
             if sort_order:
-                hosters = multikeysort(hosters, sort_order, functions={'host': rank_host})
+                hosters = multikeysort(hosters, sort_order, functions={'host': utils.rank_host})
     if not hosters:
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
     if ((dialog or (_1CH.get_setting('use-dialogs') == 'true')) and (_1CH.get_setting('auto-play') == 'false')):  # we're comming from a .strm file and can't create a directory so we have to pop a
@@ -454,13 +454,13 @@ def get_sources(url, title, img, year, imdbnum, dialog):
         img = xbmc.getInfoImage('ListItem.Thumb')
         for item in hosters:
             try:
-                label = format_label_source(item)
+                label = utils.format_label_source(item)
                 hosted_media = urlresolver.HostedMediaFile(url=item['url'], title=label)
                 sources.append(hosted_media)
                 if item['multi-part']:
                     partnum = 2
                     for part in item['parts']:
-                        label = format_label_source_parts(item, partnum)
+                        label = utils.format_label_source_parts(item, partnum)
                         hosted_media = urlresolver.HostedMediaFile(url=item['parts'][partnum - 2], title=label)
                         sources.append(hosted_media)
                         partnum += 1
@@ -480,7 +480,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
         except:
             for item in hosters:
                 _1CH.log(item)
-                label = format_label_source(item)
+                label = utils.format_label_source(item)
                 _1CH.add_directory({'mode': 'PlaySource', 'url': item['url'], 'title': title,
                                     'img': img, 'year': year, 'imdbnum': imdbnum,
                                     'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
@@ -488,7 +488,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                 if item['multi-part']:
                     partnum = 2
                     for part in item['parts']:
-                        label = format_label_source_parts(item, partnum)
+                        label = utils.format_label_source_parts(item, partnum)
                         partnum += 1
                         _1CH.add_directory({'mode': 'PlaySource', 'url': part, 'title': title,
                                             'img': img, 'year': year, 'imdbnum': imdbnum,
@@ -509,7 +509,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                 for source in hosters:
                     if dlg.iscanceled(): return
                     percent = int((count * 100) / total)
-                    label = format_label_source(source)
+                    label = utils.format_label_source(source)
                     dlg.update(percent, line1, label)
                     try:
                         if not PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid): 
@@ -555,11 +555,11 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, prim
             if video_type == 'episode':
                 meta = __metaget__.get_episode_meta(title, imdbnum, season, episode)
                 meta['TVShowTitle'] = title
-                meta['title'] = format_tvshow_episode(meta)
+                meta['title'] = utils.format_tvshow_episode(meta)
                 poster = meta['cover_url']
             elif video_type == 'movie':
                 meta = __metaget__.get_meta('movie', title, year=year)
-                meta['title'] = format_label_movie(meta)
+                meta['title'] = utils.format_label_movie(meta)
                 poster = meta['cover_url']
     else: #metadata is not enabled
         meta = {'label' : title, 'title' : title}
@@ -596,7 +596,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, prim
     
     resume_point=0
     if resume: 
-        resume_point = get_bookmark(primewire_url)
+        resume_point = utils.get_bookmark(primewire_url)
         
     _1CH.log("Playing Video from: %s secs"  % (resume_point))
     listitem.setProperty('ResumeTime', str(resume_point))
@@ -644,7 +644,7 @@ def GetSearchQuery(section):
             if search_text == '!#repair meta': repair_missing_images()
             if search_text == '!#install all meta': install_all_meta()
             if search_text.startswith('!#sql'):
-                db = connect_db()
+                db = utils.connect_db()
                 db.execute(search_text[5:])
                 db.commit()
                 db.close()
@@ -684,7 +684,7 @@ def GetSearchQueryTag(section):
             if search_text == '!#repair meta': repair_missing_images()
             if search_text == '!#install all meta': install_all_meta()
             if search_text.startswith('!#sql'):
-                db = connect_db()
+                db = utils.connect_db()
                 db.execute(search_text[5:])
                 db.commit()
                 db.close()
@@ -773,7 +773,7 @@ def GetSearchQueryAdvanced(section):
             if search_text == '!#repair meta': repair_missing_images()
             if search_text == '!#install all meta': install_all_meta()
             if search_text.startswith('!#sql'):
-                db = connect_db()
+                db = utils.connect_db()
                 db.execute(search_text[5:])
                 db.commit()
                 db.close()
@@ -806,7 +806,7 @@ def GetSearchQueryDesc(section):
             if search_text == '!#repair meta': repair_missing_images()
             if search_text == '!#install all meta': install_all_meta()
             if search_text.startswith('!#sql'):
-                db = connect_db()
+                db = utils.connect_db()
                 db.execute(search_text[5:])
                 db.commit()
                 db.close()
@@ -826,26 +826,9 @@ def Search(section, query):
     search_url = BASE_URL + '/index.php?search_keywords='
     search_url += urllib.quote_plus(query)
     search_url += '&key=' + r
-    if section == 'tv':
-        set_view('tvshows', 'tvshows-view')
-        search_url += '&search_section=2'
-        nextmode = 'TVShowSeasonList'
-        video_type = 'tvshow'
-        folder = True
-        db = connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
-        db.close()
-        subs = [row[0] for row in subscriptions]
-
-    else:
-        set_view('movies', 'movies-view')
-        nextmode = 'GetSources'
-        video_type = 'movie'
-        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
-        subs = []
-
+    if section == 'tv':  search_url += '&search_section=2'
+    section_params = get_section_params(section)
+    
     html = '> >> <'
     page = 0
 
@@ -869,21 +852,9 @@ def Search(section, query):
         for s in regex:
             resurl, title, year, thumb = s.groups()
             if resurl not in resurls:
-                resurls.append(resurl)
-
-                li = build_listitem(video_type, title, year, img, resurl, subs=subs)
-                imdb = li.getProperty('imdb')
-                thumb = li.getProperty('img')
-                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
-                    li.setProperty('isPlayable','true')
-
-                queries = {'mode': nextmode, 'title': title, 'url': resurl,
-                           'img': thumb, 'imdbnum': imdb,
-                           'video_type': video_type, 'year': year}
-                li_url = _1CH.build_plugin_url(queries)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
-                                            isFolder=folder, totalItems=total)
-    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
+                resurls.append(resurl)                
+                create_item(section_params,title,year,thumb,resurl,total)
+    _1CH.end_of_directory()
 
 
 def SearchAdvanced(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1'):
@@ -905,24 +876,9 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
     search_url += '&advanced=' + urllib.quote_plus(advanced)
     ###search_url += 'search_section=1&genre=&director=&actor_name=&country=&search_rating=0&year=0&month=0&decade=0&host=&advanced=1'
     search_url += '&key=' + r
-    if section == 'tv':
-        set_view('tvshows', 'tvshows-view')
-        search_url += '&search_section=2'
-        nextmode = 'TVShowSeasonList'
-        video_type = 'tvshow'
-        folder = True
-        db = connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
-        db.close()
-        subs = [row[0] for row in subscriptions]
-    else:
-        set_view('movies', 'movies-view')
-        nextmode = 'GetSources'
-        video_type = 'movie'
-        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
-        subs = []
+    if section == 'tv': search_url += '&search_section=2'
+    section_params = get_section_params(section)
+
     html = '> >> <'
     page = 0
     while html.find('> >> <') > -1 and page < 10:
@@ -944,18 +900,8 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
             resurl, title, year, thumb = s.groups()
             if resurl not in resurls:
                 resurls.append(resurl)
-                li = build_listitem(video_type, title, year, img, resurl, subs=subs)
-                imdb = li.getProperty('imdb')
-                thumb = li.getProperty('img')
-                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
-                    li.setProperty('isPlayable','true')
-                queries = {'mode': nextmode, 'title': title, 'url': resurl,
-                           'img': thumb, 'imdbnum': imdb,
-                           'video_type': video_type, 'year': year}
-                li_url = _1CH.build_plugin_url(queries)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
-                                            isFolder=folder, totalItems=total)
-    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
+                create_item(section_params,title,year,thumb,resurl,total)
+    _1CH.end_of_directory()
 
 
 def SearchDesc(section, query):
@@ -965,24 +911,8 @@ def SearchDesc(section, query):
     search_url += urllib.quote_plus(query)
     search_url += '&desc_search=1' ## 1 = Search Descriptions
     search_url += '&key=' + r
-    if section == 'tv':
-        set_view('tvshows', 'tvshows-view')
-        search_url += '&search_section=2'
-        nextmode = 'TVShowSeasonList'
-        video_type = 'tvshow'
-        folder = True
-        db = connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
-        db.close()
-        subs = [row[0] for row in subscriptions]
-    else:
-        set_view('movies', 'movies-view')
-        nextmode = 'GetSources'
-        video_type = 'movie'
-        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
-        subs = []
+    if section == 'tv': search_url += '&search_section=2'
+    section_params = get_section_params(section)
     html = '> >> <'
     page = 0
     while html.find('> >> <') > -1 and page < 10:
@@ -1004,30 +934,17 @@ def SearchDesc(section, query):
             resurl, title, year, thumb = s.groups()
             if resurl not in resurls:
                 resurls.append(resurl)
-                li = build_listitem(video_type, title, year, img, resurl, subs=subs)
-                imdb = li.getProperty('imdb')
-                thumb = li.getProperty('img')
-                if not folder: # should only be when it's a movie and dialog are off and autoplay is off
-                    li.setProperty('isPlayable','true')
-                
-                queries = {'mode': nextmode, 'title': title, 'url': resurl,
-                           'img': thumb, 'imdbnum': imdb,
-                           'video_type': video_type, 'year': year}
-                li_url = _1CH.build_plugin_url(queries)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
-                                            isFolder=folder, totalItems=total)
-    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
-
+                create_item(section_params, title, year, thumb, resurl, total)
+    _1CH.end_of_directory()
 
 def AddonMenu():  # homescreen
     _1CH.log('Main Menu')
     init_database()
-    if has_upgraded():
+    if utils.has_upgraded():
         _1CH.log('Showing update popup')
-        TextBox()
+        utils.TextBox()
         adn = xbmcaddon.Addon('plugin.video.1channel')
-        upgrade_db()
-        fix_existing_strms()
+        utils.upgrade_db()
         adn.setSetting('domain', 'http://www.primewire.ag')
         adn.setSetting('old_version', _1CH.get_version())
     _1CH.add_directory({'mode': 'BrowseListMenu', 'section': ''}, {'title': 'Movies'}, img=art('movies.png'),
@@ -1040,14 +957,12 @@ def AddonMenu():  # homescreen
     # _1CH.add_directory({'mode': 'test'},   {'title':  'Test'}, img=art('settings.png'), fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def BrowseListMenu(section=None):
+def BrowseListMenu(section):
     _1CH.log('Browse Options')
     _1CH.add_directory({'mode': 'BrowseAlphabetMenu', 'section': section}, {'title': 'A-Z'}, img=art('atoz.png'),
                        fanart=art('fanart.png'))
-
     add_search_item({'mode': 'GetSearchQuery', 'section': section}, 'Search')
-    
-    if website_is_integrated():
+    if utils.website_is_integrated():
         _1CH.add_directory({'mode': 'browse_favorites_website', 'section': section}, {'title': 'Website Favourites'},
                            img=art('favourites.png'), fanart=art('fanart.png'))
     else:
@@ -1088,13 +1003,9 @@ def BrowseAlphabetMenu(section=None):
     _1CH.log('Browse by alphabet screen')
     _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'alphabet', 'letter': '123'},
                        {'title': '#123'}, img=art('123.png'), fanart=art('fanart.png'))
-    # queries = {'mode': 'get_by_letter', 'video_type': section, 'letter': '#'}
-    # _1CH.add_directory(queries, {'title':  '#123'}, img=art('#.png'), fanart=art('fanart.png'))
     for character in AZ_DIRECTORIES:
         _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'alphabet', 'letter': character},
                            {'title': character}, img=art(character + '.png'), fanart=art('fanart.png'))
-        # queries = {'mode': 'get_by_letter', 'section': section, 'letter': character}
-        # _1CH.add_directory(queries, {'title':  character}, img=art(character+'.png'), fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
@@ -1107,29 +1018,29 @@ def BrowseByGenreMenu(section=None, letter=None): #2000
 
 
 def filename_filter_out_year(name=''):
-	try:
-		years=re.compile(' \((\d+)\)').findall('__'+name+'__')
-		for year in years: name=name.replace(' ('+year+')','')
-		name=name.replace('[B]','').replace('[/B]','').replace('[/COLOR]','').replace('[COLOR green]','')
-		name=name.strip()
-		return name
-	except: name.strip(); return name
+    try:
+        years=re.compile(' \((\d+)\)').findall('__'+name+'__')
+        for year in years: name=name.replace(' ('+year+')','')
+        name=name.replace('[B]','').replace('[/B]','').replace('[/COLOR]','').replace('[COLOR green]','')
+        name=name.strip()
+        return name
+    except: name.strip(); return name
 
 def add_contextsearchmenu(title, video_type, resurl=''):
     contextmenuitems = []
     nameonly=filename_filter_out_year(title); #print 'nameonly:  '+nameonly
     if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.solarmovie.so'):
-    	if video_type == 'tv':
-    		section = 'tv'
-    		contextmenuitems.append(('Find AirDates', 'XBMC.Container.Update(%s?mode=%s&title=%s)' % ('plugin://plugin.video.solarmovie.so/','SearchForAirDates',nameonly)))
-    	else: section = 'movies'
-    	contextmenuitems.append(('Search Solarmovie.so', 'XBMC.Container.Update(%s?mode=%s&section=%s&title=%s)' % ('plugin://plugin.video.solarmovie.so/','ApiSearch',section,nameonly)))
+        if video_type == 'tv':
+            section = 'tv'
+            contextmenuitems.append(('Find AirDates', 'XBMC.Container.Update(%s?mode=%s&title=%s)' % ('plugin://plugin.video.solarmovie.so/','SearchForAirDates',nameonly)))
+        else: section = 'movies'
+        contextmenuitems.append(('Search Solarmovie.so', 'XBMC.Container.Update(%s?mode=%s&section=%s&title=%s)' % ('plugin://plugin.video.solarmovie.so/','ApiSearch',section,nameonly)))
     #if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.kissanime'):
-    #	contextmenuitems.append(('Search KissAnime', 'XBMC.Container.Update(%s?mode=%s&pageno=1&pagecount=1&title=%s)' % ('plugin://plugin.video.kissanime/','Search',nameonly)))
+    #    contextmenuitems.append(('Search KissAnime', 'XBMC.Container.Update(%s?mode=%s&pageno=1&pagecount=1&title=%s)' % ('plugin://plugin.video.kissanime/','Search',nameonly)))
     #if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.merdb'):
-    #	if video_type == 'tv': section = 'tvshows'; surl='http://merdb.ru/tvshow/'
-    #	else: section = 'movies'; surl='http://merdb.ru/'
-    #	contextmenuitems.append(('Search MerDB', 'XBMC.Container.Update(%s?mode=%s&section=%s&url=%s&title=%s)' % ('plugin://plugin.video.merdb/','Search',section,urllib.quote_plus(surl),nameonly)))
+    #    if video_type == 'tv': section = 'tvshows'; surl='http://merdb.ru/tvshow/'
+    #    else: section = 'movies'; surl='http://merdb.ru/'
+    #    contextmenuitems.append(('Search MerDB', 'XBMC.Container.Update(%s?mode=%s&section=%s&url=%s&title=%s)' % ('plugin://plugin.video.merdb/','Search',section,urllib.quote_plus(surl),nameonly)))
     if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.icefilms'):
         contextmenuitems.append(('Search Icefilms',
                                  'XBMC.Container.Update(%s?mode=555&url=%s&search=%s&nextPage=%s)' % (
@@ -1155,6 +1066,15 @@ def add_contextsearchmenu(title, video_type, resurl=''):
 
     return contextmenuitems
 
+def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
+    liz = build_listitem(section_params['video_type'], title, year, img, url, imdbnum, season, episode, extra_cms=menu_items, subs=section_params['subs'])
+    img = liz.getProperty('img')
+    imdbnum = liz.getProperty('imdb')
+    if not section_params['folder']: # should only be when it's a movie and dialog are off and autoplay is off
+        liz.setProperty('isPlayable','true')
+    queries = {'mode': section_params['nextmode'], 'title': title, 'url': url, 'img': img, 'imdbnum': imdbnum, 'video_type': section_params['video_type']}
+    liz_url = _1CH.build_plugin_url(queries)
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,section_params['folder'],totalItems)
 
 def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None):
     _1CH.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % (section, genre, letter, sort, page))
@@ -1167,23 +1087,9 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
     if page: pageurl += '&page=%s' % page
 
     page = int(page)+1 if page else 2
-    if section == 'tv':
-        nextmode = 'TVShowSeasonList'
-        video_type = 'tvshow'
-        folder = True
-        db = connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
-        db.close()
-        subs = [row[0] for row in subscriptions]
 
-    else:
-        nextmode = 'GetSources'
-        section = 'movie'
-        video_type = 'movie'
-        subs = []
-
+    section_params = get_section_params(section)
+    
     html = get_url(pageurl)
 
     r = re.search('number_movies_result">([0-9,]+)', html)
@@ -1201,23 +1107,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         resurl, title, year, thumb = s.groups()
         if resurl not in resurls:
             resurls.append(resurl)
-            li = build_listitem(video_type, title, year, thumb, resurl, subs=subs)
-            imdb = li.getProperty('imdb')
-            img = li.getProperty('img')
-            
-            if video_type == 'tvshow':
-                folder = True
-            elif (_1CH.get_setting('auto-play') == 'false') and (_1CH.get_setting('use-dialogs') == 'false'):
-                folder = True
-            else:
-                folder = False
-                li.setProperty('IsPlayable', 'true')
-            queries = {'mode': nextmode, 'title': title, 'url': resurl,
-                       'img': img, 'imdbnum': imdb,
-                       'video_type': video_type, 'year': year}
-            li_url = _1CH.build_plugin_url(queries)
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
-                                        isFolder=folder, totalItems=total)
+            create_item(section_params,title,year,thumb,resurl,total)
 
     if html.find('> >> <') > -1:
         label = 'Skip to Page...'
@@ -1232,10 +1122,6 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
              'page': page},
             meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
 
-    if video_type == 'tvshow':
-        set_view('tvshows', 'tvshows-view')
-    elif video_type == 'movie':
-        set_view('movies', 'movies-view')
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 
@@ -1248,12 +1134,15 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
         _1CH.log('Adult content url detected')
         adulturl = BASE_URL + r.group(1)
         headers = {'Referer': url}
+        net = Net()
+        cookiejar = _1CH.get_profile()
+        cookiejar = os.path.join(cookiejar, 'cookies')
         net.set_cookies(cookiejar)
         html = net.http_GET(adulturl, headers=headers).content
         html = html.decode('iso-8859-1').encode('utf-8')
         net.save_cookies(cookiejar)
 
-    db = connect_db()
+    db = utils.connect_db()
     if DB == 'mysql':
         sql = 'INSERT INTO seasons(season,contents) VALUES(%s,%s) ON DUPLICATE KEY UPDATE contents = VALUES(contents)'
     else:
@@ -1330,13 +1219,13 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
         cur.close()
         db.commit()
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        set_view('seasons', 'seasons-view')
+        utils.set_view('seasons', 'seasons-view')
         db.close()
 
 
 def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
     sql = 'SELECT contents FROM seasons WHERE season=?'
-    db = connect_db()
+    db = utils.connect_db()
     if DB == 'mysql':
         sql = sql.replace('?', '%s')
     cur = db.cursor()
@@ -1345,6 +1234,8 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
     db.close()
     r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
     episodes = re.finditer(r, eplist, re.DOTALL)
+    
+    section_params = get_section_params('episode')
 
     for ep in episodes:
         epurl, eptitle = ep.groups()
@@ -1354,77 +1245,65 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
         season = int(re.search('/season-([0-9]{1,4})-', epurl).group(1))
         epnum = int(re.search('-episode-([0-9]{1,3})', epurl).group(1))
 
-        queries = {'mode': 'GetSources', 'url': epurl, 'imdbnum': imdbnum,
-                   'title': ShowTitle, 'img': img}
-        li_url = _1CH.build_plugin_url(queries)
-        listitem = build_listitem('episode', ShowTitle, year, img, epurl, imdbnum, season, epnum)
-        if (_1CH.get_setting('auto-play') == 'false') and (_1CH.get_setting('use-dialogs') == 'false'):
-            folder = True
-        else:
-            folder = False
-            listitem.setProperty('IsPlayable', 'true')
+        create_item(section_params, ShowTitle, year, img, epurl, imdbnum, season, epnum)
 
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
-                                    isFolder=folder)
-
-    set_view('episodes', 'episodes-view')
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
+def get_section_params(section):
+    section_params={}
+    if section == 'tv':
+        utils.set_view('tvshows', 'tvshows-view')
+        section_params['nextmode'] = 'TVShowSeasonList'
+        section_params['video_type'] = 'tvshow'
+        section_params['folder'] = True
+        db = utils.connect_db()
+        cur = db.cursor()
+        cur.execute('SELECT url FROM subscriptions')
+        subscriptions = cur.fetchall()
+        section_params['subs'] = [row[0] for row in subscriptions]
+    elif section=='episode':
+        section_params['nextmode'] = 'GetSources'
+        section_params['video_type']='episode'
+        utils.set_view('episodes', 'episodes-view')
+        section_params['folder'] = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
+        section_params['subs'] = []
+    else:
+        utils.set_view('movies', 'movies-view')
+        section_params['nextmode'] = 'GetSources'
+        section_params['video_type'] = 'movie'
+        section_params['folder'] = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
+        section_params['subs'] = []
+    return section_params
+
 def browse_favorites(section):
-    sql = 'SELECT type, name, url, year FROM favorites WHERE type = ? ORDER BY name'
-    db = connect_db()
+    if not section: section='movie'
+    sql = 'SELECT name, url, year FROM favorites WHERE type = ? ORDER BY name'
+    db = utils.connect_db()
     if DB == 'mysql':
         sql = sql.replace('?', '%s')
     cur = db.cursor()
-    if section == 'tv':
-        set_view('tvshows', 'tvshows-view')
-    else:
-        set_view('movies', 'movies-view')
-    if section == 'tv':
-        nextmode = 'TVShowSeasonList'
-        video_type = 'tvshow'
-        folder = True
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
-        subs = [row[0] for row in subscriptions]
-    else:
-        nextmode = 'GetSources'
-        video_type = 'movie'
-        section = 'movie'
-        subs = []
-        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
-
     cur.execute(sql, (section,))
     favs = cur.fetchall()
+    cur.close()
+    db.close()
+    
+    section_params = get_section_params(section)
+    
     for row in favs:
-        title = row[1]
-        favurl = row[2]
-        year = row[3]
-        img = ''
-
+        (title,favurl,year) = row
+        
         remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' % (
             sys.argv[1], section, title, year, favurl)
         menu_items = [('Remove from Favorites', remfavstring)]
 
-        liz = build_listitem(video_type, title, year, img, favurl, extra_cms=menu_items, subs=subs)
-        img = liz.getProperty('img')
-        if not folder: # should only be when it's a movie and dialog are off and autoplay is off
-            liz.setProperty('isPlayable','true')
-        queries = {'mode': nextmode, 'title': title, 'url': favurl,
-                   'img': img, 'video_type': video_type}
-        li_url = _1CH.build_plugin_url(queries)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, liz,
-                                    isFolder=folder)
-
-    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
-    db.close()
+        create_item(section_params,title,year,'',favurl,menu_items)
+    _1CH.end_of_directory()
 
 
 def browse_favorites_website(section):
+    if not section: section='movies'
     sql = 'SELECT count(*) FROM favorites'
-    db = connect_db()
-    if DB == 'mysql':
-        sql = sql.replace('?', '%s')
+    db = utils.connect_db()
     cur = db.cursor()
     local_favs = cur.execute(sql).fetchall()
 
@@ -1432,7 +1311,6 @@ def browse_favorites_website(section):
         _1CH.add_item({'mode': 'migrateFavs'}, {'title': 'Upload Local Favorites'})
 
     user = _1CH.get_setting('username')
-    section = 'movies' if not section else section
     url = '/profile.php?user=%s&fav&show=%s'
     url = BASE_URL + url % (user, section)
     cookiejar = _1CH.get_profile()
@@ -1441,49 +1319,27 @@ def browse_favorites_website(section):
     net.set_cookies(cookiejar)
     html = net.http_GET(url).content
     if not '<a href="/logout.php">[ Logout ]</a>' in html:
-        html = login_and_retry(url)
+        html = utils.login_and_retry(url)
 
-    if section == 'tv':
-        video_type = 'tvshow'
-        nextmode = 'TVShowSeasonList'
-        folder = True
-        db = connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subs = cur.fetchall()
-    else:
-        video_type = 'movie'
-        nextmode = 'GetSources'
-        folder = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
-        subs = []
+    section_params = get_section_params(section)
 
     pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
     regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
     for item in regex.finditer(html):
         link, img, year, title, delete = item.groups()
-        if not year or len(year) != 4:
-            year = ''
+        if not year or len(year) != 4: year = ''
 
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-            {'mode': 'DeleteFav', 'section': section, 'title': title, 'url': link, 'year': year})
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': title, 'url': link, 'year': year})
         menu_items = [('Delete Favorite', runstring)]
 
-        liz = build_listitem(video_type, title, year, img, link, extra_cms=menu_items, subs=subs)
-        img = liz.getProperty('img')
-        if not folder: # should only be when it's a movie and dialog are off and autoplay is off
-            liz.setProperty('isPlayable','true')
-        queries = {'mode': nextmode, 'title': title, 'url': link,
-                   'img': img, 'video_type': video_type}
-        li_url = _1CH.build_plugin_url(queries)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, liz,
-                                    isFolder=folder)
-    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
+        create_item(section_params,title,year,img,link,menu_items)
+    _1CH.end_of_directory()
 
 
 def migrate_favs_to_web():
     init_database()
     sql = 'SELECT type, name, url, year FROM favorites ORDER BY name'
-    db = connect_db()
+    db = utils.connect_db()
     if DB == 'mysql':
         sql = sql.replace('?', '%s')
     cur = db.cursor()
@@ -1535,49 +1391,6 @@ def migrate_favs_to_web():
             # cur.execute(sql_delete, failures)
         else:
             cur.execute('DELETE FROM favorites')
-
-
-def get_by_letter(letter, section):
-    try: _1CH.log('Showing results for letter: %s' % letter)
-    except: pass
-    if section == 'tv':
-        url = '%s/alltvshows.php' % BASE_URL
-        video_type = 'tvshow'
-        nextmode = 'TVShowSeasonList'
-        folder = True
-        db = connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subs = cur.fetchall()
-    else:
-        url = '%s/allmovies.php' % BASE_URL
-        video_type = 'movie'
-        nextmode = 'GetSources'
-        folder = _1CH.get_setting('auto-play') == 'false'
-
-    html = get_url(url)
-    regex = r'<div class="regular_page">\s+<h1 class="titles">(.+)'
-    regex += r'<div class="clearer"></div>\s+</div>'
-    container = re.search(regex, html, re.DOTALL | re.I).group(1)
-    ltr_regex = '[%s]</h2>(.+?)<h2>' % letter
-    ltr_container = re.search(ltr_regex, container, re.DOTALL | re.I).group(1)
-    item_regex = r'<div class="all_movies_item">'
-    item_regex += r'<a href="(.+?)"> ?(.+?)</a> \[ (.+?) \]</div>'
-    listings = re.finditer(item_regex, ltr_container)
-    for item in listings:
-        resurl, title, year = item.groups()
-
-        listitem = build_listitem(video_type, title, year, img, resurl, subs=subs)
-        url = '%s/%s' % (BASE_URL, resurl)
-        # TODO: make a decision on handling meta here
-        queries = {'mode': nextmode, 'title': title, 'url': url,
-                   'img': meta['cover_url'], 'imdbnum': meta['imdb_id'],
-                   'video_type': video_type, 'year': year}
-        li_url = _1CH.build_plugin_url(queries)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
-                                    isFolder=folder)
-    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
-
 
 def create_meta(video_type, title, year, thumb):
     try:
@@ -1698,14 +1511,14 @@ def create_meta_packs():
                 start_letter = letter
                 __metaget__.__del__()
                 shutil.rmtree(container.cache_path)
-                __metaget__ = metahandlers.MetaData(preparezip=prepare_zip)
+                __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
 
             if letters_completed <= letters_per_zip:
                 scan_by_letter(video_type, letter)
                 letters_completed += 1
 
             if (letters_completed == letters_per_zip
-                or letter == '123' or get_dir_size(container.cache_path) > (500 * 1024 * 1024)):
+                or letter == '123' or utils.get_dir_size(container.cache_path) > (500 * 1024 * 1024)):
                 end_letter = letter
                 arcname = 'MetaPack-%s-%s-%s.zip' % (video_type, start_letter, end_letter)
                 arcname = os.path.join(savpath, arcname)
@@ -1846,7 +1659,7 @@ def repair_missing_images():
             total_est_time = total / max(entries_per_sec, 1)
             eta = total_est_time - (time.time() - start_time)
 
-            eta = format_eta(eta)
+            eta = utils.format_eta(eta)
             dlg.update(percent, eta + title, '')
             if cover:
                 dlg.update(percent, eta + title, cover)
@@ -1965,7 +1778,7 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
                         seasonnum = match.group(1)
                         epnum = match.group(2)
 
-                        filename = filename_from_title(show_title, video_type)
+                        filename = utils.filename_from_title(show_title, video_type)
                         filename = filename % (seasonnum, epnum)
                         show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
                         final_path = os.path.join(save_path, show_title, season, filename)
@@ -1973,7 +1786,7 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
                         if not xbmcvfs.exists(os.path.dirname(final_path)):
                             try:
                                 try: xbmcvfs.mkdirs(os.path.dirname(final_path))
-                                except: os.path.mkdir(os.path.dirname(final_path))
+                                except: os.mkdir(os.path.dirname(final_path))
                             except:
                                 _1CH.log('Failed to create directory %s' % final_path)
 
@@ -2006,14 +1819,14 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
             {'mode': 'GetSources', 'url': url, 'imdbnum': imdbnum, 'title': title, 'img': img, 'year': year,
              'dialog': 1, 'video_type': 'movie'})
         if year: title = '%s (%s)' % (title, year)
-        filename = filename_from_title(title, 'movie')
+        filename = utils.filename_from_title(title, 'movie')
         title = re.sub(r'[^\w\-_\. ]', '_', title)
         final_path = os.path.join(save_path, title, filename)
         final_path = xbmc.makeLegalFilename(final_path)
         if not xbmcvfs.exists(os.path.dirname(final_path)):
             try:
                 try: xbmcvfs.mkdirs(os.path.dirname(final_path))
-                except: os.path.mkdir(os.path.dirname(final_path))
+                except: os.mkdir(os.path.dirname(final_path))
             except Exception, e:
                 try: _1CH.log('Failed to create directory %s' % final_path)
                 except: pass
@@ -2032,21 +1845,21 @@ def add_subscription(url, title, img, year, imdbnum, day=''):
         if len(day)==0: day=datetime.date.today().strftime('%A')
         elif day==' ': day=''
         sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum, day) VALUES (?,?,?,?,?,?)' #sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?,?,?,?,?)'
-        db = connect_db()
+        db = utils.connect_db()
         if DB == 'mysql':
             sql = sql.replace('?', '%s')
         cur = db.cursor()
         try: 
-        	cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
+            cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
         except: ## Note: Temp-Fix for Adding the Extra COLUMN to the SQL TABLE ##
-        	try: 
-        		cur.execute('ALTER TABLE subscriptions ADD day TEXT')
-        		cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
-        	except:
-        		builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
-        		xbmc.executebuiltin(builtin)
-        		xbmc.executebuiltin('Container.Update')
-        		return
+            try: 
+                cur.execute('ALTER TABLE subscriptions ADD day TEXT')
+                cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
+            except:
+                builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
+                xbmc.executebuiltin(builtin)
+                xbmc.executebuiltin('Container.Update')
+                return
         db.commit()
         db.close()
         add_to_library('tvshow', url, title, img, year, imdbnum)
@@ -2060,7 +1873,7 @@ def add_subscription(url, title, img, year, imdbnum, day=''):
 
 def cancel_subscription(url, title, img, year, imdbnum):
     sql_delete = 'DELETE FROM subscriptions WHERE url=? AND title=? AND year=?'
-    db = connect_db()
+    db = utils.connect_db()
     if DB == 'mysql':
         sql_delete = sql_delete.replace('?', '%s')
     db_cur = db.cursor()
@@ -2072,7 +1885,7 @@ def cancel_subscription(url, title, img, year, imdbnum):
 
 
 def update_subscriptions():
-    db = connect_db()
+    db = utils.connect_db()
     cur = db.cursor()
     cur.execute('SELECT * FROM subscriptions')
     subs = cur.fetchall()
@@ -2086,7 +1899,7 @@ def update_subscriptions():
 def clean_up_subscriptions():
     _1CH.log('Cleaning up dead subscriptions')
     sql_delete = 'DELETE FROM subscriptions WHERE url=?'
-    db = connect_db()
+    db = utils.connect_db()
     if DB == 'mysql':
         sql_delete = sql_delete.replace('?', '%s')
     cur = db.cursor()
@@ -2114,15 +1927,15 @@ def manage_subscriptions(day=''):
     fanart = art('fanart.png')
     _1CH.add_directory({'day':'','mode':'manage_subscriptions'},{'title':D1Code % 'ALL'},is_folder=True,fanart=fanart,img=art('subscriptions.png'))
     if day=='':
-    	d='Monday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Tuesday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Wednesday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Thursday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Friday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Saturday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    	d='Sunday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    set_view('tvshows', 'tvshows-view')
-    db = connect_db()
+        d='Monday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Tuesday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Wednesday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Thursday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Friday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Saturday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+        d='Sunday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
+    utils.set_view('tvshows', 'tvshows-view')
+    db = utils.connect_db()
     cur = db.cursor()
     S='SELECT * FROM subscriptions'
     if len(day) > 0: S+=' WHERE day = "%s"' % (day)
@@ -2130,7 +1943,7 @@ def manage_subscriptions(day=''):
     subs = cur.fetchall()
     for sub in subs:
         meta = create_meta('tvshow', sub[1], sub[3], '')
-        meta['title'] = format_label_sub(meta)
+        meta['title'] = utils.format_label_sub(meta)
 
         menu_items = add_contextsearchmenu(meta['title'], 'tv')
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
@@ -2156,7 +1969,7 @@ def manage_subscriptions(day=''):
 
         # _1CH.add_item({'mode':'manage_subscriptions'},meta,menu_items,True,img,fanart,is_folder=True)
         try: 
-        	if len(sub[5]) > 0: meta['title']=(D2Code % (D1Code % (sub[5])))+' '+meta['title']
+            if len(sub[5]) > 0: meta['title']=(D2Code % (D1Code % (sub[5])))+' '+meta['title']
         except: pass
         listitem = xbmcgui.ListItem(meta['title'], iconImage=img, thumbnailImage=img)
         listitem.setInfo('video', meta)
@@ -2254,10 +2067,10 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
 
         if 'trailer_url' in meta:
             try:
-            	url = meta['trailer_url']
-            	url = url.encode('base-64').strip()
-            	runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'PlayTrailer', 'url': url})
-            	menu_items.append(('Watch Trailer', runstring,))
+                url = meta['trailer_url']
+                url = url.encode('base-64').strip()
+                runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'PlayTrailer', 'url': url})
+                menu_items.append(('Watch Trailer', runstring,))
             except: pass
 
         if meta['overlay'] == 6:
@@ -2283,13 +2096,13 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
 
         if video_type == 'tvshow':
             if resurl in subs:
-                meta['title'] = format_label_sub(meta)
+                meta['title'] = utils.format_label_sub(meta)
             else:
-                meta['title'] = format_label_tvshow(meta)
+                meta['title'] = utils.format_label_tvshow(meta)
         elif video_type == 'episode':
-            meta['title'] = format_tvshow_episode(meta)
+            meta['title'] = utils.format_tvshow_episode(meta)
         else:
-            meta['title'] = format_label_movie(meta)
+            meta['title'] = utils.format_label_movie(meta)
 
         listitem = xbmcgui.ListItem(meta['title'], iconImage=img,
                                     thumbnailImage=img)
@@ -2382,8 +2195,6 @@ elif mode == 'BrowseListMenu':
     BrowseListMenu(section)
 elif mode == 'BrowseAlphabetMenu':
     BrowseAlphabetMenu(section)
-elif mode == 'get_by_letter':
-    get_by_letter(letter, section)
 elif mode == 'BrowseByGenreMenu':
     BrowseByGenreMenu(section)
 elif mode == 'GetFilteredResults':
@@ -2474,14 +2285,14 @@ elif mode == 'PageSelect':
     builtin = 'Container.Update(%s)' % url
     xbmc.executebuiltin(builtin)
 elif mode == 'refresh_meta':
-    refresh_meta(video_type, title, imdbnum, alt_id, year)
+    utils.refresh_meta(video_type, title, imdbnum, alt_id, year)
 elif mode == 'flush_cache':
-    flush_cache()
+    utils.flush_cache()
 elif mode == 'migrateDB':
-    migrate_to_mysql()
+    utils.migrate_to_mysql()
 elif mode == 'migrateFavs':
     migrate_favs_to_web()
 elif mode == 'Help':
     _1CH.log('Showing help popup')
-    try: TextBox()
+    try: utils.TextBox()
     except: pass
