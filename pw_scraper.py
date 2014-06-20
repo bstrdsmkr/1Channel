@@ -44,7 +44,21 @@ class PW_Scraper():
         pass
     
     def get_favorities(self):
-        pass
+        user = _1CH.get_setting('username')
+        url = '/profile.php?user=%s&fav&show=%s'
+        url = BASE_URL + url % (user, section)
+        cookiejar = _1CH.get_profile()
+        cookiejar = os.path.join(cookiejar, 'cookies')
+        net = Net()
+        net.set_cookies(cookiejar)
+        html = net.http_GET(url).content
+        if not '<a href="/logout.php">[ Logout ]</a>' in html:
+        html = utils.login_and_retry(url)
+        pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
+        regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+        for item in regex.finditer(html):
+            link, img, year, title, delete = item.groups()
+            if not year or len(year) != 4: year = ''
 
     def migrate_favorites(self):
         pass

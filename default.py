@@ -1176,31 +1176,13 @@ def browse_favorites_website(section):
     if local_favs:
         _1CH.add_item({'mode': 'migrateFavs'}, {'title': 'Upload Local Favorites'})
 
-    user = _1CH.get_setting('username')
-    url = '/profile.php?user=%s&fav&show=%s'
-    url = BASE_URL + url % (user, section)
-    cookiejar = _1CH.get_profile()
-    cookiejar = os.path.join(cookiejar, 'cookies')
-    net = Net()
-    net.set_cookies(cookiejar)
-    html = net.http_GET(url).content
-    if not '<a href="/logout.php">[ Logout ]</a>' in html:
-        html = utils.login_and_retry(url)
-
     section_params = get_section_params(section)
-
-    pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
-    regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
-    for item in regex.finditer(html):
-        link, img, year, title, delete = item.groups()
-        if not year or len(year) != 4: year = ''
-
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': title, 'url': link, 'year': year})
+    favs=pw_scraper.get_favorities()
+    for fav in favs:
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': fav['title'], 'url': fav['ur'], 'year': fav['year']})
         menu_items = [('Delete Favorite', runstring)]
-
-        create_item(section_params,title,year,img,link,menu_items)
+        create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'],menu_items)
     _1CH.end_of_directory()
-
 
 def migrate_favs_to_web():
     init_database()
