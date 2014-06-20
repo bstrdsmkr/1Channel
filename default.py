@@ -98,7 +98,7 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport',
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
-pw_scraper = PW_Scraper(BASE_URL)
+pw_scraper = PW_Scraper(BASE_URL,_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 
 PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
@@ -1177,7 +1177,7 @@ def browse_favorites_website(section):
         _1CH.add_item({'mode': 'migrateFavs'}, {'title': 'Upload Local Favorites'})
 
     section_params = get_section_params(section)
-    favs=pw_scraper.get_favorities()
+    favs=pw_scraper.get_favorities(section)
     for fav in favs:
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': fav['title'], 'url': fav['ur'], 'year': fav['year']})
         menu_items = [('Delete Favorite', runstring)]

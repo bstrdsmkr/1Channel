@@ -24,6 +24,8 @@ import HTMLParser
 import xbmc
 import xbmcgui
 import sys
+import os
+from addon.common.net import Net
 from addon.common.addon import Addon
 
 USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
@@ -33,8 +35,10 @@ USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
 _1CH = Addon('plugin.video.1channel', sys.argv)
 
 class PW_Scraper():
-    def __init__(self, base_url):
+    def __init__(self, base_url, username, password):
         self.base_url=base_url
+        self.username=username
+        self.password=password
         pass
     
     def add_favorite(self):
@@ -43,22 +47,31 @@ class PW_Scraper():
     def delete_favorite(self):
         pass
     
-    def get_favorities(self):
+    def get_favorities(self, section):
         user = _1CH.get_setting('username')
         url = '/profile.php?user=%s&fav&show=%s'
-        url = BASE_URL + url % (user, section)
+        url = self.base_url + url % (user, section)
         cookiejar = _1CH.get_profile()
         cookiejar = os.path.join(cookiejar, 'cookies')
         net = Net()
         net.set_cookies(cookiejar)
         html = net.http_GET(url).content
         if not '<a href="/logout.php">[ Logout ]</a>' in html:
-        html = utils.login_and_retry(url)
+            html = self.__login(url)
         pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
         regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+        fav={}
         for item in regex.finditer(html):
             link, img, year, title, delete = item.groups()
             if not year or len(year) != 4: year = ''
+            fav['url']=link
+            fav['img']=img
+            fav['year']=year
+            fav['title']=title
+            fav['delete']=delete
+            yield fav
+        
+        return
 
     def migrate_favorites(self):
         pass
@@ -175,3 +188,19 @@ class PW_Scraper():
         
         utils.cache_url(url, body, now)
         return body
+    
+    def __login(self,redirect):
+        _1CH.log('Logging in for url %s' % redirect)
+        url = self.base_url + '/login.php'
+        net = Net()
+        cookiejar = _1CH.get_profile()
+        cookiejar = os.path.join(cookiejar, 'cookies')
+        host = re.sub('http://', '', self.base_url)
+        headers = {'Referer': redirect, 'Origin': self.base_url, 'Host': host, 'User-Agent': USER_AGENT}
+        form_data = {'username': self.username, 'password': self.password, 'remember': 'on', 'login_submit': 'Login'}
+        html = net.http_POST(url, headers=headers, form_data=form_data).content
+        if '<a href="/logout.php">[ Logout ]</a>' in html:
+            net.save_cookies(cookiejar)
+            return html
+        else:
+            _1CH.log('Failed to login')
