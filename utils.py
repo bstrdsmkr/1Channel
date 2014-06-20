@@ -451,3 +451,13 @@ def format_eta(seconds):
         # prof.dump_stats(datapath)
         # return retval
         # return wrapper
+
+def cache_url(url,body, now):
+    db = connect_db()
+    cur = db.cursor()
+    sql = "REPLACE INTO url_cache (url,response,timestamp) VALUES(%s,%s,%s)"
+    if DB == 'sqlite':
+        sql = 'INSERT OR ' + sql.replace('%s', '?')
+    cur.execute(sql, (url, body, now))
+    db.commit()
+    db.close()    

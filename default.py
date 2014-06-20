@@ -25,10 +25,8 @@ import json
 import time
 import string
 import urllib
-import urllib2
 import datetime
 import metapacks
-import HTMLParser
 from operator import itemgetter
 import xbmc
 import xbmcgui
@@ -42,6 +40,7 @@ except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','
 try: from metahandler import metacontainers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
 import utils
+from pw_scraper import PW_Scraper
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
 
@@ -93,14 +92,13 @@ BASE_URL = _1CH.get_setting('domain')
 if (_1CH.get_setting("enableDomain")=='true') and (len(_1CH.get_setting("customDomain")) > 10):
     BASE_URL = _1CH.get_setting("customDomain")
 
-USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
-              "AppleWebKit/537.17 (KHTML, like Gecko)"
-              "Chrome/24.0.1312.56")
 GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Game-Show',
           'History', 'Horror', 'Japanese', 'Korean', 'Music', 'Musical',
           'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport',
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
+
+pw_scraper = PW_Scraper(BASE_URL)
 
 PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
@@ -261,105 +259,6 @@ def delete_favorite(fav_type, name, url):
         cursor.execute(sql_del, (fav_type, name, url))
         db.commit()
         db.close()
-
-
-def get_url(url, cache_limit=8):
-    _1CH.log('Fetching URL: %s' % url)
-    db = utils.connect_db()
-    cur = db.cursor()
-    now = time.time()
-    limit = 60 * 60 * cache_limit
-    cur.execute('SELECT * FROM url_cache WHERE url = "%s"' % url)
-    cached = cur.fetchone()
-    if cached:
-        created = float(cached[2])
-        age = now - created
-        if age < limit:
-            _1CH.log('Returning cached result for %s' % url)
-            db.close()
-            return cached[1]
-        else:
-            _1CH.log('Cache too old. Requesting from internet')
-    else:
-        _1CH.log('No cached response. Requesting from internet')
-
-    req = urllib2.Request(url)
-
-    host = re.sub('http://', '', BASE_URL)
-    req.add_header('User-Agent', USER_AGENT)
-    req.add_header('Host', host)
-    req.add_header('Referer', BASE_URL)
-
-    try:
-        response = urllib2.urlopen(req, timeout=10)
-        body = response.read()
-        if '<title>Are You a Robot?</title>' in body:
-            _1CH.log('bot detection')
-
-            #download the captcha image and save it to a file for use later
-            captchaimgurl = 'http://'+host+'/CaptchaSecurityImages.php'
-            captcha_save_path = xbmc.translatePath('special://userdata/addon_data/plugin.video.1channel/CaptchaSecurityImage.jpg')
-            req = urllib2.Request(captchaimgurl)
-            host = re.sub('http://', '', BASE_URL)
-            req.add_header('User-Agent', USER_AGENT)
-            req.add_header('Host', host)
-            req.add_header('Referer', BASE_URL)
-            response = urllib2.urlopen(req)
-            the_img = response.read()
-            with open(captcha_save_path,'wb') as f:
-                f.write(the_img)
-
-            #now pop open dialog for input
-            #TODO: make the size and loc configurable
-            img = xbmcgui.ControlImage(550,15,240,100,captcha_save_path)
-            wdlg = xbmcgui.WindowDialog()
-            wdlg.addControl(img)
-            wdlg.show()
-            kb = xbmc.Keyboard('', 'Type the letters in the image', False)
-            kb.doModal()
-            capcode = kb.getText()
-            if (kb.isConfirmed()):
-                userInput = kb.getText()
-            if userInput != '':
-                #post back user string
-                wdlg.removeControl(img)    
-                capcode = kb.getText()
-                data = {'security_code':capcode,
-                        'not_robot':'I\'m Human! I Swear!'}
-                data = urllib.urlencode(data)
-                roboturl = 'http://'+host+'/are_you_a_robot.php'
-                req = urllib2.Request(roboturl)
-                host = re.sub('http://', '', BASE_URL)
-                req.add_header('User-Agent', USER_AGENT)
-                req.add_header('Host', host)
-                req.add_header('Referer', BASE_URL)
-                response = urllib2.urlopen(req, data)
-                body = get_url(url)
-               
-            elif userInput == '':
-                dialog = xbmcgui.Dialog()
-                dialog.ok("Robot Check", "You must enter text in the image to continue")
-            wdlg.close()
-
-        body = unicode(body, 'iso-8859-1')
-        parser = HTMLParser.HTMLParser()
-        body = parser.unescape(body)
-    except:
-        dialog = xbmcgui.Dialog()
-        dialog.ok("Connection failed", "Failed to connect to url", url)
-        _1CH.log('Failed to connect to URL %s' % url)
-        return ''
-
-    response.close()
-    
-    sql = "REPLACE INTO url_cache (url,response,timestamp) VALUES(%s,%s,%s)"
-    if DB == 'sqlite':
-        sql = 'INSERT OR ' + sql.replace('%s', '?')
-    cur.execute(sql, (url, body, now))
-    db.commit()
-    db.close()    
-    return body
-
 
 def get_sources(url, title, img, year, imdbnum, dialog):
     url = urllib.unquote(url)
