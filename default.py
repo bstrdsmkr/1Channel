@@ -186,12 +186,17 @@ def init_database():
 
 
 def save_favorite(fav_type, name, url, img, year):
-    log_msg = 'Saving Favorite type: %s name: %s url: %s img: %s year: %s'
-    _1CH.log(log_msg % (fav_type, name, url, img, year))
-    
     if fav_type != 'tv': fav_type = 'movie'
+    _1CH.log('Saving Favorite type: %s name: %s url: %s img: %s year: %s' % (fav_type, name, url, img, year))
+    
     if utils.website_is_integrated():
-        pw_scraper.add_favorite(url)
+        try:
+            pw_scraper.add_favorite(url)
+            builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
+            xbmc.executebuiltin(builtin % ICON_PATH)
+        except:
+                builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
+                xbmc.executebuiltin(builtin % ICON_PATH)
     else:
         statement = 'INSERT INTO favorites (type, name, url, year) VALUES (%s,%s,%s,%s)'
         db = utils.connect_db()
@@ -211,23 +216,11 @@ def save_favorite(fav_type, name, url, img, year):
 
 
 def delete_favorite(fav_type, name, url):
-    if fav_type != 'tv':
-        fav_type = 'movie'
+    if fav_type != 'tv': fav_type = 'movie'
     _1CH.log('Deleting Fav: %s\n %s\n %s\n' % (fav_type, name, url))
+    
     if utils.website_is_integrated():
-        _1CH.log('Deleting favorite from website')
-        id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
-        if id_num:
-            del_url = "%s/addtofavs.php?id=%s&whattodo=delete"
-            del_url = del_url % (BASE_URL, id_num.group(1))
-            print del_url
-            net = Net()
-            cookiejar = _1CH.get_profile()
-            cookiejar = os.path.join(cookiejar, 'cookies')
-            net.set_cookies(cookiejar)
-            net.http_GET(del_url)
-            net.save_cookies(cookiejar)
-
+        pw_scraper.delete_favorite(url)
     else:
         sql_del = 'DELETE FROM favorites WHERE type=%s AND name=%s AND url=%s'
         db = utils.connect_db()

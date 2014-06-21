@@ -51,21 +51,25 @@ class PW_Scraper():
             save_url = "%s/addtofavs.php?id=%s&whattodo=add"
             save_url = save_url % (self.base_url, id_num.group(1))
             _1CH.log('Save URL: %s' %(save_url))
-            html = self.__get_url(save_url)
-            ok_message = '<div class="ok_message">Movie added to favorites'
-            error_message = '<div class="error_message">This video is already'
+            html = self.__get_url(save_url,True)
+            ok_message = "<div class='ok_message'>Movie added to favorites"
+            error_message = "<div class='error_message'>This video is already"
             if ok_message in html:
-                builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
-                xbmc.executebuiltin(builtin % ICON_PATH)
+                return
             elif error_message in html:
-                builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
-                xbmc.executebuiltin(builtin % ICON_PATH)
+                raise
             else:
                 _1CH.log('Unable to confirm success')
                 _1CH.log(html)
     
-    def delete_favorite(self):
-        pass
+    def delete_favorite(self, url):
+        _1CH.log('Deleting favorite from website')
+        id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
+        if id_num:
+            del_url = "%s/addtofavs.php?id=%s&whattodo=delete"
+            del_url = del_url % (self.base_url, id_num.group(1))
+            _1CH.log('Delete URL: %s' %(del_url))
+            self.__get_url(del_url,True)
     
     def get_favorities(self, section):
         url = '/profile.php?user=%s&fav&show=%s'
