@@ -33,31 +33,44 @@ USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
               "Chrome/24.0.1312.56")
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
+ADDON_PATH = _1CH.get_path()
+ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 
 class PW_Scraper():
     def __init__(self, base_url, username, password):
         self.base_url=base_url
         self.username=username
         self.password=password
+        self.res_pages=-1
         pass
     
-    def add_favorite(self):
-        pass
+    def add_favorite(self,url):
+        _1CH.log('Saving favorite to website')
+        id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
+        if id_num:
+            save_url = "%s/addtofavs.php?id=%s&whattodo=add"
+            save_url = save_url % (self.base_url, id_num.group(1))
+            _1CH.log('Save URL: %s' %(save_url))
+            html = self.__get_url(save_url)
+            ok_message = '<div class="ok_message">Movie added to favorites'
+            error_message = '<div class="error_message">This video is already'
+            if ok_message in html:
+                builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
+                xbmc.executebuiltin(builtin % ICON_PATH)
+            elif error_message in html:
+                builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
+                xbmc.executebuiltin(builtin % ICON_PATH)
+            else:
+                _1CH.log('Unable to confirm success')
+                _1CH.log(html)
     
     def delete_favorite(self):
         pass
     
     def get_favorities(self, section):
-        user = _1CH.get_setting('username')
         url = '/profile.php?user=%s&fav&show=%s'
-        url = self.base_url + url % (user, section)
-        cookiejar = _1CH.get_profile()
-        cookiejar = os.path.join(cookiejar, 'cookies')
-        net = Net()
-        net.set_cookies(cookiejar)
-        html = net.http_GET(url).content
-        if not '<a href="/logout.php">[ Logout ]</a>' in html:
-            html = self.__login(url)
+        url = self.base_url + url % (self.username, section)
+        html=self.__get_url(url)
         pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
         regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
         fav={}
@@ -70,7 +83,6 @@ class PW_Scraper():
             fav['title']=title
             fav['delete']=delete
             yield fav
-        
         return
 
     def migrate_favorites(self):
@@ -88,16 +100,62 @@ class PW_Scraper():
     def search_desc(self):
         pass
     
-    def get_filtered_results(self):
-        pass
+    def get_filtered_results(self, section, genre, letter, sort, page):
+        pageurl = self.base_url + '/?'
+        if section == 'tv': pageurl += 'tv'
+        if genre:  pageurl += '&genre=' + genre
+        if letter:  pageurl += '&letter=' + letter
+        if sort:     pageurl += '&sort=' + sort
+        if page:   pageurl += '&page=%s' % page
     
+        html = self.__get_cached_url(pageurl)
+    
+        r = re.search('number_movies_result">([0-9,]+)', html)
+        if r:
+            total = int(r.group(1).replace(',', ''))
+        else:
+            total = 0
+        self.res_pages = total / 24
+        return self.__filtered_results_gen(html)
+        
+    def __filtered_results_gen(self, html):
+        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
+        regex = re.compile(pattern, re.DOTALL)
+        result={}
+        for item in regex.finditer(html):
+            link, title, year, img = item.groups()
+            if not year or len(year) != 4: year = ''
+            result['url']=link
+            result['title']=title
+            result['year']=year
+            result['img']=img
+            yield result
+        return
+    
+    def get_last_res_pages(self):
+        return self.res_pages
+
     def get_season_list(self):
         pass
     
     def get_episode_list(self):
         pass
        
-    def __get_url(self, url, cache_limit=8):
+    def __get_url(self,url,login=False):
+        cookiejar = _1CH.get_profile()
+        cookiejar = os.path.join(cookiejar, 'cookies')
+        net = Net()
+        net.set_cookies(cookiejar)
+        html = net.http_GET(url).content
+        if login and not '<a href="/logout.php">[ Logout ]</a>' in html:
+            if self.__login(url):
+                return net.http_GET(url).content
+            else:
+                _1CH.log("Login failed for %s getting: %s" (self.username,url))
+        else:
+            return html
+    
+    def __get_cached_url(self, url, cache_limit=8):
         #_1CH.log('Fetching URL: %s' % url)
         db = utils.connect_db()
         cur = db.cursor()
@@ -201,6 +259,6 @@ class PW_Scraper():
         html = net.http_POST(url, headers=headers, form_data=form_data).content
         if '<a href="/logout.php">[ Logout ]</a>' in html:
             net.save_cookies(cookiejar)
-            return html
+            return True
         else:
-            _1CH.log('Failed to login')
+            return False

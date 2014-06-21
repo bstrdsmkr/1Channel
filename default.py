@@ -188,32 +188,10 @@ def init_database():
 def save_favorite(fav_type, name, url, img, year):
     log_msg = 'Saving Favorite type: %s name: %s url: %s img: %s year: %s'
     _1CH.log(log_msg % (fav_type, name, url, img, year))
-    if fav_type != 'tv':
-        fav_type = 'movie'
+    
+    if fav_type != 'tv': fav_type = 'movie'
     if utils.website_is_integrated():
-        _1CH.log('Saving favorite to website')
-        id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
-        if id_num:
-            save_url = "%s/addtofavs.php?id=%s&whattodo=add"
-            save_url = save_url % (BASE_URL, id_num.group(1))
-            print save_url
-            net = Net()
-            cookiejar = _1CH.get_profile()
-            cookiejar = os.path.join(cookiejar, 'cookies')
-            net.set_cookies(cookiejar)
-            html = net.http_GET(save_url).content
-            net.save_cookies(cookiejar)
-            ok_message = '<div class="ok_message">Movie added to favorites'
-            error_message = '<div class="error_message">This video is already'
-            if ok_message in html:
-                builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
-                xbmc.executebuiltin(builtin % ICON_PATH)
-            elif error_message in html:
-                builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
-                xbmc.executebuiltin(builtin % ICON_PATH)
-            else:
-                _1CH.log('Unable to confirm success')
-                _1CH.log(html)
+        pw_scraper.add_favorite(url)
     else:
         statement = 'INSERT INTO favorites (type, name, url, year) VALUES (%s,%s,%s,%s)'
         db = utils.connect_db()
@@ -945,37 +923,21 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
 def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None):
     _1CH.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % (section, genre, letter, sort, page))
 
-    pageurl = BASE_URL + '/?'
-    if section == 'tv': pageurl += 'tv'
-    if genre:    pageurl += '&genre=' + genre
-    if letter:    pageurl += '&letter=' + letter
-    if sort:    pageurl += '&sort=' + sort
-    if page: pageurl += '&page=%s' % page
-
-    page = int(page)+1 if page else 2
-
     section_params = get_section_params(section)
-    
-    html = get_url(pageurl)
+    results = pw_scraper.get_filtered_results(section, genre, letter, sort, page)
+    total_pages = pw_scraper.get_last_res_pages()
 
-    r = re.search('number_movies_result">([0-9,]+)', html)
-    if r:
-        total = int(r.group(1).replace(',', ''))
-    else:
-        total = 0
-    total_pages = total / 24
-    total = min(total, 24)
-
-    pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-    regex = re.finditer(pattern, html, re.DOTALL)
     resurls = []
-    for s in regex:
-        resurl, title, year, thumb = s.groups()
-        if resurl not in resurls:
-            resurls.append(resurl)
-            create_item(section_params,title,year,thumb,resurl,total)
+    for result in results:
+        #resurl, title, year, thumb = s.groups()
+        if result['url'] not in resurls:
+            resurls.append(result['url'])
+            create_item(section_params,result['title'],result['year'],result['img'],result['url'])
 
-    if html.find('> >> <') > -1:
+    if not page: page = 1
+    next_page = int(page)+1
+
+    if int(page) < int(total_pages):
         label = 'Skip to Page...'
         command = _1CH.build_plugin_url(
             {'mode': 'PageSelect', 'pages': total_pages, 'section': section, 'genre': genre, 'letter': letter,
@@ -985,7 +947,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         meta = {'title': 'Next Page >>'}
         _1CH.add_directory(
             {'mode': 'GetFilteredResults', 'section': section, 'genre': genre, 'letter': letter, 'sort': sort,
-             'page': page},
+             'page': next_page},
             meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
 
     _1CH.end_of_directory()
@@ -1177,11 +1139,12 @@ def browse_favorites_website(section):
         _1CH.add_item({'mode': 'migrateFavs'}, {'title': 'Upload Local Favorites'})
 
     section_params = get_section_params(section)
-    favs=pw_scraper.get_favorities(section)
-    for fav in favs:
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': fav['title'], 'url': fav['ur'], 'year': fav['year']})
+    
+    for fav in pw_scraper.get_favorities(section):
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': fav['title'], 'url': fav['url'], 'year': fav['year']})
         menu_items = [('Delete Favorite', runstring)]
         create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'],menu_items)
+        
     _1CH.end_of_directory()
 
 def migrate_favs_to_web():
