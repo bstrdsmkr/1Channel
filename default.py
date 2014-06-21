@@ -217,7 +217,7 @@ def save_favorite(fav_type, name, url, img, year):
 
 def delete_favorite(fav_type, name, url):
     if fav_type != 'tv': fav_type = 'movie'
-    _1CH.log('Deleting Fav: %s\n %s\n %s\n' % (fav_type, name, url))
+    _1CH.log('Deleting Fav: %s, %s, %s' % (fav_type, name, url))
     
     if utils.website_is_integrated():
         pw_scraper.delete_favorite(url)
@@ -662,39 +662,16 @@ def GetSearchQueryDesc(section):
 
 
 def Search(section, query):
-    html = get_url(BASE_URL, cache_limit=0)
-    r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
-    search_url = BASE_URL + '/index.php?search_keywords='
-    search_url += urllib.quote_plus(query)
-    search_url += '&key=' + r
-    if section == 'tv':  search_url += '&search_section=2'
     section_params = get_section_params(section)
     
-    html = '> >> <'
-    page = 0
-
-    while html.find('> >> <') > -1 and page < 10:
-        page += 1
-        if page > 1:
-            pageurl = '%s&page=%s' % (search_url, page)
-        else:
-            pageurl = search_url
-        html = get_url(pageurl, cache_limit=0)
-
-        r = re.search('number_movies_result">([0-9,]+)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-
-        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-        regex = re.finditer(pattern, html, re.DOTALL)
-        resurls = []
-        for s in regex:
-            resurl, title, year, thumb = s.groups()
-            if resurl not in resurls:
-                resurls.append(resurl)                
-                create_item(section_params,title,year,thumb,resurl,total)
+    results=pw_scraper.search(section,query)
+    total=pw_scraper.get_last_res_total()
+    
+    resurls = []
+    for result in results:
+        if result['url'] not in resurls:
+            resurls.append(result['url'])                
+            create_item(section_params,result['title'],result['year'],result['img'],result['url'],total)
     _1CH.end_of_directory()
 
 
@@ -1117,7 +1094,7 @@ def browse_favorites(section):
             sys.argv[1], section, title, year, favurl)
         menu_items = [('Remove from Favorites', remfavstring)]
 
-        create_item(section_params,title,year,'',favurl,menu_items)
+        create_item(section_params,title,year,'',favurl,menu_items=menu_items)
     _1CH.end_of_directory()
 
 
@@ -1136,7 +1113,7 @@ def browse_favorites_website(section):
     for fav in pw_scraper.get_favorities(section):
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': fav['title'], 'url': fav['url'], 'year': fav['year']})
         menu_items = [('Delete Favorite', runstring)]
-        create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'],menu_items)
+        create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'],menu_items=menu_items)
         
     _1CH.end_of_directory()
 
@@ -1831,7 +1808,7 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
     menu_items = add_contextsearchmenu(title, section, resurl)
     menu_items = menu_items + extra_cms
 
-    if video_type != 'episode':
+    if video_type != 'episode' and 'Delete Favorite' not in [item[0] for item in menu_items]:
         queries = {'mode': 'SaveFav', 'section': section, 'title': title, 'url': resurl, 'year': year}
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
         menu_items.append(('Add to Favorites', runstring), )

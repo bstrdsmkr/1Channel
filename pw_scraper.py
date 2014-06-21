@@ -35,6 +35,7 @@ USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
 _1CH = Addon('plugin.video.1channel', sys.argv)
 ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
+ITEMS_PER_PAGE=24
 
 class PW_Scraper():
     def __init__(self, base_url, username, password):
@@ -42,6 +43,7 @@ class PW_Scraper():
         self.username=username
         self.password=password
         self.res_pages=-1
+        self.res_total=-1
         pass
     
     def add_favorite(self,url):
@@ -95,8 +97,46 @@ class PW_Scraper():
     def get_sources(self):
         pass
     
-    def search(self):
-        pass
+    def search(self,section, query):
+        search_url = self.base_url + '/index.php?search_keywords='
+        search_url += urllib.quote_plus(query)
+
+        html = self.__get_cached_url(self.base_url, cache_limit=0)
+        r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
+        search_url += '&key=' + r
+        
+        if section == 'tv':  search_url += '&search_section=2'
+
+        html = '> >> <'
+        page = 0
+        while html.find('> >> <') > -1 and page < 10:
+            page += 1
+            if page > 1:
+                pageurl = '%s&page=%s' % (search_url, page)
+            else:
+                pageurl = search_url
+            html = self.__get_cached_url(pageurl, cache_limit=0)
+            r = re.search('number_movies_result">([0-9,]+)', html)
+            if r:
+                total = int(r.group(1).replace(',', ''))
+            else:
+                total = 0
+            self.res_pages = total/ITEMS_PER_PAGE
+            self.res_total = total
+            return self.__search_gen(html)
+    
+    def __search_gen(self,html):
+        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
+        regex = re.finditer(pattern, html, re.DOTALL)
+        result={}
+        for item in regex.finditer(html):
+            link, title, year, img = item.groups()
+            if not year or len(year) != 4: year = ''
+            result['url']=link
+            result['title']=title
+            result['year']=year
+            result['img']=img
+            yield result
     
     def search_advanced(self):
         pass
@@ -119,7 +159,7 @@ class PW_Scraper():
             total = int(r.group(1).replace(',', ''))
         else:
             total = 0
-        self.res_pages = total / 24
+        self.res_pages = total / ITEMS_PER_PAGE
         return self.__filtered_results_gen(html)
         
     def __filtered_results_gen(self, html):
@@ -139,6 +179,9 @@ class PW_Scraper():
     def get_last_res_pages(self):
         return self.res_pages
 
+    def get_last_res_total(self):
+        return self.res_total
+
     def get_season_list(self):
         pass
     
@@ -146,6 +189,7 @@ class PW_Scraper():
         pass
        
     def __get_url(self,url,login=False):
+        _1CH.log('Fetching URL: %s' % url)
         cookiejar = _1CH.get_profile()
         cookiejar = os.path.join(cookiejar, 'cookies')
         net = Net()
@@ -160,7 +204,7 @@ class PW_Scraper():
             return html
     
     def __get_cached_url(self, url, cache_limit=8):
-        #_1CH.log('Fetching URL: %s' % url)
+        _1CH.log('Fetching Cached URL: %s' % url)
         db = utils.connect_db()
         cur = db.cursor()
         now = time.time()
