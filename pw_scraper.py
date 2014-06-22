@@ -45,7 +45,7 @@ class PW_Scraper():
         self.password=password
         self.res_pages=-1
         self.res_total=-1
-        pass
+        self.imdb_num=''
     
     def add_favorite(self,url):
         _1CH.log('Saving favorite to website')
@@ -54,7 +54,7 @@ class PW_Scraper():
             save_url = "%s/addtofavs.php?id=%s&whattodo=add"
             save_url = save_url % (self.base_url, id_num.group(1))
             _1CH.log('Save URL: %s' %(save_url))
-            html = self.__get_url(save_url,True)
+            html = self.__get_url(save_url,login=True)
             ok_message = "<div class='ok_message'>Movie added to favorites"
             error_message = "<div class='error_message'>This video is already"
             if ok_message in html:
@@ -72,7 +72,7 @@ class PW_Scraper():
             del_url = "%s/addtofavs.php?id=%s&whattodo=delete"
             del_url = del_url % (self.base_url, id_num.group(1))
             _1CH.log('Delete URL: %s' %(del_url))
-            self.__get_url(del_url,True)
+            self.__get_url(del_url,login=True)
     
     def get_favorities(self, section):
         url = '/profile.php?user=%s&fav&show=%s'
@@ -196,30 +196,55 @@ class PW_Scraper():
             result['year']=year
             result['img']=img
             yield result
-        return
     
     def get_last_res_pages(self):
         return self.res_pages
 
     def get_last_res_total(self):
         return self.res_total
+    
+    def get_last_imdbnum(self):
+        return self.imdb_num
 
-    def get_season_list(self):
-        pass
+    def get_season_list(self, url):
+        html = self.__get_cached_url(self.base_url+url)
+        adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
+        r = re.search(adultregex, html, re.DOTALL)
+        if r:
+            _1CH.log('Adult content url detected')
+            adulturl = self.base_url + r.group(1)
+            headers = {'Referer': url}
+            html = self.__get_url(adulturl, headers=headers, login=True)
+
+        match = re.search('mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"', html)
+        self.imdb_num = match.group(1) if match else ''
+        return self.__season_gen(html)
+    
+    def __season_gen(self, html):
+        match = re.search('tv_container(.+?)<div class="clearer', html, re.DOTALL)
+        show_container = match.group(1)
+        season_containers = show_container.split('<h2>')
+
+        for season_html in season_containers:
+            r = re.search(r'<a.+?>Season (\d+)</a>', season_html)
+            if r:
+                season_label = r.group(1)
+                yield (season_label,season_html)
     
     def get_episode_list(self):
         pass
        
-    def __get_url(self,url,login=False):
+    def __get_url(self,url, headers=None, login=False):
         _1CH.log('Fetching URL: %s' % url)
         cookiejar = _1CH.get_profile()
         cookiejar = os.path.join(cookiejar, 'cookies')
         net = Net()
         net.set_cookies(cookiejar)
-        html = net.http_GET(url).content
+        html = net.http_GET(url, headers=headers).content
+        html = html.decode('iso-8859-1').encode('utf-8')
         if login and not '<a href="/logout.php">[ Logout ]</a>' in html:
             if self.__login(url):
-                return net.http_GET(url).content
+                return net.http_GET(url, headers=headers).content
             else:
                 _1CH.log("Login failed for %s getting: %s" (self.username,url))
         else:

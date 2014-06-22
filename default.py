@@ -872,113 +872,66 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 
 def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
     _1CH.log('Seasons for TV Show %s' % url)
-    html = get_url(BASE_URL+url)
-    adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
-    r = re.search(adultregex, html, re.DOTALL)
-    if r:
-        _1CH.log('Adult content url detected')
-        adulturl = BASE_URL + r.group(1)
-        headers = {'Referer': url}
-        net = Net()
-        cookiejar = _1CH.get_profile()
-        cookiejar = os.path.join(cookiejar, 'cookies')
-        net.set_cookies(cookiejar)
-        html = net.http_GET(adulturl, headers=headers).content
-        html = html.decode('iso-8859-1').encode('utf-8')
-        net.save_cookies(cookiejar)
-
-    db = utils.connect_db()
-    if DB == 'mysql':
-        sql = 'INSERT INTO seasons(season,contents) VALUES(%s,%s) ON DUPLICATE KEY UPDATE contents = VALUES(contents)'
-    else:
-        sql = 'INSERT or REPLACE into seasons (season,contents) VALUES(?,?)'
-
-    try:
-        new_imdb = re.search('mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"', html).group(1)
-    except:
-        new_imdb = ''
-    seasons = re.search('tv_container(.+?)<div class="clearer', html, re.DOTALL)
+    season_gen=pw_scraper.get_season_list(url)
+    seasons = list(season_gen) # copy the generator into a list so that we can iterate over it multiple times
+    new_imdbnum = pw_scraper.get_last_imdbnum()
+    
     if not seasons:
-        _1CH.log_error('Couldn\'t find seasons')
-    else:
-        season_container = seasons.group(1)
-        season_nums = re.compile('<a href=".+?">Season ([0-9]{1,2})').findall(season_container)
-        fanart = ''
-        imdbnum = old_imdb
-        if META_ON:
-            if not old_imdb and new_imdb:
-                try: _1CH.log('Imdb ID not recieved from title search, updating with new id of %s' % new_imdb)
+        _1CH.log_error("Couldn't find seasons")
+        return
+
+    imdbnum = old_imdb
+    if META_ON:
+        if not old_imdb and new_imdbnum:
+            try: _1CH.log('Imdb ID not recieved from title search, updating with new id of %s' % new_imdbnum)
+            except: pass
+            try:
+                try: _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (title, old_imdb, old_tvdb, new_imdbnum, year))
                 except: pass
-                # TODO: WTF is up with xbmc.log() and utf-8 all of a sudden?
-                # print 'title is unicode: %s' % isinstance(title, unicode)
-                # print _1CH.log(title)
+                __metaget__.update_meta('tvshow', title, old_imdb, old_tvdb, new_imdbnum)
+            except Exception, e:
+                try: _1CH.log('Error while trying to update metadata with: %s, %s, %s, %s, %s' % (title, old_imdb, old_tvdb, new_imdbnum, year))
+                except: pass
+            imdbnum = new_imdbnum
+
+        season_nums = [season[0] for season in seasons]
+        season_meta = __metaget__.get_seasons(title, imdbnum, season_nums)
+        
+    fanart = ''
+    num = 0
+    for season in seasons:
+        season_num,season_html = season
+        temp = {'cover_url': ''}
+
+        if META_ON:
+            temp = season_meta[num]
+            if FANART_ON:
                 try:
-                    try: _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (title, old_imdb, old_tvdb, new_imdb, year))
-                    except: pass
-                    __metaget__.update_meta('tvshow', title, old_imdb, old_tvdb, new_imdb)
-                except Exception, e:
-                    try: _1CH.log('Error while trying to update metadata with:')
-                    except: pass
-                    # print 'Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (
-                    #     title, old_imdb, old_tvdb, new_imdb, year)
-                    print str(e)
-                imdbnum = new_imdb
+                    fanart = temp['backdrop_url']
+                except:
+                    pass
 
-            season_meta = __metaget__.get_seasons(title, imdbnum, season_nums)
+        label = 'Season %s' % season_num
+        utils.cache_season(season_num, season_html)
+        listitem = xbmcgui.ListItem(label, iconImage=temp['cover_url'],
+                                    thumbnailImage=temp['cover_url'])
+        listitem.setInfo('video', temp)
+        listitem.setProperty('fanart_image', fanart)
+        queries = {'mode': 'TVShowEpisodeList', 'season': season_num,
+                   'imdbnum': imdbnum, 'title': title}
+        li_url = _1CH.build_plugin_url(queries)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
+                                    isFolder=True,
+                                    totalItems=len(seasons))
 
-        seasonList = season_container.split('<h2>')
-        num = 0
-        cur = db.cursor()
-        for eplist in seasonList:
-            temp = {'cover_url': ''}
-            r = re.search(r'<a.+?>Season (\d+)</a>', eplist)
-            if r:
-                number = r.group(1)
-
-                if META_ON:
-                    temp = season_meta[num]
-                    if FANART_ON:
-                        try:
-                            fanart = temp['backdrop_url']
-                        except:
-                            pass
-
-                label = 'Season %s' % number
-                temp['title'] = label
-                if not isinstance(eplist, unicode):
-                    eplist = unicode(eplist, 'utf-8')
-                cur.execute(sql, (number, eplist))
-
-                listitem = xbmcgui.ListItem(label, iconImage=temp['cover_url'],
-                                            thumbnailImage=temp['cover_url'])
-                listitem.setInfo('video', temp)
-                listitem.setProperty('fanart_image', fanart)
-                queries = {'mode': 'TVShowEpisodeList', 'season': number,
-                           'imdbnum': imdbnum, 'title': title}
-                li_url = _1CH.build_plugin_url(queries)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
-                                            isFolder=True,
-                                            totalItems=len(seasonList))
-
-                num += 1
-        cur.close()
-        db.commit()
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        utils.set_view('seasons', 'seasons-view')
-        db.close()
-
+        num += 1
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    utils.set_view('seasons', 'seasons-view')
 
 def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
-    sql = 'SELECT contents FROM seasons WHERE season=?'
-    db = utils.connect_db()
-    if DB == 'mysql':
-        sql = sql.replace('?', '%s')
-    cur = db.cursor()
-    cur.execute(sql, (season,))
-    eplist = cur.fetchone()[0]
-    db.close()
+    season_html = utils.get_cached_season(season)
     r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
-    episodes = re.finditer(r, eplist, re.DOTALL)
+    episodes = re.finditer(r, season_html, re.DOTALL)
     
     section_params = get_section_params('episode')
 

@@ -433,3 +433,30 @@ def cache_url(url,body, now):
     cur.execute(sql, (url, body, now))
     db.commit()
     db.close()    
+
+def cache_season(season_num,season_html):
+    db = connect_db()
+    if DB == 'mysql':
+        sql = 'INSERT INTO seasons(season,contents) VALUES(%s,%s) ON DUPLICATE KEY UPDATE contents = VALUES(contents)'
+    else:
+        sql = 'INSERT or REPLACE into seasons (season,contents) VALUES(?,?)'
+
+    if not isinstance(season_html, unicode):
+        season_html = unicode(season_html, 'utf-8')
+    cur = db.cursor()
+    cur.execute(sql, (season_num, season_html))
+    cur.close()
+    db.commit()
+    db.close()
+    
+def get_cached_season(season_num):
+    sql = 'SELECT contents FROM seasons WHERE season=?'
+    db = connect_db()
+    if DB == 'mysql':
+        sql = sql.replace('?', '%s')
+    cur = db.cursor()
+    cur.execute(sql, (season_num,))
+    season_html = cur.fetchone()[0]
+    db.close()
+    return season_html
+    
