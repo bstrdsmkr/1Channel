@@ -27,7 +27,6 @@ import string
 import urllib
 import datetime
 import metapacks
-from operator import itemgetter
 import xbmc
 import xbmcgui
 import xbmcvfs
@@ -234,9 +233,8 @@ def delete_favorite(fav_type, name, url):
 def get_sources(url, title, img, year, imdbnum, dialog):
     url = urllib.unquote(url)
     _1CH.log('Getting sources from: %s' % url)
-    
     dbid=xbmc.getInfoLabel('ListItem.DBID')
-
+    
     pattern = r'tv-\d{1,10}-(.*)/season-(\d{1,4})-episode-(\d{1,4})'
     match = re.search(pattern, url, re.IGNORECASE | re.DOTALL)
     if match:
@@ -248,69 +246,13 @@ def get_sources(url, title, img, year, imdbnum, dialog):
         season = ''
         episode = ''
 
-    net = Net()
-    cookiejar = _1CH.get_profile()
-    cookiejar = os.path.join(cookiejar, 'cookies')
-    net.set_cookies(cookiejar)
-    html = get_url(BASE_URL + url, cache_limit=2)
-    net.save_cookies(cookiejar)
-    adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
-    adult = re.search(adultregex, html, re.DOTALL)
-    if adult:
-        _1CH.log('Adult content url detected')
-        adulturl = BASE_URL + adult.group(1)
-        headers = {'Referer': url}
-        net.set_cookies(cookiejar)
-        html = net.http_GET(adulturl, headers=headers).content
-        net.save_cookies(cookiejar)
-
-    sources = []
-    hosters = []
     if META_ON and video_type == 'movie' and not imdbnum:
-        imdbregex = 'mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"'
-        match = re.search(imdbregex, html)
-        if match:
-            imdbnum = match.group(1)
-            __metaget__.update_meta('movie', title, imdb_id='',
-                                    new_imdb_id=imdbnum, year=year)
+        imdbnum=pw_scraper.get_last_imdbnum()
+        __metaget__.update_meta('movie', title, imdb_id='',new_imdb_id=imdbnum, year=year)
 
-    sort_order = []
-    if _1CH.get_setting('sorting-enabled') == 'true':
-        sort_tiers = ('first-sort', 'second-sort', 'third-sort', 'fourth-sort', 'fifth-sort')
-        sort_methods = (None, 'host', 'verified', 'quality', 'views', 'multi-part')
-        for tier in sort_tiers:
-            if int(_1CH.get_setting(tier)) > 0:
-                method = sort_methods[int(_1CH.get_setting(tier))]
-                if _1CH.get_setting(tier + '-reversed') == 'true':
-                    method = '-%s' %method
-                sort_order.append(method)
-            else: break
-
-    container_pattern = r'<table[^>]+class="movie_version[ "][^>]*>(.*?)</table>'
-    item_pattern = (
-        r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
-        r'url=([^&]+)&(?:amp;)?domain=([^&]+)&(?:amp;)?(.*?)'
-        r'"version_veiws"> ([\d]+) views</')
-    for version in re.finditer(container_pattern, html, re.DOTALL | re.IGNORECASE):
-        for source in re.finditer(item_pattern, version.group(1), re.DOTALL):
-            qual, url, host, parts, views = source.groups()
-
-            item = {'host': host.decode('base-64'), 'url': url.decode('base-64')}
-            if item==item: #urlresolver.HostedMediaFile(item['url']).valid_url():
-                item['verified'] = source.group(0).find('star.gif') > -1
-                item['quality'] = qual.upper()
-                item['views'] = int(views)
-                pattern = r'<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part \d*)</a>'
-                other_parts = re.findall(pattern, parts, re.DOTALL | re.I)
-                if other_parts:
-                    item['multi-part'] = True
-                    item['parts'] = [part[0].decode('base-64') for part in other_parts]
-                else:
-                    item['multi-part'] = False
-                hosters.append(item)
-
-            if sort_order:
-                hosters = multikeysort(hosters, sort_order, functions={'host': utils.rank_host})
+    hosters=pw_scraper.get_sources(url)
+    
+    sources = []
     if not hosters:
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
     if ((dialog or (_1CH.get_setting('use-dialogs') == 'true')) and (_1CH.get_setting('auto-play') == 'false')):  # we're comming from a .strm file and can't create a directory so we have to pop a
@@ -1662,37 +1604,6 @@ def manage_subscriptions(day=''):
         except: pass
     db.close()
     _1CH.end_of_directory()
-
-
-def multikeysort(items, columns, functions=None, getter=itemgetter):
-    """Sort a list of dictionary objects or objects by multiple keys bidirectionally.
-
-    Keyword Arguments:
-    items -- A list of dictionary objects or objects
-    columns -- A list of column names to sort by. Use -column to sort in descending order
-    functions -- A Dictionary of Column Name -> Functions to normalize or process each column value
-    getter -- Default "getter" if column function does not exist
-              operator.itemgetter for Dictionaries
-              operator.attrgetter for Objects
-    """
-    if not functions: functions = {}
-    comparers = []
-    for col in columns:
-        column = col[1:] if col.startswith('-') else col
-        if not column in functions:
-            functions[column] = getter(column)
-        comparers.append((functions[column], 1 if column == col else -1))
-
-    def comparer(left, right):
-        for func, polarity in comparers:
-            result = cmp(func(left), func(right))
-            if result:
-                return polarity * result
-        else:
-            return 0
-
-    return sorted(items, cmp=comparer)
-
 
 def compose(inner_func, *outer_funcs):
     """Compose multiple unary functions together into a single unary function"""

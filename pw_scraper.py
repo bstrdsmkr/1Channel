@@ -25,6 +25,7 @@ import xbmc
 import xbmcgui
 import sys
 import os
+from operator import itemgetter
 from addon.common.net import Net
 from addon.common.addon import Addon
 
@@ -95,8 +96,62 @@ class PW_Scraper():
     def migrate_favorites(self):
         pass
     
-    def get_sources(self):
-        pass
+    def get_sources(self, url):
+        html = self.__get_cached_url(self.base_url + url, cache_limit=2)
+        adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
+        adult = re.search(adultregex, html, re.DOTALL)
+        if adult:
+            _1CH.log('Adult content url detected')
+            adulturl = self.base_url + adult.group(1)
+            headers = {'Referer': url}
+            html = self.__get_url(adulturl, headers=headers, login=True)
+        
+        imdbregex = 'mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"'
+        match = re.search(imdbregex, html)
+        if match:
+            self.imdb_num = match.group(1)
+
+        sort_order = []
+        if _1CH.get_setting('sorting-enabled') == 'true':
+            sort_tiers = ('first-sort', 'second-sort', 'third-sort', 'fourth-sort', 'fifth-sort')
+            sort_methods = (None, 'host', 'verified', 'quality', 'views', 'multi-part')
+            for tier in sort_tiers:
+                if int(_1CH.get_setting(tier)) > 0:
+                    method = sort_methods[int(_1CH.get_setting(tier))]
+                    if _1CH.get_setting(tier + '-reversed') == 'true':
+                        method = '-%s' %method
+                    sort_order.append(method)
+                else: break
+
+        hosters = []
+        container_pattern = r'<table[^>]+class="movie_version[ "][^>]*>(.*?)</table>'
+        item_pattern = (
+            r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
+            r'url=([^&]+)&(?:amp;)?domain=([^&]+)&(?:amp;)?(.*?)'
+            r'"version_veiws"> ([\d]+) views</')
+        for version in re.finditer(container_pattern, html, re.DOTALL | re.IGNORECASE):
+            for source in re.finditer(item_pattern, version.group(1), re.DOTALL):
+                print source.groups()
+                qual, url, host, parts, views = source.groups()
+    
+                item = {'host': host.decode('base-64'), 'url': url.decode('base-64')}
+                if item==item: #urlresolver.HostedMediaFile(item['url']).valid_url():
+                    item['verified'] = source.group(0).find('star.gif') > -1
+                    item['quality'] = qual.upper()
+                    item['views'] = int(views)
+                    pattern = r'<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part \d*)</a>'
+                    other_parts = re.findall(pattern, parts, re.DOTALL | re.I)
+                    if other_parts:
+                        item['multi-part'] = True
+                        item['parts'] = [part[0].decode('base-64') for part in other_parts]
+                    else:
+                        item['multi-part'] = False
+                    hosters.append(item)
+    
+                if sort_order:
+                    hosters = self.__multikeysort(hosters, sort_order, functions={'host': utils.rank_host})
+            
+            return hosters
     
     # returns a generator of results of a title search each of which is a dictionary of url, title, img, and year
     def search(self,section, query):
@@ -357,3 +412,32 @@ class PW_Scraper():
             return True
         else:
             return False
+
+    def __multikeysort(self, items, columns, functions=None, getter=itemgetter):
+        """Sort a list of dictionary objects or objects by multiple keys bidirectionally.
+    
+        Keyword Arguments:
+        items -- A list of dictionary objects or objects
+        columns -- A list of column names to sort by. Use -column to sort in descending order
+        functions -- A Dictionary of Column Name -> Functions to normalize or process each column value
+        getter -- Default "getter" if column function does not exist
+                  operator.itemgetter for Dictionaries
+                  operator.attrgetter for Objects
+        """
+        if not functions: functions = {}
+        comparers = []
+        for col in columns:
+            column = col[1:] if col.startswith('-') else col
+            if not column in functions:
+                functions[column] = getter(column)
+            comparers.append((functions[column], 1 if column == col else -1))
+    
+        def comparer(left, right):
+            for func, polarity in comparers:
+                result = cmp(func(left), func(right))
+                if result:
+                    return polarity * result
+            else:
+                return 0
+    
+        return sorted(items, cmp=comparer)
