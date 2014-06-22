@@ -36,6 +36,7 @@ _1CH = Addon('plugin.video.1channel', sys.argv)
 ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 ITEMS_PER_PAGE=24
+MAX_PAGES=10
 
 class PW_Scraper():
     def __init__(self, base_url, username, password):
@@ -107,36 +108,36 @@ class PW_Scraper():
         
         if section == 'tv':  search_url += '&search_section=2'
 
-        html = '> >> <'
-        page = 0
-        while html.find('> >> <') > -1 and page < 10:
-            page += 1
-            if page > 1:
-                pageurl = '%s&page=%s' % (search_url, page)
-            else:
-                pageurl = search_url
-            html = self.__get_cached_url(pageurl, cache_limit=0)
-            r = re.search('number_movies_result">([0-9,]+)', html)
-            if r:
-                total = int(r.group(1).replace(',', ''))
-            else:
-                total = 0
-            self.res_pages = total/ITEMS_PER_PAGE
-            self.res_total = total
-            return self.__search_gen(html)
+        html = self.__get_cached_url(search_url, cache_limit=0)
+        r = re.search('number_movies_result">([0-9,]+)', html)
+        if r:
+            total = int(r.group(1).replace(',', ''))
+        else:
+            total = 0
+        self.res_pages = total/ITEMS_PER_PAGE
+        self.res_total = total
+        return self.__search_gen(html,search_url)
     
-    def __search_gen(self,html):
-        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-        regex = re.finditer(pattern, html, re.DOTALL)
-        result={}
-        for item in regex.finditer(html):
-            link, title, year, img = item.groups()
-            if not year or len(year) != 4: year = ''
-            result['url']=link
-            result['title']=title
-            result['year']=year
-            result['img']=img
-            yield result
+    def __search_gen(self,html,search_url):
+        page=1
+        while page<=MAX_PAGES:
+            pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
+            result={}
+            for item in re.finditer(pattern, html, re.DOTALL):
+                link, title, year, img = item.groups()
+                if not year or len(year) != 4: year = ''
+                result['url']=link
+                result['title']=title
+                result['year']=year
+                result['img']=img
+                yield result
+            
+            if html.find('> >> <') == -1:
+                break
+            
+            page += 1
+            pageurl = '%s&page=%s' % (search_url, page)
+            html = self.__get_cached_url(pageurl, cache_limit=0)
     
     def search_advanced(self):
         pass

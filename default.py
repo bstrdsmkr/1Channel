@@ -671,7 +671,7 @@ def Search(section, query):
     for result in results:
         if result['url'] not in resurls:
             resurls.append(result['url'])                
-            create_item(section_params,result['title'],result['year'],result['img'],result['url'],total)
+            create_item(section_params,result['title'],result['year'],result['img'],result['url'],totalItems=total)
     _1CH.end_of_directory()
 
 
@@ -718,7 +718,7 @@ def SearchAdvanced(section, query='', tag='', description=False, country='', gen
             resurl, title, year, thumb = s.groups()
             if resurl not in resurls:
                 resurls.append(resurl)
-                create_item(section_params,title,year,thumb,resurl,total)
+                create_item(section_params,title,year,thumb,resurl,totalItems=total)
     _1CH.end_of_directory()
 
 
@@ -752,7 +752,7 @@ def SearchDesc(section, query):
             resurl, title, year, thumb = s.groups()
             if resurl not in resurls:
                 resurls.append(resurl)
-                create_item(section_params, title, year, thumb, resurl, total)
+                create_item(section_params, title, year, thumb, resurl, totalItems=total)
     _1CH.end_of_directory()
 
 
@@ -881,6 +881,7 @@ def add_contextsearchmenu(title, video_type, resurl=''):
     return contextmenuitems
 
 def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
+    _1CH.log('Create Item: %s, %s, %s, %s, %s, %s, %s, %s, %s' % (section_params, title, year, img, url, imdbnum, season, episode, totalItems))
     liz = build_listitem(section_params['video_type'], title, year, img, url, imdbnum, season, episode, extra_cms=menu_items, subs=section_params['subs'])
     img = liz.getProperty('img')
     imdbnum = liz.getProperty('imdb')
