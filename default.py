@@ -676,83 +676,29 @@ def Search(section, query):
 
 
 def SearchAdvanced(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1'):
-    html = get_url(BASE_URL, cache_limit=0)
-    r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
-    search_url = BASE_URL + '/index.php?search_keywords='
-    search_url += urllib.quote_plus(query)
-    if (description==True): search_url += '&desc_search=1'
-    search_url += '&tag=' + urllib.quote_plus(tag)
-    search_url += '&genre=' + urllib.quote_plus(genre)
-    search_url += '&actor_name=' + urllib.quote_plus(actor)
-    search_url += '&director=' + urllib.quote_plus(director)
-    search_url += '&country=' + urllib.quote_plus(country)
-    search_url += '&year=' + urllib.quote_plus(year)
-    search_url += '&month=' + urllib.quote_plus(month)
-    search_url += '&decade=' + urllib.quote_plus(decade)
-    search_url += '&host=' + urllib.quote_plus(host)
-    search_url += '&search_rating=' + urllib.quote_plus(rating) ## Rating higher than (#), 0-4
-    search_url += '&advanced=' + urllib.quote_plus(advanced)
-    ###search_url += 'search_section=1&genre=&director=&actor_name=&country=&search_rating=0&year=0&month=0&decade=0&host=&advanced=1'
-    search_url += '&key=' + r
-    if section == 'tv': search_url += '&search_section=2'
     section_params = get_section_params(section)
-
-    html = '> >> <'
-    page = 0
-    while html.find('> >> <') > -1 and page < 10:
-        page += 1
-        if page > 1:
-            pageurl = '%s&page=%s' % (search_url, page)
-        else:
-            pageurl = search_url
-        html = get_url(pageurl, cache_limit=0)
-        r = re.search('number_movies_result">([0-9,]+)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-        regex = re.finditer(pattern, html, re.DOTALL)
-        resurls = []
-        for s in regex:
-            resurl, title, year, thumb = s.groups()
-            if resurl not in resurls:
-                resurls.append(resurl)
-                create_item(section_params,title,year,thumb,resurl,totalItems=total)
+    
+    results=pw_scraper.search_advanced(section, query, tag, description, country, genre, actor, director, year, month, decade, host, rating, advanced)
+    total=pw_scraper.get_last_res_total()
+    
+    resurls = []
+    for result in results:
+        if result['url'] not in resurls:
+            resurls.append(result['url'])                
+            create_item(section_params,result['title'],result['year'],result['img'],result['url'],totalItems=total)
     _1CH.end_of_directory()
 
 
 def SearchDesc(section, query):
-    html = get_url(BASE_URL, cache_limit=0)
-    r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
-    search_url = BASE_URL + '/index.php?search_keywords='
-    search_url += urllib.quote_plus(query)
-    search_url += '&desc_search=1' ## 1 = Search Descriptions
-    search_url += '&key=' + r
-    if section == 'tv': search_url += '&search_section=2'
     section_params = get_section_params(section)
-    html = '> >> <'
-    page = 0
-    while html.find('> >> <') > -1 and page < 10:
-        page += 1
-        if page > 1:
-            pageurl = '%s&page=%s' % (search_url, page)
-        else:
-            pageurl = search_url
-        html = get_url(pageurl, cache_limit=0)
-        r = re.search('number_movies_result">([0-9,]+)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-        regex = re.finditer(pattern, html, re.DOTALL)
-        resurls = []
-        for s in regex:
-            resurl, title, year, thumb = s.groups()
-            if resurl not in resurls:
-                resurls.append(resurl)
-                create_item(section_params, title, year, thumb, resurl, totalItems=total)
+    results=pw_scraper.search_desc(section,query)
+    total=pw_scraper.get_last_res_total()
+
+    resurls = []
+    for result in results:
+        if result['url'] not in resurls:
+            resurls.append(result['url'])
+            create_item(section_params, result['title'], result['year'], result['img'], result['url'], totalItems=total)
     _1CH.end_of_directory()
 
 
@@ -881,7 +827,7 @@ def add_contextsearchmenu(title, video_type, resurl=''):
     return contextmenuitems
 
 def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
-    _1CH.log('Create Item: %s, %s, %s, %s, %s, %s, %s, %s, %s' % (section_params, title, year, img, url, imdbnum, season, episode, totalItems))
+    #_1CH.log('Create Item: %s, %s, %s, %s, %s, %s, %s, %s, %s' % (section_params, title, year, img, url, imdbnum, season, episode, totalItems))
     liz = build_listitem(section_params['video_type'], title, year, img, url, imdbnum, season, episode, extra_cms=menu_items, subs=section_params['subs'])
     img = liz.getProperty('img')
     imdbnum = liz.getProperty('imdb')

@@ -98,15 +98,41 @@ class PW_Scraper():
     def get_sources(self):
         pass
     
+    # returns a generator of results of a title search each of which is a dictionary of url, title, img, and year
     def search(self,section, query):
-        search_url = self.base_url + '/index.php?search_keywords='
-        search_url += urllib.quote_plus(query)
+        return self.__search(section, urllib.quote_plus(query))
+    
+    # returns a generator of results of a description search each of which is a dictionary of url, title, img, and year
+    def search_desc(self, section, query):
+        keywords = urllib.quote_plus(query)
+        keywords += '&desc_search=1' ## 1 = Search Descriptions
+        return self.__search(section, keywords)
 
-        html = self.__get_cached_url(self.base_url, cache_limit=0)
+    # returns a generator of results of a advanced search each of which is a dictionary of url, title, img, and year
+    def search_advanced(self, section, query, tag, description, country, genre, actor, director, year, month, decade, host, rating, advanced):
+        keywords = urllib.quote_plus(query)
+        if (description==True): keywords += '&desc_search=1'
+        keywords += '&tag=' + urllib.quote_plus(tag)
+        keywords += '&genre=' + urllib.quote_plus(genre)
+        keywords += '&actor_name=' + urllib.quote_plus(actor)
+        keywords += '&director=' + urllib.quote_plus(director)
+        keywords += '&country=' + urllib.quote_plus(country)
+        keywords += '&year=' + urllib.quote_plus(year)
+        keywords += '&month=' + urllib.quote_plus(month)
+        keywords += '&decade=' + urllib.quote_plus(decade)
+        keywords += '&host=' + urllib.quote_plus(host)
+        keywords += '&search_rating=' + urllib.quote_plus(rating) ## Rating higher than (#), 0-4
+        keywords += '&advanced=' + urllib.quote_plus(advanced)
+        return self.__search(section, keywords)
+        
+    # internal search function once a search url is (mostly) built
+    def __search(self, section, keywords):
+        search_url = self.base_url + '/index.php?search_keywords='
+        search_url += keywords
+        html =self. __get_cached_url(self.base_url, cache_limit=0)
         r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
         search_url += '&key=' + r
-        
-        if section == 'tv':  search_url += '&search_section=2'
+        if section == 'tv': search_url += '&search_section=2'
 
         html = self.__get_cached_url(search_url, cache_limit=0)
         r = re.search('number_movies_result">([0-9,]+)', html)
@@ -118,6 +144,7 @@ class PW_Scraper():
         self.res_total = total
         return self.__search_gen(html,search_url)
     
+    # generator function for search results
     def __search_gen(self,html,search_url):
         page=1
         while page<=MAX_PAGES:
@@ -138,13 +165,7 @@ class PW_Scraper():
             page += 1
             pageurl = '%s&page=%s' % (search_url, page)
             html = self.__get_cached_url(pageurl, cache_limit=0)
-    
-    def search_advanced(self):
-        pass
-    
-    def search_desc(self):
-        pass
-    
+
     def get_filtered_results(self, section, genre, letter, sort, page):
         pageurl = self.base_url + '/?'
         if section == 'tv': pageurl += 'tv'
