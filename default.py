@@ -1242,7 +1242,7 @@ def create_meta_packs():
                 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
 
             if letters_completed <= letters_per_zip:
-                scan_by_letter(video_type, letter)
+                #scan_by_letter(video_type, letter)
                 letters_completed += 1
 
             if (letters_completed == letters_per_zip
