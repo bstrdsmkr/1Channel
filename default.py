@@ -1147,42 +1147,42 @@ def create_meta(video_type, title, year, thumb):
             except: pass
     return meta
 
-
-def scan_by_letter(section, letter):
-    import traceback
-
-    try: _1CH.log('Building meta for %s letter %s' % (section, letter))
-    except: pass
-    dlg = xbmcgui.DialogProgress()
-    dlg.create('Scanning %s Letter %s' % (section, letter))
-    if section == 'tvshow':
-        url = BASE_URL + '/alltvshows.php'
-    else:
-        url = BASE_URL + '/allmovies.php'
-    html = get_url(url)
-
-    pattern = '%s</h2>(.+?)(?:<h2>|<div class="clearer">)' % letter
-    container = re.search(pattern, html, re.S).group(1)
-    item_pattern = re.compile(r'<a.+?>(.+?)</a> \[ (\d{4}) \]</div>')
-    for item in item_pattern.finditer(container):
-        title, year = item.groups()
-        success = False
-        attempts_remaining = 4
-        while attempts_remaining and not success:
-            dlg.update(0, '%s (%s)' % (title, year))
-            try:
-                __metaget__.get_meta(section, title, year=year)
-                success = True
-            except Exception, e:
-                attempts_remaining -= 1
-                line1 = '%s (%s)' % (title, year)
-                line2 = 'Failed: %s  attempts remaining' % attempts_remaining
-                line3 = str(e)
-                dlg.update(0, line1, line2, line3)
-                traceback.print_exc()
-            if dlg.iscanceled(): break
-        if dlg.iscanceled(): break
-    return
+# Commented out because url produces a blank page
+# def scan_by_letter(section, letter):
+#     import traceback
+# 
+#     try: _1CH.log('Building meta for %s letter %s' % (section, letter))
+#     except: pass
+#     dlg = xbmcgui.DialogProgress()
+#     dlg.create('Scanning %s Letter %s' % (section, letter))
+#     if section == 'tvshow':
+#         url = BASE_URL + '/alltvshows.php'
+#     else:
+#         url = BASE_URL + '/allmovies.php'
+#     html = get_url(url)
+# 
+#     pattern = '%s</h2>(.+?)(?:<h2>|<div class="clearer">)' % letter
+#     container = re.search(pattern, html, re.S).group(1)
+#     item_pattern = re.compile(r'<a.+?>(.+?)</a> \[ (\d{4}) \]</div>')
+#     for item in item_pattern.finditer(container):
+#         title, year = item.groups()
+#         success = False
+#         attempts_remaining = 4
+#         while attempts_remaining and not success:
+#             dlg.update(0, '%s (%s)' % (title, year))
+#             try:
+#                 __metaget__.get_meta(section, title, year=year)
+#                 success = True
+#             except Exception, e:
+#                 attempts_remaining -= 1
+#                 line1 = '%s (%s)' % (title, year)
+#                 line2 = 'Failed: %s  attempts remaining' % attempts_remaining
+#                 line3 = str(e)
+#                 dlg.update(0, line1, line2, line3)
+#                 traceback.print_exc()
+#             if dlg.iscanceled(): break
+#         if dlg.iscanceled(): break
+#     return
 
 
 def zipdir(basedir, archivename):
