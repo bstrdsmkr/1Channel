@@ -1364,7 +1364,7 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
             _1CH.log_error('No Seasons found for %s at %s' % (show_title, url))
         else:
             for season in seasons:
-                season_num=season[0]
+                season_num= season[0]
                 season_html = season[1]
                 r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
                 episodes = re.finditer(r, season_html, re.DOTALL)
@@ -1380,7 +1380,7 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
                     filename = utils.filename_from_title(show_title, video_type)
                     filename = filename % (season_num, epnum)
                     show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
-                    final_path = os.path.join(save_path, show_title, season_num, filename)
+                    final_path = os.path.join(save_path, show_title, 'Season '+season_num, filename)
                     final_path = xbmc.makeLegalFilename(final_path)
                     if not xbmcvfs.exists(os.path.dirname(final_path)):
                         try:
