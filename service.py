@@ -232,6 +232,13 @@ class Service(xbmc.Player):
         return False
 
 monitor = Service()
+
+if ADDON.getSetting('auto-update-movies-startup') == 'true' and not xbmc.abortRequested:
+    xbmc.log('PrimeWire: Updating on start')
+    now = datetime.datetime.now()
+    xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=MovieAutoUpdate)')
+    ADDON.setSetting('auto-update-movies-last-run', now.strftime("%Y-%m-%d %H:%M:%S.%f"))
+
 while not xbmc.abortRequested:
     if ADDON.getSetting('auto-update-subscriptions') == 'true':
         now = datetime.datetime.now()
@@ -272,12 +279,6 @@ while not xbmc.abortRequested:
                 ADDON.setSetting('auto-update-movies-last-run', now.strftime("%Y-%m-%d %H:%M:%S.%f"))
             else:
                 xbmc.log('PrimeWire: Service: Busy... Postponing movies update')
-                
-    if ADDON.getSetting('auto-update-movies-startup') == 'true' and not xbmc.abortRequested:
-        xbmc.log('PrimeWire: Updating on start')
-        now = datetime.datetime.now()
-        xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=MovieAutoUpdate)')
-        ADDON.setSetting('auto-update-movies-last-run', now.strftime("%Y-%m-%d %H:%M:%S.%f"))
 
     if monitor.tracking and monitor.isPlayingVideo():
         monitor._lastPos = monitor.getTime()
