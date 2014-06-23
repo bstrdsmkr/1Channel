@@ -255,8 +255,8 @@ def get_sources(url, title, img, year, imdbnum, dialog):
     sources = []
     if not hosters:
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
-    if ((dialog or (_1CH.get_setting('use-dialogs') == 'true')) and (_1CH.get_setting('auto-play') == 'false')):  # we're comming from a .strm file and can't create a directory so we have to pop a
-        sources = []                  # dialog if auto-play isn't on
+        
+    if (dialog or (_1CH.get_setting('use-dialogs') == 'true' and _1CH.get_setting('auto-play') == 'false')): 
         img = xbmc.getInfoImage('ListItem.Thumb')
         for item in hosters:
             try:

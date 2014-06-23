@@ -289,22 +289,27 @@ class PW_Scraper():
        
     def __get_url(self,url, headers=None, login=False):
         _1CH.log('Fetching URL: %s' % url)
+        before = time.time()
         cookiejar = _1CH.get_profile()
         cookiejar = os.path.join(cookiejar, 'cookies')
         net = Net()
         net.set_cookies(cookiejar)
         html = net.http_GET(url, headers=headers).content
-        html = html.decode('iso-8859-1').encode('utf-8')
         if login and not '<a href="/logout.php">[ Logout ]</a>' in html:
             if self.__login(url):
-                return net.http_GET(url, headers=headers).content
+                html=net.http_GET(url, headers=headers).content
             else:
+                html=None
                 _1CH.log("Login failed for %s getting: %s" (self.username,url))
-        else:
-            return html
+
+        html = html.decode('iso-8859-1').encode('utf-8')
+        after = time.time()
+        _1CH.log('Url Fetch took: %.2f secs' % (after-before))
+        return html
     
     def __get_cached_url(self, url, cache_limit=8):
         _1CH.log('Fetching Cached URL: %s' % url)
+        before = time.time()
         db = utils.connect_db()
         cur = db.cursor()
         now = time.time()
@@ -393,6 +398,8 @@ class PW_Scraper():
         response.close()
         
         utils.cache_url(url, body, now)
+        after = time.time()
+        _1CH.log('Cached Url Fetch took: %.2f secs' % (after-before))
         return body
     
     def __login(self,redirect):
