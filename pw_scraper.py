@@ -40,8 +40,11 @@ ITEMS_PER_PAGE=24
 MAX_PAGES=10
 
 class PW_Scraper():
-    def __init__(self, base_url, username, password):
-        self.base_url=base_url
+    def __init__(self, username, password):
+        self.base_url = _1CH.get_setting('domain')
+        if (_1CH.get_setting("enableDomain")=='true') and (len(_1CH.get_setting("customDomain")) > 10):
+            self.base_url = _1CH.get_setting("customDomain")
+
         self.username=username
         self.password=password
         self.res_pages=-1

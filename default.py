@@ -87,9 +87,6 @@ ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
-BASE_URL = _1CH.get_setting('domain')
-if (_1CH.get_setting("enableDomain")=='true') and (len(_1CH.get_setting("customDomain")) > 10):
-    BASE_URL = _1CH.get_setting("customDomain")
 
 GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Game-Show',
@@ -97,7 +94,7 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport',
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
-pw_scraper = PW_Scraper(BASE_URL,_1CH.get_setting("username"),_1CH.get_setting("passwd"))
+pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 
 PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
@@ -980,7 +977,7 @@ def migrate_favs_to_web():
         try:
             id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', favurl)
             if id:
-                save_url = "%s/addtofavs.php?id=%s&whattodo=add" % BASE_URL
+                save_url = "/addtofavs.php?id=%s&whattodo=add"
                 save_url = save_url % id_num.group(1)
                 pw_scraper.add_favorite(save_url)
                 progress.update(0, ln1, 'Added %s' % title, 'Success')
