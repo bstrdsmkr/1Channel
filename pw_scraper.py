@@ -110,7 +110,7 @@ class PW_Scraper():
         match = re.search(imdbregex, html)
         if match:
             self.imdb_num = match.group(1)
-
+        
         sort_order = []
         if _1CH.get_setting('sorting-enabled') == 'true':
             sort_tiers = ('first-sort', 'second-sort', 'third-sort', 'fourth-sort', 'fifth-sort')
@@ -129,30 +129,28 @@ class PW_Scraper():
             r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
             r'url=([^&]+)&(?:amp;)?domain=([^&]+)&(?:amp;)?(.*?)'
             r'"version_veiws"> ([\d]+) views</')
-        for version in re.finditer(container_pattern, html, re.DOTALL | re.IGNORECASE):
-            for source in re.finditer(item_pattern, version.group(1), re.DOTALL):
-                print source.groups()
+        for container in re.finditer(container_pattern, html, re.DOTALL | re.IGNORECASE):
+            for source in re.finditer(item_pattern, container.group(1), re.DOTALL):
                 qual, url, host, parts, views = source.groups()
-    
+         
                 item = {'host': host.decode('base-64'), 'url': url.decode('base-64')}
-                if item==item: #urlresolver.HostedMediaFile(item['url']).valid_url():
-                    item['verified'] = source.group(0).find('star.gif') > -1
-                    item['quality'] = qual.upper()
-                    item['views'] = int(views)
-                    pattern = r'<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part \d*)</a>'
-                    other_parts = re.findall(pattern, parts, re.DOTALL | re.I)
-                    if other_parts:
-                        item['multi-part'] = True
-                        item['parts'] = [part[0].decode('base-64') for part in other_parts]
-                    else:
-                        item['multi-part'] = False
-                    hosters.append(item)
-    
+                item['verified'] = source.group(0).find('star.gif') > -1
+                item['quality'] = qual.upper()
+                item['views'] = int(views)
+                pattern = r'<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part \d*)</a>'
+                other_parts = re.findall(pattern, parts, re.DOTALL | re.I)
+                if other_parts:
+                    item['multi-part'] = True
+                    item['parts'] = [part[0].decode('base-64') for part in other_parts]
+                else:
+                    item['multi-part'] = False
+                hosters.append(item)
+     
                 if sort_order:
                     hosters = self.__multikeysort(hosters, sort_order, functions={'host': utils.rank_host})
-            
-            return hosters
-    
+        
+        return hosters
+                    
     # returns a generator of results of a title search each of which is a dictionary of url, title, img, and year
     def search(self,section, query):
         return self.__search(section, urllib.quote_plus(query))
