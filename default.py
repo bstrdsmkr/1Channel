@@ -831,7 +831,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
                 try: _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (title, old_imdb, old_tvdb, new_imdbnum, year))
                 except: pass
                 __metaget__.update_meta('tvshow', title, old_imdb, old_tvdb, new_imdbnum)
-            except Exception, e:
+            except:
                 try: _1CH.log('Error while trying to update metadata with: %s, %s, %s, %s, %s' % (title, old_imdb, old_tvdb, new_imdbnum, year))
                 except: pass
             imdbnum = new_imdbnum
@@ -971,9 +971,6 @@ def migrate_favs_to_web():
     progress = xbmcgui.DialogProgress()
     ln1 = 'Uploading your favorites to www.primewire.ag...'
     progress.create('Uploading Favorites', ln1)
-    net = Net()
-    cookiejar = _1CH.get_profile()
-    cookiejar = os.path.join(cookiejar, 'cookies')
     failures = []
     for fav in all_favs:
         if progress.iscanceled(): return
@@ -985,11 +982,8 @@ def migrate_favs_to_web():
             if id:
                 save_url = "%s/addtofavs.php?id=%s&whattodo=add" % BASE_URL
                 save_url = save_url % id_num.group(1)
-                _1CH.log(save_url)
-                net.set_cookies(cookiejar)
-                net.http_GET(save_url)
-                net.save_cookies(cookiejar)
-                progress.update(0, ln1, 'Adding %s' % title, 'Success')
+                pw_scraper.add_favorite(save_url)
+                progress.update(0, ln1, 'Added %s' % title, 'Success')
                 _1CH.log('%s added successfully' % title)
         except Exception, e:
             _1CH.log(e)
@@ -1364,76 +1358,58 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
         save_path = _1CH.get_setting('tvshow-folder')
         save_path = xbmc.translatePath(save_path)
         show_title = title.strip()
-        net = Net()
-        cookiejar = _1CH.get_profile()
-        cookiejar = os.path.join(cookiejar, 'cookies')
-        net.set_cookies(cookiejar)
-        html = net.http_GET(BASE_URL + url).content
-        net.save_cookies(cookiejar)
-        adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
-        adult = re.search(adultregex, html, re.DOTALL)
-        if adult:
-            _1CH.log('Adult content url detected')
-            adulturl = BASE_URL + adult.group(1)
-            headers = {'Referer': url}
-            net.set_cookies(cookiejar)
-            html = net.http_GET(adulturl, headers=headers).content
-            net.save_cookies(cookiejar)
-        seasons = re.search('tv_container(.+?)<div class="clearer', html, re.DOTALL)
+        seasons = pw_scraper.get_season_list(url)
+
         if not seasons:
             _1CH.log_error('No Seasons found for %s at %s' % (show_title, url))
         else:
-            season_container = seasons.group(1)
-            season_list = season_container.split('<h2>')
-            for eplist in season_list:
-                match = re.search('<a.+?>(.+?)</a>', eplist)
-                if match:
-                    season = match.group(1)
-                    r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
-                    episodes = re.finditer(r, eplist, re.DOTALL)
-                    for ep_line in episodes:
-                        epurl, eptitle = ep_line.groups()
-                        eptitle = re.sub('<[^<]+?>', '', eptitle.strip())
-                        eptitle = re.sub(r'\s\s+', ' ', eptitle)
+            for season in seasons:
+                season_num=season[0]
+                season_html = season[1]
+                r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
+                episodes = re.finditer(r, season_html, re.DOTALL)
+                for ep_line in episodes:
+                    epurl, eptitle = ep_line.groups()
+                    eptitle = re.sub('<[^<]+?>', '', eptitle.strip())
+                    eptitle = re.sub(r'\s\s+', ' ', eptitle)
 
-                        pattern = r'tv-\d{1,10}-.*/season-(\d{1,4})-episode-(\d{1,4})'
-                        match = re.search(pattern, epurl, re.I | re.DOTALL)
-                        seasonnum = match.group(1)
-                        epnum = match.group(2)
+                    pattern = r'tv-\d{1,10}-.*/season-\d+-episode-(\d+)'
+                    match = re.search(pattern, epurl, re.I | re.DOTALL)
+                    epnum = match.group(1)
 
-                        filename = utils.filename_from_title(show_title, video_type)
-                        filename = filename % (seasonnum, epnum)
-                        show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
-                        final_path = os.path.join(save_path, show_title, season, filename)
-                        final_path = xbmc.makeLegalFilename(final_path)
-                        if not xbmcvfs.exists(os.path.dirname(final_path)):
-                            try:
-                                try: xbmcvfs.mkdirs(os.path.dirname(final_path))
-                                except: os.mkdir(os.path.dirname(final_path))
-                            except:
-                                _1CH.log('Failed to create directory %s' % final_path)
-
-                        queries = {'mode': 'GetSources', 'url': epurl, 'imdbnum': '', 'title': show_title, 'img': '',
-                                   'dialog': 1, 'video_type': 'episode'}
-                        strm_string = _1CH.build_plugin_url(queries)
-
-                        old_strm_string=''
+                    filename = utils.filename_from_title(show_title, video_type)
+                    filename = filename % (season_num, epnum)
+                    show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
+                    final_path = os.path.join(save_path, show_title, season_num, filename)
+                    final_path = xbmc.makeLegalFilename(final_path)
+                    if not xbmcvfs.exists(os.path.dirname(final_path)):
                         try:
-                            f = xbmcvfs.File(final_path, 'r')
-                            old_strm_string = f.read()
-                            f.close()
-                        except:  pass
+                            try: xbmcvfs.mkdirs(os.path.dirname(final_path))
+                            except: os.mkdir(os.path.dirname(final_path))
+                        except:
+                            _1CH.log('Failed to create directory %s' % final_path)
 
-                        #print "Old String: %s; New String %s" %(old_strm_string,strm_string)
-                        # string will be blank if file doesn't exist or is blank
-                        if strm_string != old_strm_string:
-                            try:
-                                _1CH.log('Writing strm: %s' % strm_string)
-                                file_desc = xbmcvfs.File(final_path, 'w')
-                                file_desc.write(strm_string)
-                                file_desc.close()
-                            except Exception, e:
-                                _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
+                    queries = {'mode': 'GetSources', 'url': epurl, 'imdbnum': '', 'title': show_title, 'img': '',
+                               'dialog': 1, 'video_type': 'episode'}
+                    strm_string = _1CH.build_plugin_url(queries)
+
+                    old_strm_string=''
+                    try:
+                        f = xbmcvfs.File(final_path, 'r')
+                        old_strm_string = f.read()
+                        f.close()
+                    except:  pass
+
+                    #print "Old String: %s; New String %s" %(old_strm_string,strm_string)
+                    # string will be blank if file doesn't exist or is blank
+                    if strm_string != old_strm_string:
+                        try:
+                            _1CH.log('Writing strm: %s' % strm_string)
+                            file_desc = xbmcvfs.File(final_path, 'w')
+                            file_desc.write(strm_string)
+                            file_desc.close()
+                        except Exception, e:
+                            _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
 
     elif video_type == 'movie':
         save_path = _1CH.get_setting('movie-folder')

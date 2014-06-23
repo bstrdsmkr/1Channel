@@ -92,9 +92,6 @@ class PW_Scraper():
             fav['delete']=delete
             yield fav
         return
-
-    def migrate_favorites(self):
-        pass
     
     def get_sources(self, url):
         html = self.__get_cached_url(self.base_url + url, cache_limit=2)
