@@ -89,6 +89,14 @@
         <setting id="last_run" type="text" default="1970-01-01 23:59:00.000000" visible="false"/>
     </category>
 
+    <category label="Skin Integration">
+        <setting id="auto-update-movies-cat" type="labelenum" values="Featured|Most Popular|Highly Rated|Date Released|Date Added" label="30814" default="0" />
+        <setting id="auto-update-movies" type="bool" label="30810" default="false"/>
+        <setting enable="!eq(-1,false)" id="auto-update-movies-startup" type="bool" label="30812" default="false"/>
+        <setting enable="!eq(-2,false)" id="auto-update-movies-interval" type="enum" values="2h|5h|10h|15h|24h" label="30811" default="3" />
+        <setting enable="!eq(-3,false)" label="30813" type="action" option="close" action="RunPlugin(plugin://plugin.video.1channel/?mode=MovieAutoUpdate)" />
+        <setting id="auto-update-movies-last-run" type="text" default="1970-01-01 23:59:00.000000" visible="false"/>
+    </category>
     <category label="Sources">
         <setting id="use-dialogs" type="bool" label="30906" default="true"/>
         <setting id="auto-play" type="bool" label="30905" default="false"/>

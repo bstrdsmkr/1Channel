@@ -445,7 +445,13 @@ def get_sources(url, title, img, year, imdbnum, dialog):
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
     if ((dialog or (_1CH.get_setting('use-dialogs') == 'true')) and (_1CH.get_setting('auto-play') == 'false')):  # we're comming from a .strm file and can't create a directory so we have to pop a
         sources = []                  # dialog if auto-play isn't on
-        img = xbmc.getInfoImage('ListItem.Thumb')
+        
+        # sometimes you can't get the image from ListItem.Thumb
+        # so why not just you the main image
+        _img = xbmc.getInfoImage('ListItem.Thumb')
+        if _img != "":
+            img = _img
+        
         for item in hosters:
             try:
                 label = format_label_source(item)
@@ -460,8 +466,11 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                         partnum += 1
             except:
                 _1CH.log('Error while trying to resolve %s' % url)
-        source = urlresolver.choose_source(sources).get_url()
-        PlaySource(source, title, img, year, imdbnum, video_type, season, episode, dbid, strm=True)
+        try:
+            source = urlresolver.choose_source(sources).get_url()
+            PlaySource(source, title, img, year, imdbnum, video_type, season, episode, dbid, strm=True)
+        except:
+            pass
     else:
         try:
             if _1CH.get_setting('auto-play') == 'false': raise Exception, 'auto-play disabled'
@@ -1157,7 +1166,8 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         total = 0
     total_pages = total / 24
     total = min(total, 24)
-
+    count = 0
+    win = xbmcgui.Window(10000)
     pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
     regex = re.finditer(pattern, html, re.DOTALL)
     resurls = []
@@ -1180,8 +1190,26 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
                        'img': img, 'imdbnum': imdb,
                        'video_type': video_type, 'year': year}
             li_url = _1CH.build_plugin_url(queries)
+            
+            # user will set the prefered group source to get vid, 
+            # below will check if it user prerefed and fill home window with data
+            if sort == update_movie_cat():
+                win.setProperty('1ch.movie.%d.title' % count, title)
+                win.setProperty('1ch.movie.%d.thumb' % count, thumb)
+                # Needs dialog=1 to show dialog instead of going to window
+                win.setProperty('1ch.movie.%d.path' % count, li_url + '&dialog=1')
+                count = count + 1
+
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, li,
                                         isFolder=folder, totalItems=total)
+
+    # more
+    if sort == update_movie_cat():
+        # goto page 1 since it may take some time to download page 2 
+        # since users may be inpatient because xbmc does not show progress 
+        command = _1CH.build_plugin_url( {'mode': 'GetFilteredResults', 'section': section, 'sort': sort, 'title': _1CH.get_setting('auto-update-movies-cat'), 'page':'1'})
+        win.setProperty('1ch.movie.more.title', "More")
+        win.setProperty('1ch.movie.more.path', command)
 
     if html.find('> >> <') > -1:
         label = 'Skip to Page...'
@@ -2278,6 +2306,19 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
             listitem.addContextMenuItems(menu_items, replaceItems=True)
     return listitem
 
+def update_movie_cat():
+    if _1CH.get_setting('auto-update-movies-cat') == "Featured":
+        return str("featured")
+    elif _1CH.get_setting('auto-update-movies-cat') == "Most Popular":
+        return str("views")
+    elif _1CH.get_setting('auto-update-movies-cat') == "Highly Rated":
+        return str("ratings")
+    elif _1CH.get_setting('auto-update-movies-cat') == "Date Released":
+        return str("release")
+    elif _1CH.get_setting('auto-update-movies-cat') == "Date Added":
+        return str("date")
+
+    return str("featured") # default
 
 mode = _1CH.queries.get('mode', None)
 section = _1CH.queries.get('section', '')
@@ -2305,6 +2346,12 @@ _1CH.log(sys.argv)
 
 if mode == 'main':
     AddonMenu()
+elif mode == "MovieAutoUpdate":
+    builtin = "XBMC.Notification(Updating,Please wait...,5000,%s)" % xbmcaddon.Addon().getAddonInfo('icon')
+    xbmc.executebuiltin(builtin)
+    sort = update_movie_cat()
+    section = 'movies'
+    GetFilteredResults(section, genre, letter, sort, page)
 elif mode == 'GetSources':
     import urlresolver
 
