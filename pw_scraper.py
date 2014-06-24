@@ -259,8 +259,12 @@ class PW_Scraper():
     def get_last_imdbnum(self):
         return self.imdb_num
 
-    def get_season_list(self, url):
-        html = self.__get_cached_url(self.base_url+url)
+    def get_season_list(self, url, cached=True):
+        if cached:
+            html = self.__get_cached_url(self.base_url+url)
+        else:
+            html = self.__get_url(self.base_url+url)
+            
         adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
         r = re.search(adultregex, html, re.DOTALL)
         if r:
@@ -284,10 +288,7 @@ class PW_Scraper():
                 season_label = r.group(1)
                 yield (season_label,season_html)
     
-    def get_episode_list(self):
-        pass
-       
-    def __get_url(self,url, headers=None, login=False):
+    def __get_url(self,url, headers={}, login=False):
         _1CH.log('Fetching URL: %s' % url)
         before = time.time()
         cookiejar = _1CH.get_profile()
@@ -310,24 +311,13 @@ class PW_Scraper():
     def __get_cached_url(self, url, cache_limit=8):
         _1CH.log('Fetching Cached URL: %s' % url)
         before = time.time()
-        db = utils.connect_db()
-        cur = db.cursor()
-        now = time.time()
-        limit = 60 * 60 * cache_limit
-        cur.execute('SELECT * FROM url_cache WHERE url = "%s"' % url)
-        cached = cur.fetchone()
-        if cached:
-            created = float(cached[2])
-            age = now - created
-            if age < limit:
-                _1CH.log('Returning cached result for %s' % url)
-                db.close()
-                return cached[1]
-            else:
-                _1CH.log('Cache too old. Requesting from internet')
-        else:
-            _1CH.log('No cached response. Requesting from internet')
-    
+        
+        html=utils.get_cached_url(url, cache_limit)
+        if html:
+            _1CH.log('Returning cached result for: %s' % (url))
+            return html
+        
+        _1CH.log('No cached url found for: %s' % url)
         req = urllib2.Request(url)
     
         host = re.sub('http://', '', self.base_url)
@@ -397,7 +387,7 @@ class PW_Scraper():
     
         response.close()
         
-        utils.cache_url(url, body, now)
+        utils.cache_url(url, body)
         after = time.time()
         _1CH.log('Cached Url Fetch took: %.2f secs' % (after-before))
         return body

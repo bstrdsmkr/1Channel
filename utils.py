@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import time
 import xbmc
 import xbmcgui
 import xbmcplugin
@@ -424,7 +425,8 @@ def format_eta(seconds):
         # return retval
         # return wrapper
 
-def cache_url(url,body, now):
+def cache_url(url,body):
+    now = time.time()
     db = connect_db()
     cur = db.cursor()
     sql = "REPLACE INTO url_cache (url,response,timestamp) VALUES(%s,%s,%s)"
@@ -432,7 +434,24 @@ def cache_url(url,body, now):
         sql = 'INSERT OR ' + sql.replace('%s', '?')
     cur.execute(sql, (url, body, now))
     db.commit()
-    db.close()    
+    db.close()
+
+def get_cached_url(url, cache_limit=8):
+    html=''
+    db = connect_db()
+    cur = db.cursor()
+    now = time.time()
+    limit = 60 * 60 * cache_limit
+    cur.execute('SELECT * FROM url_cache WHERE url = "%s"' % url)
+    cached = cur.fetchone()
+    if cached:
+        created = float(cached[2])
+        age = now - created
+        if age < limit:
+            html=cached[1]
+
+    db.close()
+    return html
 
 def cache_season(season_num,season_html):
     db = connect_db()

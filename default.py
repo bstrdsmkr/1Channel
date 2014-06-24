@@ -1355,7 +1355,7 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
         save_path = _1CH.get_setting('tvshow-folder')
         save_path = xbmc.translatePath(save_path)
         show_title = title.strip()
-        seasons = pw_scraper.get_season_list(url)
+        seasons = pw_scraper.get_season_list(url, cached=False)
 
         if not seasons:
             _1CH.log_error('No Seasons found for %s at %s' % (show_title, url))
