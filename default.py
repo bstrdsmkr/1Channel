@@ -33,7 +33,6 @@ import xbmcvfs
 import xbmcaddon
 import xbmcplugin
 from addon.common.addon import Addon
-from addon.common.net import Net
 try: from metahandler import metahandlers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
 try: from metahandler import metacontainers

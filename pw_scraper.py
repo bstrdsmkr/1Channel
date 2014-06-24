@@ -79,6 +79,7 @@ class PW_Scraper():
             self.__get_url(del_url,login=True)
     
     def get_favorities(self, section):
+        _1CH.log('Getting %s favorite from website' % (section))
         url = '/profile.php?user=%s&fav&show=%s'
         url = self.base_url + url % (self.username, section)
         html=self.__get_url(url)
@@ -186,6 +187,7 @@ class PW_Scraper():
         r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
         search_url += '&key=' + r
         if section == 'tv': search_url += '&search_section=2'
+        _1CH.log('Issuing search: %s' % (search_url))
 
         html = self.__get_cached_url(search_url, cache_limit=0)
         r = re.search('number_movies_result">([0-9,]+)', html)
@@ -226,6 +228,7 @@ class PW_Scraper():
         if letter:  pageurl += '&letter=' + letter
         if sort:     pageurl += '&sort=' + sort
         if page:   pageurl += '&page=%s' % page
+        _1CH.log('Getting filtered results: %s' % (pageurl))
     
         html = self.__get_cached_url(pageurl)
     
@@ -260,6 +263,7 @@ class PW_Scraper():
         return self.imdb_num
 
     def get_season_list(self, url, cached=True):
+        _1CH.log('Getting season list (%s): %s' % (cached,url))
         if cached:
             html = self.__get_cached_url(self.base_url+url)
         else:
