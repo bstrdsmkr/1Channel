@@ -5,7 +5,6 @@ import time
 import xbmc
 import xbmcgui
 import xbmcplugin
-from addon.common.net import Net
 
 # from functools import wraps
 
