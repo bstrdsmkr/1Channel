@@ -25,23 +25,20 @@ import json
 import time
 import string
 import urllib
-import urllib2
 import datetime
 import metapacks
-import HTMLParser
-from operator import itemgetter
 import xbmc
 import xbmcgui
 import xbmcvfs
 import xbmcaddon
 import xbmcplugin
 from addon.common.addon import Addon
-from addon.common.net import Net
 try: from metahandler import metahandlers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
 try: from metahandler import metacontainers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
 import utils
+from pw_scraper import PW_Scraper
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
 
@@ -88,18 +85,14 @@ ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
-BASE_URL = _1CH.get_setting('domain')
-if (_1CH.get_setting("enableDomain")=='true') and (len(_1CH.get_setting("customDomain")) > 10):
-    BASE_URL = _1CH.get_setting("customDomain")
 
-USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
-              "AppleWebKit/537.17 (KHTML, like Gecko)"
-              "Chrome/24.0.1312.56")
 GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Game-Show',
           'History', 'Horror', 'Japanese', 'Korean', 'Music', 'Musical',
           'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport',
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
+
+pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 
 PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
@@ -189,34 +182,17 @@ def init_database():
 
 
 def save_favorite(fav_type, name, url, img, year):
-    log_msg = 'Saving Favorite type: %s name: %s url: %s img: %s year: %s'
-    _1CH.log(log_msg % (fav_type, name, url, img, year))
-    if fav_type != 'tv':
-        fav_type = 'movie'
+    if fav_type != 'tv': fav_type = 'movie'
+    _1CH.log('Saving Favorite type: %s name: %s url: %s img: %s year: %s' % (fav_type, name, url, img, year))
+    
     if utils.website_is_integrated():
-        _1CH.log('Saving favorite to website')
-        id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
-        if id_num:
-            save_url = "%s/addtofavs.php?id=%s&whattodo=add"
-            save_url = save_url % (BASE_URL, id_num.group(1))
-            print save_url
-            net = Net()
-            cookiejar = _1CH.get_profile()
-            cookiejar = os.path.join(cookiejar, 'cookies')
-            net.set_cookies(cookiejar)
-            html = net.http_GET(save_url).content
-            net.save_cookies(cookiejar)
-            ok_message = '<div class="ok_message">Movie added to favorites'
-            error_message = '<div class="error_message">This video is already'
-            if ok_message in html:
-                builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
-                xbmc.executebuiltin(builtin % ICON_PATH)
-            elif error_message in html:
+        try:
+            pw_scraper.add_favorite(url)
+            builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
+            xbmc.executebuiltin(builtin % ICON_PATH)
+        except:
                 builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
                 xbmc.executebuiltin(builtin % ICON_PATH)
-            else:
-                _1CH.log('Unable to confirm success')
-                _1CH.log(html)
     else:
         statement = 'INSERT INTO favorites (type, name, url, year) VALUES (%s,%s,%s,%s)'
         db = utils.connect_db()
@@ -236,23 +212,11 @@ def save_favorite(fav_type, name, url, img, year):
 
 
 def delete_favorite(fav_type, name, url):
-    if fav_type != 'tv':
-        fav_type = 'movie'
-    _1CH.log('Deleting Fav: %s\n %s\n %s\n' % (fav_type, name, url))
+    if fav_type != 'tv': fav_type = 'movie'
+    _1CH.log('Deleting Fav: %s, %s, %s' % (fav_type, name, url))
+    
     if utils.website_is_integrated():
-        _1CH.log('Deleting favorite from website')
-        id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
-        if id_num:
-            del_url = "%s/addtofavs.php?id=%s&whattodo=delete"
-            del_url = del_url % (BASE_URL, id_num.group(1))
-            print del_url
-            net = Net()
-            cookiejar = _1CH.get_profile()
-            cookiejar = os.path.join(cookiejar, 'cookies')
-            net.set_cookies(cookiejar)
-            net.http_GET(del_url)
-            net.save_cookies(cookiejar)
-
+        pw_scraper.delete_favorite(url)
     else:
         sql_del = 'DELETE FROM favorites WHERE type=%s AND name=%s AND url=%s'
         db = utils.connect_db()
@@ -262,105 +226,6 @@ def delete_favorite(fav_type, name, url):
         cursor.execute(sql_del, (fav_type, name, url))
         db.commit()
         db.close()
-
-
-def get_url(url, cache_limit=8):
-    _1CH.log('Fetching URL: %s' % url)
-    db = utils.connect_db()
-    cur = db.cursor()
-    now = time.time()
-    limit = 60 * 60 * cache_limit
-    cur.execute('SELECT * FROM url_cache WHERE url = "%s"' % url)
-    cached = cur.fetchone()
-    if cached:
-        created = float(cached[2])
-        age = now - created
-        if age < limit:
-            _1CH.log('Returning cached result for %s' % url)
-            db.close()
-            return cached[1]
-        else:
-            _1CH.log('Cache too old. Requesting from internet')
-    else:
-        _1CH.log('No cached response. Requesting from internet')
-
-    req = urllib2.Request(url)
-
-    host = re.sub('http://', '', BASE_URL)
-    req.add_header('User-Agent', USER_AGENT)
-    req.add_header('Host', host)
-    req.add_header('Referer', BASE_URL)
-
-    try:
-        response = urllib2.urlopen(req, timeout=10)
-        body = response.read()
-        if '<title>Are You a Robot?</title>' in body:
-            _1CH.log('bot detection')
-
-            #download the captcha image and save it to a file for use later
-            captchaimgurl = 'http://'+host+'/CaptchaSecurityImages.php'
-            captcha_save_path = xbmc.translatePath('special://userdata/addon_data/plugin.video.1channel/CaptchaSecurityImage.jpg')
-            req = urllib2.Request(captchaimgurl)
-            host = re.sub('http://', '', BASE_URL)
-            req.add_header('User-Agent', USER_AGENT)
-            req.add_header('Host', host)
-            req.add_header('Referer', BASE_URL)
-            response = urllib2.urlopen(req)
-            the_img = response.read()
-            with open(captcha_save_path,'wb') as f:
-                f.write(the_img)
-
-            #now pop open dialog for input
-            #TODO: make the size and loc configurable
-            img = xbmcgui.ControlImage(550,15,240,100,captcha_save_path)
-            wdlg = xbmcgui.WindowDialog()
-            wdlg.addControl(img)
-            wdlg.show()
-            kb = xbmc.Keyboard('', 'Type the letters in the image', False)
-            kb.doModal()
-            capcode = kb.getText()
-            if (kb.isConfirmed()):
-                userInput = kb.getText()
-            if userInput != '':
-                #post back user string
-                wdlg.removeControl(img)    
-                capcode = kb.getText()
-                data = {'security_code':capcode,
-                        'not_robot':'I\'m Human! I Swear!'}
-                data = urllib.urlencode(data)
-                roboturl = 'http://'+host+'/are_you_a_robot.php'
-                req = urllib2.Request(roboturl)
-                host = re.sub('http://', '', BASE_URL)
-                req.add_header('User-Agent', USER_AGENT)
-                req.add_header('Host', host)
-                req.add_header('Referer', BASE_URL)
-                response = urllib2.urlopen(req, data)
-                body = get_url(url)
-               
-            elif userInput == '':
-                dialog = xbmcgui.Dialog()
-                dialog.ok("Robot Check", "You must enter text in the image to continue")
-            wdlg.close()
-
-        body = unicode(body, 'iso-8859-1')
-        parser = HTMLParser.HTMLParser()
-        body = parser.unescape(body)
-    except:
-        dialog = xbmcgui.Dialog()
-        dialog.ok("Connection failed", "Failed to connect to url", url)
-        _1CH.log('Failed to connect to URL %s' % url)
-        return ''
-
-    response.close()
-    
-    sql = "REPLACE INTO url_cache (url,response,timestamp) VALUES(%s,%s,%s)"
-    if DB == 'sqlite':
-        sql = 'INSERT OR ' + sql.replace('%s', '?')
-    cur.execute(sql, (url, body, now))
-    db.commit()
-    db.close()    
-    return body
-
 
 def get_sources(url, title, img, year, imdbnum, dialog):
     url = urllib.unquote(url)
@@ -384,73 +249,17 @@ def get_sources(url, title, img, year, imdbnum, dialog):
         season = ''
         episode = ''
 
-    net = Net()
-    cookiejar = _1CH.get_profile()
-    cookiejar = os.path.join(cookiejar, 'cookies')
-    net.set_cookies(cookiejar)
-    html = get_url(BASE_URL + url, cache_limit=2)
-    net.save_cookies(cookiejar)
-    adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
-    adult = re.search(adultregex, html, re.DOTALL)
-    if adult:
-        _1CH.log('Adult content url detected')
-        adulturl = BASE_URL + adult.group(1)
-        headers = {'Referer': url}
-        net.set_cookies(cookiejar)
-        html = net.http_GET(adulturl, headers=headers).content
-        net.save_cookies(cookiejar)
-
-    sources = []
-    hosters = []
     if META_ON and video_type == 'movie' and not imdbnum:
-        imdbregex = 'mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"'
-        match = re.search(imdbregex, html)
-        if match:
-            imdbnum = match.group(1)
-            __metaget__.update_meta('movie', title, imdb_id='',
-                                    new_imdb_id=imdbnum, year=year)
+        imdbnum=pw_scraper.get_last_imdbnum()
+        __metaget__.update_meta('movie', title, imdb_id='',new_imdb_id=imdbnum, year=year)
 
-    sort_order = []
-    if _1CH.get_setting('sorting-enabled') == 'true':
-        sort_tiers = ('first-sort', 'second-sort', 'third-sort', 'fourth-sort', 'fifth-sort')
-        sort_methods = (None, 'host', 'verified', 'quality', 'views', 'multi-part')
-        for tier in sort_tiers:
-            if int(_1CH.get_setting(tier)) > 0:
-                method = sort_methods[int(_1CH.get_setting(tier))]
-                if _1CH.get_setting(tier + '-reversed') == 'true':
-                    method = '-%s' %method
-                sort_order.append(method)
-            else: break
-
-    container_pattern = r'<table[^>]+class="movie_version[ "][^>]*>(.*?)</table>'
-    item_pattern = (
-        r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
-        r'url=([^&]+)&(?:amp;)?domain=([^&]+)&(?:amp;)?(.*?)'
-        r'"version_veiws"> ([\d]+) views</')
-    for version in re.finditer(container_pattern, html, re.DOTALL | re.IGNORECASE):
-        for source in re.finditer(item_pattern, version.group(1), re.DOTALL):
-            qual, url, host, parts, views = source.groups()
-
-            item = {'host': host.decode('base-64'), 'url': url.decode('base-64')}
-            if item==item: #urlresolver.HostedMediaFile(item['url']).valid_url():
-                item['verified'] = source.group(0).find('star.gif') > -1
-                item['quality'] = qual.upper()
-                item['views'] = int(views)
-                pattern = r'<a href=".*?url=(.*?)&(?:amp;)?.*?".*?>(part \d*)</a>'
-                other_parts = re.findall(pattern, parts, re.DOTALL | re.I)
-                if other_parts:
-                    item['multi-part'] = True
-                    item['parts'] = [part[0].decode('base-64') for part in other_parts]
-                else:
-                    item['multi-part'] = False
-                hosters.append(item)
-
-            if sort_order:
-                hosters = multikeysort(hosters, sort_order, functions={'host': utils.rank_host})
+    hosters=pw_scraper.get_sources(url)
+    
+    sources = []
     if not hosters:
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
-    if ((dialog or (_1CH.get_setting('use-dialogs') == 'true')) and (_1CH.get_setting('auto-play') == 'false')):  # we're comming from a .strm file and can't create a directory so we have to pop a
-        sources = []                  # dialog if auto-play isn't on
+        
+    if (dialog or (_1CH.get_setting('use-dialogs') == 'true' and _1CH.get_setting('auto-play') == 'false')): 
         img = xbmc.getInfoImage('ListItem.Thumb')
         for item in hosters:
             try:
@@ -821,120 +630,43 @@ def GetSearchQueryDesc(section):
 
 
 def Search(section, query):
-    html = get_url(BASE_URL, cache_limit=0)
-    r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
-    search_url = BASE_URL + '/index.php?search_keywords='
-    search_url += urllib.quote_plus(query)
-    search_url += '&key=' + r
-    if section == 'tv':  search_url += '&search_section=2'
     section_params = get_section_params(section)
     
-    html = '> >> <'
-    page = 0
-
-    while html.find('> >> <') > -1 and page < 10:
-        page += 1
-        if page > 1:
-            pageurl = '%s&page=%s' % (search_url, page)
-        else:
-            pageurl = search_url
-        html = get_url(pageurl, cache_limit=0)
-
-        r = re.search('number_movies_result">([0-9,]+)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-
-        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-        regex = re.finditer(pattern, html, re.DOTALL)
-        resurls = []
-        for s in regex:
-            resurl, title, year, thumb = s.groups()
-            if resurl not in resurls:
-                resurls.append(resurl)                
-                create_item(section_params,title,year,thumb,resurl,total)
+    results=pw_scraper.search(section,query)
+    total=pw_scraper.get_last_res_total()
+    
+    resurls = []
+    for result in results:
+        if result['url'] not in resurls:
+            resurls.append(result['url'])                
+            create_item(section_params,result['title'],result['year'],result['img'],result['url'],totalItems=total)
     _1CH.end_of_directory()
 
 
 def SearchAdvanced(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1'):
-    html = get_url(BASE_URL, cache_limit=0)
-    r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
-    search_url = BASE_URL + '/index.php?search_keywords='
-    search_url += urllib.quote_plus(query)
-    if (description==True): search_url += '&desc_search=1'
-    search_url += '&tag=' + urllib.quote_plus(tag)
-    search_url += '&genre=' + urllib.quote_plus(genre)
-    search_url += '&actor_name=' + urllib.quote_plus(actor)
-    search_url += '&director=' + urllib.quote_plus(director)
-    search_url += '&country=' + urllib.quote_plus(country)
-    search_url += '&year=' + urllib.quote_plus(year)
-    search_url += '&month=' + urllib.quote_plus(month)
-    search_url += '&decade=' + urllib.quote_plus(decade)
-    search_url += '&host=' + urllib.quote_plus(host)
-    search_url += '&search_rating=' + urllib.quote_plus(rating) ## Rating higher than (#), 0-4
-    search_url += '&advanced=' + urllib.quote_plus(advanced)
-    ###search_url += 'search_section=1&genre=&director=&actor_name=&country=&search_rating=0&year=0&month=0&decade=0&host=&advanced=1'
-    search_url += '&key=' + r
-    if section == 'tv': search_url += '&search_section=2'
     section_params = get_section_params(section)
-
-    html = '> >> <'
-    page = 0
-    while html.find('> >> <') > -1 and page < 10:
-        page += 1
-        if page > 1:
-            pageurl = '%s&page=%s' % (search_url, page)
-        else:
-            pageurl = search_url
-        html = get_url(pageurl, cache_limit=0)
-        r = re.search('number_movies_result">([0-9,]+)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-        regex = re.finditer(pattern, html, re.DOTALL)
-        resurls = []
-        for s in regex:
-            resurl, title, year, thumb = s.groups()
-            if resurl not in resurls:
-                resurls.append(resurl)
-                create_item(section_params,title,year,thumb,resurl,total)
+    
+    results=pw_scraper.search_advanced(section, query, tag, description, country, genre, actor, director, year, month, decade, host, rating, advanced)
+    total=pw_scraper.get_last_res_total()
+    
+    resurls = []
+    for result in results:
+        if result['url'] not in resurls:
+            resurls.append(result['url'])                
+            create_item(section_params,result['title'],result['year'],result['img'],result['url'],totalItems=total)
     _1CH.end_of_directory()
 
 
 def SearchDesc(section, query):
-    html = get_url(BASE_URL, cache_limit=0)
-    r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
-    search_url = BASE_URL + '/index.php?search_keywords='
-    search_url += urllib.quote_plus(query)
-    search_url += '&desc_search=1' ## 1 = Search Descriptions
-    search_url += '&key=' + r
-    if section == 'tv': search_url += '&search_section=2'
     section_params = get_section_params(section)
-    html = '> >> <'
-    page = 0
-    while html.find('> >> <') > -1 and page < 10:
-        page += 1
-        if page > 1:
-            pageurl = '%s&page=%s' % (search_url, page)
-        else:
-            pageurl = search_url
-        html = get_url(pageurl, cache_limit=0)
-        r = re.search('number_movies_result">([0-9,]+)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-        regex = re.finditer(pattern, html, re.DOTALL)
-        resurls = []
-        for s in regex:
-            resurl, title, year, thumb = s.groups()
-            if resurl not in resurls:
-                resurls.append(resurl)
-                create_item(section_params, title, year, thumb, resurl, total)
+    results=pw_scraper.search_desc(section,query)
+    total=pw_scraper.get_last_res_total()
+
+    resurls = []
+    for result in results:
+        if result['url'] not in resurls:
+            resurls.append(result['url'])
+            create_item(section_params, result['title'], result['year'], result['img'], result['url'], totalItems=total)
     _1CH.end_of_directory()
 
 def AddonMenu():  # homescreen
@@ -1067,6 +799,7 @@ def add_contextsearchmenu(title, video_type, resurl=''):
     return contextmenuitems
 
 def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
+    #_1CH.log('Create Item: %s, %s, %s, %s, %s, %s, %s, %s, %s' % (section_params, title, year, img, url, imdbnum, season, episode, totalItems))
     liz = build_listitem(section_params['video_type'], title, year, img, url, imdbnum, season, episode, extra_cms=menu_items, subs=section_params['subs'])
     img = liz.getProperty('img')
     imdbnum = liz.getProperty('imdb')
@@ -1079,37 +812,21 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
 def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None):
     _1CH.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % (section, genre, letter, sort, page))
 
-    pageurl = BASE_URL + '/?'
-    if section == 'tv': pageurl += 'tv'
-    if genre:    pageurl += '&genre=' + genre
-    if letter:    pageurl += '&letter=' + letter
-    if sort:    pageurl += '&sort=' + sort
-    if page: pageurl += '&page=%s' % page
-
-    page = int(page)+1 if page else 2
-
     section_params = get_section_params(section)
-    
-    html = get_url(pageurl)
+    results = pw_scraper.get_filtered_results(section, genre, letter, sort, page)
+    total_pages = pw_scraper.get_last_res_pages()
 
-    r = re.search('number_movies_result">([0-9,]+)', html)
-    if r:
-        total = int(r.group(1).replace(',', ''))
-    else:
-        total = 0
-    total_pages = total / 24
-    total = min(total, 24)
-
-    pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-    regex = re.finditer(pattern, html, re.DOTALL)
     resurls = []
-    for s in regex:
-        resurl, title, year, thumb = s.groups()
-        if resurl not in resurls:
-            resurls.append(resurl)
-            create_item(section_params,title,year,thumb,resurl,total)
+    for result in results:
+        #resurl, title, year, thumb = s.groups()
+        if result['url'] not in resurls:
+            resurls.append(result['url'])
+            create_item(section_params,result['title'],result['year'],result['img'],result['url'])
 
-    if html.find('> >> <') > -1:
+    if not page: page = 1
+    next_page = int(page)+1
+
+    if int(page) < int(total_pages):
         label = 'Skip to Page...'
         command = _1CH.build_plugin_url(
             {'mode': 'PageSelect', 'pages': total_pages, 'section': section, 'genre': genre, 'letter': letter,
@@ -1119,7 +836,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
         meta = {'title': 'Next Page >>'}
         _1CH.add_directory(
             {'mode': 'GetFilteredResults', 'section': section, 'genre': genre, 'letter': letter, 'sort': sort,
-             'page': page},
+             'page': next_page},
             meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
@@ -1127,113 +844,66 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 
 def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
     _1CH.log('Seasons for TV Show %s' % url)
-    html = get_url(BASE_URL+url)
-    adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
-    r = re.search(adultregex, html, re.DOTALL)
-    if r:
-        _1CH.log('Adult content url detected')
-        adulturl = BASE_URL + r.group(1)
-        headers = {'Referer': url}
-        net = Net()
-        cookiejar = _1CH.get_profile()
-        cookiejar = os.path.join(cookiejar, 'cookies')
-        net.set_cookies(cookiejar)
-        html = net.http_GET(adulturl, headers=headers).content
-        html = html.decode('iso-8859-1').encode('utf-8')
-        net.save_cookies(cookiejar)
-
-    db = utils.connect_db()
-    if DB == 'mysql':
-        sql = 'INSERT INTO seasons(season,contents) VALUES(%s,%s) ON DUPLICATE KEY UPDATE contents = VALUES(contents)'
-    else:
-        sql = 'INSERT or REPLACE into seasons (season,contents) VALUES(?,?)'
-
-    try:
-        new_imdb = re.search('mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"', html).group(1)
-    except:
-        new_imdb = ''
-    seasons = re.search('tv_container(.+?)<div class="clearer', html, re.DOTALL)
+    season_gen=pw_scraper.get_season_list(url)
+    seasons = list(season_gen) # copy the generator into a list so that we can iterate over it multiple times
+    new_imdbnum = pw_scraper.get_last_imdbnum()
+    
     if not seasons:
-        _1CH.log_error('Couldn\'t find seasons')
-    else:
-        season_container = seasons.group(1)
-        season_nums = re.compile('<a href=".+?">Season ([0-9]{1,2})').findall(season_container)
-        fanart = ''
-        imdbnum = old_imdb
-        if META_ON:
-            if not old_imdb and new_imdb:
-                try: _1CH.log('Imdb ID not recieved from title search, updating with new id of %s' % new_imdb)
+        _1CH.log_error("Couldn't find seasons")
+        return
+
+    imdbnum = old_imdb
+    if META_ON:
+        if not old_imdb and new_imdbnum:
+            try: _1CH.log('Imdb ID not recieved from title search, updating with new id of %s' % new_imdbnum)
+            except: pass
+            try:
+                try: _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (title, old_imdb, old_tvdb, new_imdbnum, year))
                 except: pass
-                # TODO: WTF is up with xbmc.log() and utf-8 all of a sudden?
-                # print 'title is unicode: %s' % isinstance(title, unicode)
-                # print _1CH.log(title)
+                __metaget__.update_meta('tvshow', title, old_imdb, old_tvdb, new_imdbnum)
+            except:
+                try: _1CH.log('Error while trying to update metadata with: %s, %s, %s, %s, %s' % (title, old_imdb, old_tvdb, new_imdbnum, year))
+                except: pass
+            imdbnum = new_imdbnum
+
+        season_nums = [season[0] for season in seasons]
+        season_meta = __metaget__.get_seasons(title, imdbnum, season_nums)
+        
+    fanart = ''
+    num = 0
+    for season in seasons:
+        season_num,season_html = season
+        temp = {'cover_url': ''}
+
+        if META_ON:
+            temp = season_meta[num]
+            if FANART_ON:
                 try:
-                    try: _1CH.log('Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (title, old_imdb, old_tvdb, new_imdb, year))
-                    except: pass
-                    __metaget__.update_meta('tvshow', title, old_imdb, old_tvdb, new_imdb)
-                except Exception, e:
-                    try: _1CH.log('Error while trying to update metadata with:')
-                    except: pass
-                    # print 'Title: %s Old IMDB: %s Old TVDB: %s New IMDB %s Year: %s' % (
-                    #     title, old_imdb, old_tvdb, new_imdb, year)
-                    print str(e)
-                imdbnum = new_imdb
+                    fanart = temp['backdrop_url']
+                except:
+                    pass
 
-            season_meta = __metaget__.get_seasons(title, imdbnum, season_nums)
+        label = 'Season %s' % season_num
+        utils.cache_season(season_num, season_html)
+        listitem = xbmcgui.ListItem(label, iconImage=temp['cover_url'],
+                                    thumbnailImage=temp['cover_url'])
+        listitem.setInfo('video', temp)
+        listitem.setProperty('fanart_image', fanart)
+        queries = {'mode': 'TVShowEpisodeList', 'season': season_num,
+                   'imdbnum': imdbnum, 'title': title}
+        li_url = _1CH.build_plugin_url(queries)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
+                                    isFolder=True,
+                                    totalItems=len(seasons))
 
-        seasonList = season_container.split('<h2>')
-        num = 0
-        cur = db.cursor()
-        for eplist in seasonList:
-            temp = {'cover_url': ''}
-            r = re.search(r'<a.+?>Season (\d+)</a>', eplist)
-            if r:
-                number = r.group(1)
-
-                if META_ON:
-                    temp = season_meta[num]
-                    if FANART_ON:
-                        try:
-                            fanart = temp['backdrop_url']
-                        except:
-                            pass
-
-                label = 'Season %s' % number
-                temp['title'] = label
-                if not isinstance(eplist, unicode):
-                    eplist = unicode(eplist, 'utf-8')
-                cur.execute(sql, (number, eplist))
-
-                listitem = xbmcgui.ListItem(label, iconImage=temp['cover_url'],
-                                            thumbnailImage=temp['cover_url'])
-                listitem.setInfo('video', temp)
-                listitem.setProperty('fanart_image', fanart)
-                queries = {'mode': 'TVShowEpisodeList', 'season': number,
-                           'imdbnum': imdbnum, 'title': title}
-                li_url = _1CH.build_plugin_url(queries)
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem,
-                                            isFolder=True,
-                                            totalItems=len(seasonList))
-
-                num += 1
-        cur.close()
-        db.commit()
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        utils.set_view('seasons', 'seasons-view')
-        db.close()
-
+        num += 1
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    utils.set_view('seasons', 'seasons-view')
 
 def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
-    sql = 'SELECT contents FROM seasons WHERE season=?'
-    db = utils.connect_db()
-    if DB == 'mysql':
-        sql = sql.replace('?', '%s')
-    cur = db.cursor()
-    cur.execute(sql, (season,))
-    eplist = cur.fetchone()[0]
-    db.close()
+    season_html = utils.get_cached_season(season)
     r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
-    episodes = re.finditer(r, eplist, re.DOTALL)
+    episodes = re.finditer(r, season_html, re.DOTALL)
     
     section_params = get_section_params('episode')
 
@@ -1296,7 +966,7 @@ def browse_favorites(section):
             sys.argv[1], section, title, year, favurl)
         menu_items = [('Remove from Favorites', remfavstring)]
 
-        create_item(section_params,title,year,'',favurl,menu_items)
+        create_item(section_params,title,year,'',favurl,menu_items=menu_items)
     _1CH.end_of_directory()
 
 
@@ -1310,31 +980,14 @@ def browse_favorites_website(section):
     if local_favs:
         _1CH.add_item({'mode': 'migrateFavs'}, {'title': 'Upload Local Favorites'})
 
-    user = _1CH.get_setting('username')
-    url = '/profile.php?user=%s&fav&show=%s'
-    url = BASE_URL + url % (user, section)
-    cookiejar = _1CH.get_profile()
-    cookiejar = os.path.join(cookiejar, 'cookies')
-    net = Net()
-    net.set_cookies(cookiejar)
-    html = net.http_GET(url).content
-    if not '<a href="/logout.php">[ Logout ]</a>' in html:
-        html = utils.login_and_retry(url)
-
     section_params = get_section_params(section)
-
-    pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
-    regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
-    for item in regex.finditer(html):
-        link, img, year, title, delete = item.groups()
-        if not year or len(year) != 4: year = ''
-
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': title, 'url': link, 'year': year})
+    
+    for fav in pw_scraper.get_favorities(section):
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': fav['title'], 'url': fav['url'], 'year': fav['year']})
         menu_items = [('Delete Favorite', runstring)]
-
-        create_item(section_params,title,year,img,link,menu_items)
+        create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'],menu_items=menu_items)
+        
     _1CH.end_of_directory()
-
 
 def migrate_favs_to_web():
     init_database()
@@ -1348,9 +1001,6 @@ def migrate_favs_to_web():
     progress = xbmcgui.DialogProgress()
     ln1 = 'Uploading your favorites to www.primewire.ag...'
     progress.create('Uploading Favorites', ln1)
-    net = Net()
-    cookiejar = _1CH.get_profile()
-    cookiejar = os.path.join(cookiejar, 'cookies')
     failures = []
     for fav in all_favs:
         if progress.iscanceled(): return
@@ -1360,13 +1010,10 @@ def migrate_favs_to_web():
         try:
             id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', favurl)
             if id:
-                save_url = "%s/addtofavs.php?id=%s&whattodo=add" % BASE_URL
+                save_url = "/addtofavs.php?id=%s&whattodo=add"
                 save_url = save_url % id_num.group(1)
-                _1CH.log(save_url)
-                net.set_cookies(cookiejar)
-                net.http_GET(save_url)
-                net.save_cookies(cookiejar)
-                progress.update(0, ln1, 'Adding %s' % title, 'Success')
+                pw_scraper.add_favorite(save_url)
+                progress.update(0, ln1, 'Added %s' % title, 'Success')
                 _1CH.log('%s added successfully' % title)
         except Exception, e:
             _1CH.log(e)
@@ -1419,42 +1066,42 @@ def create_meta(video_type, title, year, thumb):
             except: pass
     return meta
 
-
-def scan_by_letter(section, letter):
-    import traceback
-
-    try: _1CH.log('Building meta for %s letter %s' % (section, letter))
-    except: pass
-    dlg = xbmcgui.DialogProgress()
-    dlg.create('Scanning %s Letter %s' % (section, letter))
-    if section == 'tvshow':
-        url = BASE_URL + '/alltvshows.php'
-    else:
-        url = BASE_URL + '/allmovies.php'
-    html = get_url(url)
-
-    pattern = '%s</h2>(.+?)(?:<h2>|<div class="clearer">)' % letter
-    container = re.search(pattern, html, re.S).group(1)
-    item_pattern = re.compile(r'<a.+?>(.+?)</a> \[ (\d{4}) \]</div>')
-    for item in item_pattern.finditer(container):
-        title, year = item.groups()
-        success = False
-        attempts_remaining = 4
-        while attempts_remaining and not success:
-            dlg.update(0, '%s (%s)' % (title, year))
-            try:
-                __metaget__.get_meta(section, title, year=year)
-                success = True
-            except Exception, e:
-                attempts_remaining -= 1
-                line1 = '%s (%s)' % (title, year)
-                line2 = 'Failed: %s  attempts remaining' % attempts_remaining
-                line3 = str(e)
-                dlg.update(0, line1, line2, line3)
-                traceback.print_exc()
-            if dlg.iscanceled(): break
-        if dlg.iscanceled(): break
-    return
+# Commented out because url produces a blank page
+# def scan_by_letter(section, letter):
+#     import traceback
+# 
+#     try: _1CH.log('Building meta for %s letter %s' % (section, letter))
+#     except: pass
+#     dlg = xbmcgui.DialogProgress()
+#     dlg.create('Scanning %s Letter %s' % (section, letter))
+#     if section == 'tvshow':
+#         url = BASE_URL + '/alltvshows.php'
+#     else:
+#         url = BASE_URL + '/allmovies.php'
+#     html = get_url(url)
+# 
+#     pattern = '%s</h2>(.+?)(?:<h2>|<div class="clearer">)' % letter
+#     container = re.search(pattern, html, re.S).group(1)
+#     item_pattern = re.compile(r'<a.+?>(.+?)</a> \[ (\d{4}) \]</div>')
+#     for item in item_pattern.finditer(container):
+#         title, year = item.groups()
+#         success = False
+#         attempts_remaining = 4
+#         while attempts_remaining and not success:
+#             dlg.update(0, '%s (%s)' % (title, year))
+#             try:
+#                 __metaget__.get_meta(section, title, year=year)
+#                 success = True
+#             except Exception, e:
+#                 attempts_remaining -= 1
+#                 line1 = '%s (%s)' % (title, year)
+#                 line2 = 'Failed: %s  attempts remaining' % attempts_remaining
+#                 line3 = str(e)
+#                 dlg.update(0, line1, line2, line3)
+#                 traceback.print_exc()
+#             if dlg.iscanceled(): break
+#         if dlg.iscanceled(): break
+#     return
 
 
 def zipdir(basedir, archivename):
@@ -1514,7 +1161,7 @@ def create_meta_packs():
                 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
 
             if letters_completed <= letters_per_zip:
-                scan_by_letter(video_type, letter)
+                #scan_by_letter(video_type, letter)
                 letters_completed += 1
 
             if (letters_completed == letters_per_zip
@@ -1741,76 +1388,58 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
         save_path = _1CH.get_setting('tvshow-folder')
         save_path = xbmc.translatePath(save_path)
         show_title = title.strip()
-        net = Net()
-        cookiejar = _1CH.get_profile()
-        cookiejar = os.path.join(cookiejar, 'cookies')
-        net.set_cookies(cookiejar)
-        html = net.http_GET(BASE_URL + url).content
-        net.save_cookies(cookiejar)
-        adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
-        adult = re.search(adultregex, html, re.DOTALL)
-        if adult:
-            _1CH.log('Adult content url detected')
-            adulturl = BASE_URL + adult.group(1)
-            headers = {'Referer': url}
-            net.set_cookies(cookiejar)
-            html = net.http_GET(adulturl, headers=headers).content
-            net.save_cookies(cookiejar)
-        seasons = re.search('tv_container(.+?)<div class="clearer', html, re.DOTALL)
+        seasons = pw_scraper.get_season_list(url, cached=False)
+
         if not seasons:
             _1CH.log_error('No Seasons found for %s at %s' % (show_title, url))
         else:
-            season_container = seasons.group(1)
-            season_list = season_container.split('<h2>')
-            for eplist in season_list:
-                match = re.search('<a.+?>(.+?)</a>', eplist)
-                if match:
-                    season = match.group(1)
-                    r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
-                    episodes = re.finditer(r, eplist, re.DOTALL)
-                    for ep_line in episodes:
-                        epurl, eptitle = ep_line.groups()
-                        eptitle = re.sub('<[^<]+?>', '', eptitle.strip())
-                        eptitle = re.sub(r'\s\s+', ' ', eptitle)
+            for season in seasons:
+                season_num= season[0]
+                season_html = season[1]
+                r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
+                episodes = re.finditer(r, season_html, re.DOTALL)
+                for ep_line in episodes:
+                    epurl, eptitle = ep_line.groups()
+                    eptitle = re.sub('<[^<]+?>', '', eptitle.strip())
+                    eptitle = re.sub(r'\s\s+', ' ', eptitle)
 
-                        pattern = r'tv-\d{1,10}-.*/season-(\d{1,4})-episode-(\d{1,4})'
-                        match = re.search(pattern, epurl, re.I | re.DOTALL)
-                        seasonnum = match.group(1)
-                        epnum = match.group(2)
+                    pattern = r'tv-\d{1,10}-.*/season-\d+-episode-(\d+)'
+                    match = re.search(pattern, epurl, re.I | re.DOTALL)
+                    epnum = match.group(1)
 
-                        filename = utils.filename_from_title(show_title, video_type)
-                        filename = filename % (seasonnum, epnum)
-                        show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
-                        final_path = os.path.join(save_path, show_title, season, filename)
-                        final_path = xbmc.makeLegalFilename(final_path)
-                        if not xbmcvfs.exists(os.path.dirname(final_path)):
-                            try:
-                                try: xbmcvfs.mkdirs(os.path.dirname(final_path))
-                                except: os.mkdir(os.path.dirname(final_path))
-                            except:
-                                _1CH.log('Failed to create directory %s' % final_path)
-
-                        queries = {'mode': 'GetSources', 'url': epurl, 'imdbnum': '', 'title': show_title, 'img': '',
-                                   'dialog': 1, 'video_type': 'episode'}
-                        strm_string = _1CH.build_plugin_url(queries)
-
-                        old_strm_string=''
+                    filename = utils.filename_from_title(show_title, video_type)
+                    filename = filename % (season_num, epnum)
+                    show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
+                    final_path = os.path.join(save_path, show_title, 'Season '+season_num, filename)
+                    final_path = xbmc.makeLegalFilename(final_path)
+                    if not xbmcvfs.exists(os.path.dirname(final_path)):
                         try:
-                            f = xbmcvfs.File(final_path, 'r')
-                            old_strm_string = f.read()
-                            f.close()
-                        except:  pass
+                            try: xbmcvfs.mkdirs(os.path.dirname(final_path))
+                            except: os.mkdir(os.path.dirname(final_path))
+                        except:
+                            _1CH.log('Failed to create directory %s' % final_path)
 
-                        #print "Old String: %s; New String %s" %(old_strm_string,strm_string)
-                        # string will be blank if file doesn't exist or is blank
-                        if strm_string != old_strm_string:
-                            try:
-                                _1CH.log('Writing strm: %s' % strm_string)
-                                file_desc = xbmcvfs.File(final_path, 'w')
-                                file_desc.write(strm_string)
-                                file_desc.close()
-                            except Exception, e:
-                                _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
+                    queries = {'mode': 'GetSources', 'url': epurl, 'imdbnum': '', 'title': show_title, 'img': '',
+                               'dialog': 1, 'video_type': 'episode'}
+                    strm_string = _1CH.build_plugin_url(queries)
+
+                    old_strm_string=''
+                    try:
+                        f = xbmcvfs.File(final_path, 'r')
+                        old_strm_string = f.read()
+                        f.close()
+                    except:  pass
+
+                    #print "Old String: %s; New String %s" %(old_strm_string,strm_string)
+                    # string will be blank if file doesn't exist or is blank
+                    if strm_string != old_strm_string:
+                        try:
+                            _1CH.log('Writing strm: %s' % strm_string)
+                            file_desc = xbmcvfs.File(final_path, 'w')
+                            file_desc.write(strm_string)
+                            file_desc.close()
+                        except Exception, e:
+                            _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
 
     elif video_type == 'movie':
         save_path = _1CH.get_setting('movie-folder')
@@ -1982,37 +1611,6 @@ def manage_subscriptions(day=''):
     db.close()
     _1CH.end_of_directory()
 
-
-def multikeysort(items, columns, functions=None, getter=itemgetter):
-    """Sort a list of dictionary objects or objects by multiple keys bidirectionally.
-
-    Keyword Arguments:
-    items -- A list of dictionary objects or objects
-    columns -- A list of column names to sort by. Use -column to sort in descending order
-    functions -- A Dictionary of Column Name -> Functions to normalize or process each column value
-    getter -- Default "getter" if column function does not exist
-              operator.itemgetter for Dictionaries
-              operator.attrgetter for Objects
-    """
-    if not functions: functions = {}
-    comparers = []
-    for col in columns:
-        column = col[1:] if col.startswith('-') else col
-        if not column in functions:
-            functions[column] = getter(column)
-        comparers.append((functions[column], 1 if column == col else -1))
-
-    def comparer(left, right):
-        for func, polarity in comparers:
-            result = cmp(func(left), func(right))
-            if result:
-                return polarity * result
-        else:
-            return 0
-
-    return sorted(items, cmp=comparer)
-
-
 def compose(inner_func, *outer_funcs):
     """Compose multiple unary functions together into a single unary function"""
     if not outer_funcs:
@@ -2027,7 +1625,7 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
     menu_items = add_contextsearchmenu(title, section, resurl)
     menu_items = menu_items + extra_cms
 
-    if video_type != 'episode':
+    if video_type != 'episode' and 'Delete Favorite' not in [item[0] for item in menu_items]:
         queries = {'mode': 'SaveFav', 'section': section, 'title': title, 'url': resurl, 'year': year}
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
         menu_items.append(('Add to Favorites', runstring), )

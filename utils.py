@@ -1,10 +1,10 @@
 import os
 import re
 import sys
+import time
 import xbmc
 import xbmcgui
 import xbmcplugin
-from addon.common.net import Net
 
 # from functools import wraps
 
@@ -250,34 +250,6 @@ def website_is_integrated():
     return enabled and user and passwd
 
 
-def login_and_retry(redirect):
-    _1CH.log('Logging in for url %s' % redirect)
-    # needed here because login_and_retry was moved to utils. Probably better to pass in but this works and is quick but dirty.
-    USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
-                  "AppleWebKit/537.17 (KHTML, like Gecko)"
-                  "Chrome/24.0.1312.56")
-    BASE_URL = _1CH.get_setting('domain')
-    if (_1CH.get_setting("enableDomain")=='true') and (len(_1CH.get_setting("customDomain")) > 10):
-        BASE_URL = _1CH.get_setting("customDomain")
-
-    user = _1CH.get_setting('username')
-    passwd = _1CH.get_setting('passwd')
-    url = BASE_URL + '/login.php'
-    net = Net()
-    cookiejar = _1CH.get_profile()
-    cookiejar = os.path.join(cookiejar, 'cookies')
-    host = re.sub('http://', '', BASE_URL)
-    headers = {'Referer': redirect, 'Origin': BASE_URL, 'Host': host, 'User-Agent': USER_AGENT}
-    form_data = {'username': user, 'password': passwd, 'remember': 'on', 'login_submit': 'Login'}
-    html = net.http_POST(url, headers=headers, form_data=form_data).content
-    if '<a href="/logout.php">[ Logout ]</a>' in html:
-        net.save_cookies(cookiejar)
-        return html
-    else:
-        _1CH.log('Failed to login')
-        print html
-
-
 def migrate_to_mysql():
     try:
         from sqlite3 import dbapi2 as sqlite
@@ -507,3 +479,57 @@ def format_time(seconds):
         return "%02d:%02d:%02d" % (hours, minutes, seconds)
     else:
         return "%02d:%02d" % (minutes, seconds)
+
+def cache_url(url,body):
+    now = time.time()
+    db = connect_db()
+    cur = db.cursor()
+    sql = "REPLACE INTO url_cache (url,response,timestamp) VALUES(%s,%s,%s)"
+    if DB == 'sqlite':
+        sql = 'INSERT OR ' + sql.replace('%s', '?')
+    cur.execute(sql, (url, body, now))
+    db.commit()
+    db.close()
+
+def get_cached_url(url, cache_limit=8):
+    html=''
+    db = connect_db()
+    cur = db.cursor()
+    now = time.time()
+    limit = 60 * 60 * cache_limit
+    cur.execute('SELECT * FROM url_cache WHERE url = "%s"' % url)
+    cached = cur.fetchone()
+    if cached:
+        created = float(cached[2])
+        age = now - created
+        if age < limit:
+            html=cached[1]
+
+    db.close()
+    return html
+
+def cache_season(season_num,season_html):
+    db = connect_db()
+    if DB == 'mysql':
+        sql = 'INSERT INTO seasons(season,contents) VALUES(%s,%s) ON DUPLICATE KEY UPDATE contents = VALUES(contents)'
+    else:
+        sql = 'INSERT or REPLACE into seasons (season,contents) VALUES(?,?)'
+
+    if not isinstance(season_html, unicode):
+        season_html = unicode(season_html, 'utf-8')
+    cur = db.cursor()
+    cur.execute(sql, (season_num, season_html))
+    cur.close()
+    db.commit()
+    db.close()
+    
+def get_cached_season(season_num):
+    sql = 'SELECT contents FROM seasons WHERE season=?'
+    db = connect_db()
+    if DB == 'mysql':
+        sql = sql.replace('?', '%s')
+    cur = db.cursor()
+    cur.execute(sql, (season_num,))
+    season_html = cur.fetchone()[0]
+    db.close()
+    return season_html
