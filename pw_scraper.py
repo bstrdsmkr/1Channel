@@ -52,7 +52,7 @@ class PW_Scraper():
         self.imdb_num=''
     
     def add_favorite(self,url):
-        _1CH.log('Saving favorite to website')
+        _1CH.log('Saving favorite to website: %s' % (url))
         id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
         if id_num:
             save_url = "%s/addtofavs.php?id=%s&whattodo=add"

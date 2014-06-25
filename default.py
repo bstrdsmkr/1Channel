@@ -978,7 +978,10 @@ def browse_favorites_website(section):
     local_favs = cur.execute(sql).fetchall()
 
     if local_favs:
-        _1CH.add_item({'mode': 'migrateFavs'}, {'title': 'Upload Local Favorites'})
+        liz = xbmcgui.ListItem(label='Upload Local Favorites')
+        liz_url = _1CH.build_plugin_url({'mode': 'migrateFavs'})
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
+        
 
     section_params = get_section_params(section)
     
@@ -1002,22 +1005,22 @@ def migrate_favs_to_web():
     ln1 = 'Uploading your favorites to www.primewire.ag...'
     progress.create('Uploading Favorites', ln1)
     failures = []
+    fav_len = len(all_favs)
+    count=0
     for fav in all_favs:
         if progress.iscanceled(): return
         title = fav[1]
         favurl = fav[2]
-        progress.update(0, ln1, 'Adding %s' % title)
         try:
-            id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', favurl)
-            if id:
-                save_url = "/addtofavs.php?id=%s&whattodo=add"
-                save_url = save_url % id_num.group(1)
-                pw_scraper.add_favorite(save_url)
-                progress.update(0, ln1, 'Added %s' % title, 'Success')
-                _1CH.log('%s added successfully' % title)
-        except Exception, e:
+            pw_scraper.add_favorite(favurl)
+            ln3 = "Success"
+            _1CH.log('%s added successfully' % title)
+        except Exception as e:
+            ln3= "Already Exists"
             _1CH.log(e)
             failures.append((title, favurl))
+        count += 1
+        progress.update(count*100/fav_len, ln1, 'Processed %s' % title, ln3)
     progress.close()
     dialog = xbmcgui.Dialog()
     ln1 = 'Do you want to remove the successful'
@@ -1038,6 +1041,7 @@ def migrate_favs_to_web():
             # cur.execute(sql_delete, failures)
         else:
             cur.execute('DELETE FROM favorites')
+    xbmc.executebuiltin("XBMC.Container.Refresh")
 
 def create_meta(video_type, title, year, thumb):
     try:
