@@ -283,6 +283,9 @@ class PW_Scraper():
     
     def __season_gen(self, html):
         match = re.search('tv_container(.+?)<div class="clearer', html, re.DOTALL)
+        if not match:
+            raise StopIteration()
+        
         show_container = match.group(1)
         season_containers = show_container.split('<h2>')
 
