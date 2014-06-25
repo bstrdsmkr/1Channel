@@ -1553,8 +1553,14 @@ def clean_up_subscriptions():
 
 
 def manage_subscriptions(day=''):
-    _1CH.add_item({'mode': 'update_subscriptions'}, {'title': 'Update Subscriptions'})
-    _1CH.add_item({'mode': 'clean_up_subscriptions'}, {'title': 'Clean Up Subscriptions'})
+    liz = xbmcgui.ListItem(label='Update Subscriptions')
+    liz_url = _1CH.build_plugin_url({'mode': 'update_subscriptions'})
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
+    
+    liz = xbmcgui.ListItem(label='Clean Up Subscriptions')
+    liz_url = _1CH.build_plugin_url({'mode': 'clean_up_subscriptions'})
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
+
     D1Code=_1CH.get_setting('format-subscription-day')
     D2Code=_1CH.get_setting('format-subscription-day-tag')
     fanart = art('fanart.png')
