@@ -825,6 +825,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 
     resurls = []
     count = 0
+    win = xbmcgui.Window(10000)
     for result in results:
         #resurl, title, year, thumb = s.groups()
         if result['url'] not in resurls:
@@ -836,7 +837,9 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
                 win.setProperty('1ch.movie.%d.title' % count, result['title'])
                 win.setProperty('1ch.movie.%d.thumb' % count, result['img'])
                 # Needs dialog=1 to show dialog instead of going to window
-                win.setProperty('1ch.movie.%d.path' % count, result['url'] + '&dialog=1')
+                queries = {'mode': section_params['nextmode'], 'url': result['url'], 'title': result['title'], 
+                            'img': result['img'], 'dialog': 1, 'video_type': section_params['video_type']}
+                win.setProperty('1ch.movie.%d.path' % count, _1CH.build_plugin_url(queries))
                 count = count + 1
 
     # more
