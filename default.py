@@ -280,6 +280,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
                         partnum += 1
             except:
                 _1CH.log('Error while trying to resolve %s' % url)
+
         source = urlresolver.choose_source(sources)
         if source:
             source=source.get_url()
@@ -287,6 +288,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
             return
 
         PlaySource(source, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid, strm=True)        
+
     else:
         try:
             if _1CH.get_setting('auto-play') == 'false': raise Exception, 'auto-play disabled'
@@ -1798,7 +1800,6 @@ def update_movie_cat():
         return str("date")
 
     return str("featured") # default
-
 
 mode = _1CH.queries.get('mode', None)
 section = _1CH.queries.get('section', '')
