@@ -848,10 +848,6 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
     seasons = list(season_gen) # copy the generator into a list so that we can iterate over it multiple times
     new_imdbnum = pw_scraper.get_last_imdbnum()
     
-    if not seasons:
-        _1CH.log_error("Couldn't find seasons")
-        return
-
     imdbnum = old_imdb
     if META_ON:
         if not old_imdb and new_imdbnum:
@@ -871,7 +867,9 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
         
     fanart = ''
     num = 0
+    seasons_found=False
     for season in seasons:
+        seasons_found=True
         season_num,season_html = season
         temp = {'cover_url': ''}
 
@@ -897,6 +895,11 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
                                     totalItems=len(seasons))
 
         num += 1
+
+    if not seasons_found:
+        _1CH.log_error("No Seasons Found for %s at %s" % (title, url))
+        return
+    
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     utils.set_view('seasons', 'seasons-view')
 
@@ -1394,57 +1397,58 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
         show_title = title.strip()
         seasons = pw_scraper.get_season_list(url, cached=False)
 
-        if not seasons:
-            _1CH.log_error('No Seasons found for %s at %s' % (show_title, url))
-        else:
-            for season in seasons:
-                season_num= season[0]
-                season_html = season[1]
-                r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
-                episodes = re.finditer(r, season_html, re.DOTALL)
-                for ep_line in episodes:
-                    epurl, eptitle = ep_line.groups()
-                    eptitle = re.sub('<[^<]+?>', '', eptitle.strip())
-                    eptitle = re.sub(r'\s\s+', ' ', eptitle)
+        found_seasons=False
+        for season in seasons:
+            found_seasons=True
+            season_num= season[0]
+            season_html = season[1]
+            r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
+            episodes = re.finditer(r, season_html, re.DOTALL)
+            for ep_line in episodes:
+                epurl, eptitle = ep_line.groups()
+                eptitle = re.sub('<[^<]+?>', '', eptitle.strip())
+                eptitle = re.sub(r'\s\s+', ' ', eptitle)
 
-                    pattern = r'tv-\d{1,10}-.*/season-\d+-episode-(\d+)'
-                    match = re.search(pattern, epurl, re.I | re.DOTALL)
-                    epnum = match.group(1)
+                pattern = r'tv-\d{1,10}-.*/season-\d+-episode-(\d+)'
+                match = re.search(pattern, epurl, re.I | re.DOTALL)
+                epnum = match.group(1)
 
-                    filename = utils.filename_from_title(show_title, video_type)
-                    filename = filename % (season_num, epnum)
-                    show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
-                    final_path = os.path.join(save_path, show_title, 'Season '+season_num, filename)
-                    final_path = xbmc.makeLegalFilename(final_path)
-                    if not xbmcvfs.exists(os.path.dirname(final_path)):
-                        try:
-                            try: xbmcvfs.mkdirs(os.path.dirname(final_path))
-                            except: os.mkdir(os.path.dirname(final_path))
-                        except:
-                            _1CH.log('Failed to create directory %s' % final_path)
-
-                    queries = {'mode': 'GetSources', 'url': epurl, 'imdbnum': '', 'title': show_title, 'img': '',
-                               'dialog': 1, 'video_type': 'episode'}
-                    strm_string = _1CH.build_plugin_url(queries)
-
-                    old_strm_string=''
+                filename = utils.filename_from_title(show_title, video_type)
+                filename = filename % (season_num, epnum)
+                show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
+                final_path = os.path.join(save_path, show_title, 'Season '+season_num, filename)
+                final_path = xbmc.makeLegalFilename(final_path)
+                if not xbmcvfs.exists(os.path.dirname(final_path)):
                     try:
-                        f = xbmcvfs.File(final_path, 'r')
-                        old_strm_string = f.read()
-                        f.close()
-                    except:  pass
+                        try: xbmcvfs.mkdirs(os.path.dirname(final_path))
+                        except: os.mkdir(os.path.dirname(final_path))
+                    except:
+                        _1CH.log('Failed to create directory %s' % final_path)
 
-                    #print "Old String: %s; New String %s" %(old_strm_string,strm_string)
-                    # string will be blank if file doesn't exist or is blank
-                    if strm_string != old_strm_string:
-                        try:
-                            _1CH.log('Writing strm: %s' % strm_string)
-                            file_desc = xbmcvfs.File(final_path, 'w')
-                            file_desc.write(strm_string)
-                            file_desc.close()
-                        except Exception, e:
-                            _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
+                queries = {'mode': 'GetSources', 'url': epurl, 'imdbnum': '', 'title': show_title, 'img': '',
+                           'dialog': 1, 'video_type': 'episode'}
+                strm_string = _1CH.build_plugin_url(queries)
 
+                old_strm_string=''
+                try:
+                    f = xbmcvfs.File(final_path, 'r')
+                    old_strm_string = f.read()
+                    f.close()
+                except:  pass
+
+                #print "Old String: %s; New String %s" %(old_strm_string,strm_string)
+                # string will be blank if file doesn't exist or is blank
+                if strm_string != old_strm_string:
+                    try:
+                        _1CH.log('Writing strm: %s' % strm_string)
+                        file_desc = xbmcvfs.File(final_path, 'w')
+                        file_desc.write(strm_string)
+                        file_desc.close()
+                    except Exception, e:
+                        _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
+        if not found_seasons:
+            _1CH.log_error('No Seasons found for %s at %s' % (show_title, url))
+                
     elif video_type == 'movie':
         save_path = _1CH.get_setting('movie-folder')
         save_path = xbmc.translatePath(save_path)
