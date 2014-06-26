@@ -34,7 +34,12 @@
 	<string id="30807">       Update library afterward?</string>
 	<string id="30808">       Clean Up subscriptions for ended shows</string>
 	<string id="30809">       During Playback?</string>
-
+	<string id="30810">Enable automatic movie update</string>
+ 	<string id="30811">       Update interval</string>
+ 	<string id="30812">       Run on start up</string>
+	<string id="30813">Update Now</string>
+ 	<string id="30814">Category</string>
+	
 	<string id="30906">Use dialogs for source selection</string>
     <string id="30905">Auto-play</string>
 	<string id="30900">Enable sorting of sources</string>
