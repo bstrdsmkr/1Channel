@@ -383,7 +383,7 @@ class PW_Scraper():
                     dialog.ok("Robot Check", "You must enter text in the image to continue")
                 wdlg.close()
     
-            body = unicode(body, 'iso-8859-1')
+            body = unicode(body, 'windows-1252')
             parser = HTMLParser.HTMLParser()
             body = parser.unescape(body)
         except:

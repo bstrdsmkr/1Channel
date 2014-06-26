@@ -516,7 +516,7 @@ def cache_season(season_num,season_html):
         sql = 'INSERT or REPLACE into seasons (season,contents) VALUES(?,?)'
 
     if not isinstance(season_html, unicode):
-        season_html = unicode(season_html, 'utf-8')
+        season_html = unicode(season_html, 'windows-1252')
     cur = db.cursor()
     cur.execute(sql, (season_num, season_html))
     cur.close()
