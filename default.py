@@ -475,7 +475,7 @@ def GetSearchQuery(section):
 
 def GetSearchQueryAdvanced(section):
     try:
-        query=utils.get_adv_search_query()
+        query=utils.get_adv_search_query(section)
         js_query=json.dumps(query)
         queries = {'mode': 'SearchAdvanced', 'section': section, 'query': js_query}
         pluginurl = _1CH.build_plugin_url(queries)

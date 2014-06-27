@@ -534,9 +534,14 @@ def get_cached_season(season_num):
     db.close()
     return season_html
 
-def get_adv_search_query():
+def get_adv_search_query(section):
+    if section=='tv':
+        header_text='Advanced TV Show Search'
+    else:
+        header_text='Advanced Movie Search'
     SEARCH_BUTTON = 200
     CANCEL_BUTTON = 201
+    HEADER_LABEL=100
     ACTION_PREVIOUS_MENU = 10
     CENTER_Y=6
     CENTER_X=2
@@ -559,6 +564,8 @@ def get_adv_search_query():
             self.edit_control[-1].controlDown(search)
             search.controlUp(self.edit_control[-1])
             cancel.controlDown(self.edit_control[0])
+            header=self.getControl(HEADER_LABEL)
+            header.setLabel(header_text)
         
         def onAction(self,action):
             if action==ACTION_PREVIOUS_MENU:

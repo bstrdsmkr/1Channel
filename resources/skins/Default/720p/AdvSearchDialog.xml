@@ -25,14 +25,14 @@
 				<height>40</height>
 				<texture>dialogheader.png</texture>
 			</control>
-			<control type="label">
+			<control type="label" id="100">
 				<description>header label</description>
 				<left>40</left>
 				<top>20</top>
 				<width>660</width>
 				<height>30</height>
 				<font>font13_title</font>
-				<label>Advanced Search</label>
+				<label></label>
 				<align>center</align>
 				<aligny>center</aligny>
 				<textcolor>selected</textcolor>
@@ -56,7 +56,7 @@
 			<left>30</left>
 			<top>70</top>
 			<control type="group">
-				<control type="label" id="100">
+				<control type="label">
 					<description>Tag Label</description>
 					<left>0</left>
 					<top>0</top>
