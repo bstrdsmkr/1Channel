@@ -533,3 +533,60 @@ def get_cached_season(season_num):
     season_html = cur.fetchone()[0]
     db.close()
     return season_html
+
+def get_adv_search_query():
+    SEARCH_BUTTON = 200
+    CANCEL_BUTTON = 201
+    ACTION_PREVIOUS_MENU = 10
+    CENTER_Y=6
+    CENTER_X=2
+    class TestDialog(xbmcgui.WindowXMLDialog):
+        def onInit(self):
+            self.edit_control=[]
+            ypos=95
+            for i in xrange(8):
+                self.edit_control.append(self.__add_editcontrol(ypos))
+                if i>0:
+                    self.edit_control[i].controlUp(self.edit_control[i-1])
+                if i<8:
+                    self.edit_control[i-1].controlDown(self.edit_control[i])
+                ypos += 65
+
+            search=self.getControl(SEARCH_BUTTON)
+            cancel=self.getControl(CANCEL_BUTTON)
+            self.edit_control[0].controlUp(cancel)
+            self.edit_control[-1].controlDown(search)
+            search.controlUp(self.edit_control[-1])
+            cancel.controlDown(self.edit_control[0])
+            print "oninit"
+        
+        def onAction(self,action):
+            if action==ACTION_PREVIOUS_MENU:
+                self.close()
+            #print 'action: %s' %(action)
+
+        def onControl(self,control):
+            print 'control: %s' % (control)
+            
+        def onFocus(self,control):
+            print "focus: %s" % (control)
+            
+        def onClick(self, control):
+            print "click: %s" % (control)
+            if control==SEARCH_BUTTON or control==CANCEL_BUTTON:
+                for edit in self.edit_control:
+                    print 'Text: %s' % (edit.getText())
+                self.close()
+        
+        def __add_editcontrol(self,y):
+            temp=xbmcgui.ControlEdit(0,0,0,0,'', font='font12', textColor='0xFFFFFFFF', focusTexture='button-focus2.png', noFocusTexture='button-nofocus.png', _alignment=CENTER_Y|CENTER_X)
+            temp.setPosition(30, y)
+            temp.setHeight(40)
+            temp.setWidth(660)
+            self.addControl(temp)
+            return temp
+
+    dialog=TestDialog('test.xml', _1CH.get_path())
+    dialog.doModal()
+    raise
+    

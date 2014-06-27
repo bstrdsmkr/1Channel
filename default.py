@@ -517,91 +517,16 @@ def GetSearchQueryTag(section):
 
 
 def GetSearchQueryAdvanced(section):
-    last_search = _1CH.load_data('search')
-    if not last_search: last_search = ''
-    #
-    keyboard2 = xbmc.Keyboard()
-    keyboard2.setHeading('Search Tag')
-    keyboard2.setDefault('')
-    keyboard2.doModal()
-    if keyboard2.isConfirmed(): tag_text = keyboard2.getText()
-    else: tag_text = ''
-    #
-    keyboard2.setHeading('Search Actor')
-    keyboard2.setDefault('')
-    keyboard2.doModal()
-    if keyboard2.isConfirmed(): actor_text = keyboard2.getText()
-    else: actor_text = ''
-    #
-    keyboard2.setHeading('Search Directed By')
-    keyboard2.setDefault('')
-    keyboard2.doModal()
-    if keyboard2.isConfirmed(): director_text = keyboard2.getText()
-    else: director_text = ''
-    #
-    keyboard2 = xbmc.Keyboard()
-    keyboard2.setHeading('Search Year (Numbers Only)')
-    keyboard2.setDefault('0')
-    keyboard2.doModal()
-    if keyboard2.isConfirmed(): year_text = keyboard2.getText()
-    else: year_text = ''
-    #
-    keyboard2 = xbmc.Keyboard()
-    keyboard2.setHeading('Search Month (Numbers Only)')
-    keyboard2.setDefault('0')
-    keyboard2.doModal()
-    if keyboard2.isConfirmed(): month_text = keyboard2.getText()
-    else: month_text = ''
-    #
-    keyboard2 = xbmc.Keyboard()
-    keyboard2.setHeading('Search Decade (Example: type 1980 for 1980s)')
-    keyboard2.setDefault('0')
-    keyboard2.doModal()
-    if keyboard2.isConfirmed(): decade_text = keyboard2.getText()
-    else: decade_text = ''
-    #
-    keyboard2.setHeading('Search Country (Capital First Letter)')
-    keyboard2.setDefault('')
-    keyboard2.doModal()
-    if keyboard2.isConfirmed(): country_text = keyboard2.getText()
-    else: country_text = ''
-    keyboard2.setHeading('Search Genre (Capital First Letter)')
-    keyboard2.setDefault('')
-    keyboard2.doModal()
-    if keyboard2.isConfirmed(): genre_text = keyboard2.getText()
-    else: genre_text = ''
-    #
-    #
-    #
-    #
-    keyboard = xbmc.Keyboard()
-    if section == 'tv':
-        keyboard.setHeading('Search TV Shows')
-    else:
-        keyboard.setHeading('Search Movies')
-    keyboard.setDefault('')#keyboard.setDefault(last_search)
-    keyboard.doModal()
-    if keyboard.isConfirmed():
-        search_text = keyboard.getText()
-        _1CH.save_data('search', search_text)
-        if search_text.startswith('!#'):
-            if search_text == '!#create metapacks': create_meta_packs()
-            if search_text == '!#repair meta': repair_missing_images()
-            if search_text == '!#install all meta': install_all_meta()
-            if search_text.startswith('!#sql'):
-                db = utils.connect_db()
-                db.execute(search_text[5:])
-                db.commit()
-                db.close()
-        else:
-            #SearchAdvanced(section, keyboard.getText(), tag_text, True, country_text, genre_text, actor_text, director_text, year_text, month_text, decade_text)
-            query=pack_query(keyboard.getText(), tag_text, country_text, genre_text, actor_text, director_text, year_text, month_text, decade_text)
-            queries = {'mode': 'SearchAdvanced', 'section': section, 'query': query}
-            pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s)' %(pluginurl)
-            xbmc.executebuiltin(builtin)
-    else:
+    try:
+        utils.get_adv_search_query()
+    except:
         BrowseListMenu(section)
+    
+#     query=pack_query(keyboard.getText(), tag_text, country_text, genre_text, actor_text, director_text, year_text, month_text, decade_text)
+#     queries = {'mode': 'SearchAdvanced', 'section': section, 'query': query}
+#     pluginurl = _1CH.build_plugin_url(queries)
+#     builtin = 'Container.Update(%s)' %(pluginurl)
+#     xbmc.executebuiltin(builtin)
 
 
 def GetSearchQueryDesc(section):
