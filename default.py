@@ -473,60 +473,16 @@ def GetSearchQuery(section):
     else:
         BrowseListMenu(section)
 
-
-def GetSearchQueryTag(section):
-    last_search = _1CH.load_data('search')
-    if not last_search: last_search = ''
-    #
-    keyboard2 = xbmc.Keyboard()
-    keyboard2.setHeading('Search Tag')
-    keyboard2.setDefault('')
-    keyboard2.doModal()
-    if keyboard2.isConfirmed():
-        tag_text = keyboard2.getText()
-    #
-    keyboard = xbmc.Keyboard()
-    if section == 'tv':
-        keyboard.setHeading('Search TV Shows')
-    else:
-        keyboard.setHeading('Search Movies')
-    keyboard.setDefault(last_search)
-    keyboard.doModal()
-    if keyboard.isConfirmed():
-        search_text = keyboard.getText()
-        _1CH.save_data('search', search_text)
-        if search_text.startswith('!#'):
-            if search_text == '!#create metapacks': create_meta_packs()
-            if search_text == '!#repair meta': repair_missing_images()
-            if search_text == '!#install all meta': install_all_meta()
-            if search_text.startswith('!#sql'):
-                db = utils.connect_db()
-                db.execute(search_text[5:])
-                db.commit()
-                db.close()
-        else:
-            #SearchAdvanced(section, keyboard.getText(), tag_text)
-            #SearchTag(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1')
-            query=pack_query(title=keyboard.getText(), tag=tag_text)
-            queries = {'mode': 'SearchTag', 'section': section, 'query': query}
-            pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s)' %(pluginurl)
-            xbmc.executebuiltin(builtin)
-    else:
-        BrowseListMenu(section)
-
-
 def GetSearchQueryAdvanced(section):
     try:
-        utils.get_adv_search_query()
+        query=utils.get_adv_search_query()
+        js_query=json.dumps(query)
+        queries = {'mode': 'SearchAdvanced', 'section': section, 'query': js_query}
+        pluginurl = _1CH.build_plugin_url(queries)
+        builtin = 'Container.Update(%s)' %(pluginurl)
+        xbmc.executebuiltin(builtin)
     except:
         BrowseListMenu(section)
-    
-#     query=pack_query(keyboard.getText(), tag_text, country_text, genre_text, actor_text, director_text, year_text, month_text, decade_text)
-#     queries = {'mode': 'SearchAdvanced', 'section': section, 'query': query}
-#     pluginurl = _1CH.build_plugin_url(queries)
-#     builtin = 'Container.Update(%s)' %(pluginurl)
-#     xbmc.executebuiltin(builtin)
 
 
 def GetSearchQueryDesc(section):
@@ -650,7 +606,6 @@ def BrowseListMenu(section):
                        img=art('date_added.png'), fanart=art('fanart.png'))
     
     add_search_item({'mode': 'GetSearchQueryDesc', 'section': section}, 'Search (+Description)')
-    add_search_item({'mode': 'GetSearchQueryTag', 'section': section}, 'Search (by Title & Tag)')
     add_search_item({'mode': 'GetSearchQueryAdvanced', 'section': section}, 'Search (Advanced Search)')
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -1702,19 +1657,6 @@ def unpack_query(query):
 
     return criteria
 
-def pack_query(title='',tag='',country='',genre='',actor='',director='',year='',month='',decade=''):
-    criteria = {}
-    criteria['title']=title
-    criteria['tag']=tag
-    criteria['country']=country
-    criteria['genre']=genre
-    criteria['actor']=actor
-    criteria['director']=director
-    criteria['year']=year
-    criteria['month']=month
-    criteria['decade']=decade
-    return json.dumps(criteria)
-
 def update_movie_cat():
     if _1CH.get_setting('auto-update-movies-cat') == "Featured":
         return str("featured")
@@ -1789,17 +1731,12 @@ elif mode == 'TVShowEpisodeList':
     TVShowEpisodeList(title, season, imdbnum, tvdbnum)
 elif mode == 'GetSearchQuery':
     GetSearchQuery(section)
-elif mode == 'GetSearchQueryTag':
-    GetSearchQueryTag(section)
 elif mode == 'GetSearchQueryAdvanced':
     GetSearchQueryAdvanced(section)
 elif mode == 'GetSearchQueryDesc':
     GetSearchQueryDesc(section)
 elif mode == 'Search':
     Search(section,query)
-elif mode == 'SearchTag':
-    criteria = unpack_query(query)
-    SearchAdvanced(section,criteria['title'],criteria['tag'])
 elif mode == 'SearchAdvanced':
     criteria = unpack_query(query)
     SearchAdvanced(section, criteria['title'], criteria['tag'], True, criteria['country'], criteria['genre'], criteria['actor'], criteria['director'], criteria['year'], criteria['month'], criteria['decade'])

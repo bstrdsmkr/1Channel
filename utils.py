@@ -540,7 +540,8 @@ def get_adv_search_query():
     ACTION_PREVIOUS_MENU = 10
     CENTER_Y=6
     CENTER_X=2
-    class TestDialog(xbmcgui.WindowXMLDialog):
+    class AdvSearchDialog(xbmcgui.WindowXMLDialog):
+        params=['tag','actor', 'director', 'year', 'month', 'decade', 'country', 'genre']
         def onInit(self):
             self.edit_control=[]
             ypos=95
@@ -558,26 +559,35 @@ def get_adv_search_query():
             self.edit_control[-1].controlDown(search)
             search.controlUp(self.edit_control[-1])
             cancel.controlDown(self.edit_control[0])
-            print "oninit"
         
         def onAction(self,action):
             if action==ACTION_PREVIOUS_MENU:
                 self.close()
-            #print 'action: %s' %(action)
 
         def onControl(self,control):
-            print 'control: %s' % (control)
+            pass
             
         def onFocus(self,control):
-            print "focus: %s" % (control)
+            pass
             
         def onClick(self, control):
-            print "click: %s" % (control)
+            if control==SEARCH_BUTTON:
+                self.search=True
+            if control==CANCEL_BUTTON:
+                self.search=False
+                
             if control==SEARCH_BUTTON or control==CANCEL_BUTTON:
-                for edit in self.edit_control:
-                    print 'Text: %s' % (edit.getText())
                 self.close()
         
+        def get_result(self):
+            return self.search
+        
+        def get_query(self):
+            texts=[edit.getText() for edit in self.edit_control]
+            query=dict(zip(self.params, texts))
+            return query
+        
+        # have to add edit controls programatically because getControl() (hard) crashes XBMC on them 
         def __add_editcontrol(self,y):
             temp=xbmcgui.ControlEdit(0,0,0,0,'', font='font12', textColor='0xFFFFFFFF', focusTexture='button-focus2.png', noFocusTexture='button-nofocus.png', _alignment=CENTER_Y|CENTER_X)
             temp.setPosition(30, y)
@@ -586,7 +596,13 @@ def get_adv_search_query():
             self.addControl(temp)
             return temp
 
-    dialog=TestDialog('test.xml', _1CH.get_path())
+    dialog=AdvSearchDialog('AdvSearchDialog.xml', _1CH.get_path())
     dialog.doModal()
-    raise
-    
+    if dialog.get_result():
+        query=dialog.get_query()
+        del dialog
+        _1CH.log('Returning query of: %s' % (query)) 
+        return query
+    else:
+        del dialog
+        raise
