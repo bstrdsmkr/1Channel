@@ -546,17 +546,17 @@ def get_adv_search_query(section):
     CENTER_Y=6
     CENTER_X=2
     class AdvSearchDialog(xbmcgui.WindowXMLDialog):
-        params=['tag','actor', 'director', 'year', 'month', 'decade', 'country', 'genre']
+        params=['title','tag','actor', 'director', 'year', 'month', 'decade', 'country', 'genre']
         def onInit(self):
             self.edit_control=[]
-            ypos=95
-            for i in xrange(8):
+            ypos=85
+            for i in xrange(9):
                 self.edit_control.append(self.__add_editcontrol(ypos))
                 if i>0:
                     self.edit_control[i].controlUp(self.edit_control[i-1])
-                if i<8:
+                if i<9:
                     self.edit_control[i-1].controlDown(self.edit_control[i])
-                ypos += 65
+                ypos += 55
 
             search=self.getControl(SEARCH_BUTTON)
             cancel=self.getControl(CANCEL_BUTTON)
@@ -598,7 +598,7 @@ def get_adv_search_query(section):
         def __add_editcontrol(self,y):
             temp=xbmcgui.ControlEdit(0,0,0,0,'', font='font12', textColor='0xFFFFFFFF', focusTexture='button-focus2.png', noFocusTexture='button-nofocus.png', _alignment=CENTER_Y|CENTER_X)
             temp.setPosition(30, y)
-            temp.setHeight(40)
+            temp.setHeight(30)
             temp.setWidth(660)
             self.addControl(temp)
             return temp
