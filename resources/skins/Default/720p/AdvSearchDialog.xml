@@ -3,7 +3,7 @@
 	<coordinates>
 		<system>1</system>
 		<posx>280</posx>
-		<posy>40</posy>
+		<posy>95</posy>
 	</coordinates>
 	<include>dialogeffect</include>
 	<controls>
@@ -14,8 +14,8 @@
 				<posx>0</posx>
 				<posy>0</posy>
 				<width>720</width>
-				<height>640</height>
-				<texture border="40">DialogBack.png</texture>
+				<height>530</height>
+				<texture border="40">DialogBack2.png</texture>
 			</control>
 			<control type="image">
 				<description>Dialog Header image</description>
@@ -102,42 +102,9 @@
 				<textcolor>blue</textcolor>
 			</control>
 			<control type="label">
-				<description>Year Label</description>
-				<left>0</left>
-				<top>220</top>
-				<width>0</width>
-				<height>0</height>
-				<label>Year</label>
-				<align>left</align>
-				<font>font12</font>
-				<textcolor>blue</textcolor>
-			</control>
-			<control type="label">
-				<description>Month Label</description>
-				<left>0</left>
-				<top>275</top>
-				<width>0</width>
-				<height>0</height>
-				<label>Month</label>
-				<align>left</align>
-				<font>font12</font>
-				<textcolor>blue</textcolor>
-			</control>
-			<control type="label">
-				<description>Decade Label</description>
-				<left>0</left>
-				<top>330</top>
-				<width>0</width>
-				<height>0</height>
-				<label>Decade</label>
-				<align>left</align>
-				<font>font12</font>
-				<textcolor>blue</textcolor>
-			</control>
-			<control type="label">
 				<description>Country Label</description>
 				<left>0</left>
-				<top>385</top>
+				<top>220</top>
 				<width>0</width>
 				<height>0</height>
 				<label>Country</label>
@@ -148,10 +115,43 @@
 			<control type="label">
 				<description>Genre Label</description>
 				<left>0</left>
-				<top>440</top>
+				<top>275</top>
 				<width>0</width>
 				<height>0</height>
 				<label>Genre</label>
+				<align>left</align>
+				<font>font12</font>
+				<textcolor>blue</textcolor>
+			</control>
+			<control type="label">
+				<description>Month Label</description>
+				<left>0</left>
+				<top>330</top>
+				<width>0</width>
+				<height>0</height>
+				<label>Month</label>
+				<align>left</align>
+				<font>font12</font>
+				<textcolor>blue</textcolor>
+			</control>
+			<control type="label">
+				<description>Year Label</description>
+				<left>225</left>
+				<top>330</top>
+				<width>0</width>
+				<height>0</height>
+				<label>Year</label>
+				<align>left</align>
+				<font>font12</font>
+				<textcolor>blue</textcolor>
+			</control>
+			<control type="label">
+				<description>Decade Label</description>
+				<left>450</left>
+				<top>330</top>
+				<width>0</width>
+				<height>0</height>
+				<label>Decade</label>
 				<align>left</align>
 				<font>font12</font>
 				<textcolor>blue</textcolor>
@@ -161,7 +161,7 @@
 			<control type="button" id="200">
 				<description>Search Button</description>
 				<left>155</left>
-				<top>570</top>
+				<top>460</top>
 				<width>200</width>
 				<height>40</height>
 				<align>center</align>
@@ -174,7 +174,7 @@
 			<control type="button" id="201">
 				<description>Cancel Button</description>
 				<left>365</left>
-				<top>570</top>
+				<top>460</top>
 				<width>200</width>
 				<height>40</height>
 				<align>center</align>

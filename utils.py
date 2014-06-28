@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import time
+import datetime
 import xbmc
 import xbmcgui
 import xbmcplugin
@@ -545,25 +546,62 @@ def get_adv_search_query(section):
     ACTION_PREVIOUS_MENU = 10
     CENTER_Y=6
     CENTER_X=2
+    now = datetime.datetime.now()
+    months=['']
+    months += [month for month in xrange(1,13)]
+    years = ['']
+    years += [year for year in xrange(1900,now.year+1)]
+    decades=['']
+    decades += [decade for decade in xrange(1900, now.year+1, 10)]
+    GENRES = ['', 'Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
+              'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Game-Show',
+              'History', 'Horror', 'Japanese', 'Korean', 'Music', 'Musical',
+              'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport',
+              'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
     class AdvSearchDialog(xbmcgui.WindowXMLDialog):
-        params=['title','tag','actor', 'director', 'year', 'month', 'decade', 'country', 'genre']
+        ypos=85
+        gap=55
+        params=[
+                ('title', 30, ypos, 30, 660),
+                ('tag', 30, ypos+gap, 30, 660),
+                ('actor', 30, ypos+gap*2, 30, 660),
+                ('director', 30, ypos+gap*3, 30, 660),
+                ('country', 30, ypos+gap*4, 30, 660),
+                ('genre', 30, ypos+gap*5, 30, 660),
+                ('month', 30, ypos+gap*6, 30, 210),
+                ('year', 255, ypos+gap*6, 30, 210),
+                ('decade', 480, ypos+gap*6, 30, 210)]
         def onInit(self):
-            self.edit_control=[]
-            ypos=85
+            self.query_controls=[]
+            # add edits for title, tag, actor and director
             for i in xrange(9):
-                self.edit_control.append(self.__add_editcontrol(ypos))
+                if self.params[i][0]=='month':
+                    self.query_controls.append(self.__add_listcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4], months))
+                elif self.params[i][0]=='year':
+                    self.query_controls.append(self.__add_listcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4], years))
+                elif self.params[i][0]=='decade':
+                    self.query_controls.append(self.__add_listcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4], decades))
+                elif self.params[i][0]=='genre':
+                    self.query_controls.append(self.__add_listcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4], GENRES))
+                else:
+                    self.query_controls.append(self.__add_editcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4]))
                 if i>0:
-                    self.edit_control[i].controlUp(self.edit_control[i-1])
+                    self.query_controls[i].controlUp(self.query_controls[i-1])
+                    self.query_controls[i].controlLeft(self.query_controls[i-1])
                 if i<9:
-                    self.edit_control[i-1].controlDown(self.edit_control[i])
-                ypos += 55
-
+                    self.query_controls[i-1].controlDown(self.query_controls[i])
+                    self.query_controls[i-1].controlRight(self.query_controls[i])
+            
             search=self.getControl(SEARCH_BUTTON)
             cancel=self.getControl(CANCEL_BUTTON)
-            self.edit_control[0].controlUp(cancel)
-            self.edit_control[-1].controlDown(search)
-            search.controlUp(self.edit_control[-1])
-            cancel.controlDown(self.edit_control[0])
+            self.query_controls[0].controlUp(cancel)
+            self.query_controls[0].controlLeft(cancel)
+            self.query_controls[-1].controlDown(search)
+            self.query_controls[-1].controlRight(search)
+            search.controlUp(self.query_controls[-1])
+            search.controlLeft(self.query_controls[-1])
+            cancel.controlDown(self.query_controls[0])
+            cancel.controlRight(self.query_controls[0])
             header=self.getControl(HEADER_LABEL)
             header.setLabel(header_text)
         
@@ -572,12 +610,15 @@ def get_adv_search_query(section):
                 self.close()
 
         def onControl(self,control):
+            #print 'onControl: %s' % (control)
             pass
             
         def onFocus(self,control):
+            #print 'onFocus: %s' % (control)
             pass
             
         def onClick(self, control):
+            #print 'onClick: %s' %(control)
             if control==SEARCH_BUTTON:
                 self.search=True
             if control==CANCEL_BUTTON:
@@ -585,22 +626,40 @@ def get_adv_search_query(section):
                 
             if control==SEARCH_BUTTON or control==CANCEL_BUTTON:
                 self.close()
-        
+                
         def get_result(self):
             return self.search
         
         def get_query(self):
-            texts=[edit.getText() for edit in self.edit_control]
-            query=dict(zip(self.params, texts))
+            texts=[]
+            for control in self.query_controls:
+                if isinstance(control,xbmcgui.ControlEdit):
+                    texts.append(control.getText())
+                elif isinstance(control,xbmcgui.ControlList):
+                    texts.append(control.getSelectedItem().getLabel())
+                    
+            params=[param[0] for param in self.params]
+            query=dict(zip(params, texts))
             return query
         
         # have to add edit controls programatically because getControl() (hard) crashes XBMC on them 
-        def __add_editcontrol(self,y):
+        def __add_editcontrol(self,x, y, height, width):
             temp=xbmcgui.ControlEdit(0,0,0,0,'', font='font12', textColor='0xFFFFFFFF', focusTexture='button-focus2.png', noFocusTexture='button-nofocus.png', _alignment=CENTER_Y|CENTER_X)
-            temp.setPosition(30, y)
-            temp.setHeight(30)
-            temp.setWidth(660)
+            temp.setPosition(x, y)
+            temp.setHeight(height)
+            temp.setWidth(width)
             self.addControl(temp)
+            return temp
+
+        def __add_listcontrol(self,x, y, height, width, items):
+            temp=xbmcgui.ControlList(x, y, width, height, font='font12', buttonTexture='button-nofocus.png', buttonFocusTexture='button-focus2.png', _itemHeight=height)
+            self.addControl(temp)
+            temp.setPosition(x, y)
+            temp.setHeight(height)
+            temp.setWidth(width)
+            temp.setVisible(True)
+            for item in items:
+                temp.addItem(str(item))
             return temp
 
     dialog=AdvSearchDialog('AdvSearchDialog.xml', _1CH.get_path())
