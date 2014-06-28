@@ -547,12 +547,9 @@ def get_adv_search_query(section):
     CENTER_Y=6
     CENTER_X=2
     now = datetime.datetime.now()
-    months=['']
-    months += [month for month in xrange(1,13)]
-    years = ['']
-    years += [year for year in xrange(1900,now.year+1)]
-    decades=['']
-    decades += [decade for decade in xrange(1900, now.year+1, 10)]
+    months = [''] + [month for month in xrange(1,13)]
+    years =[''] +  [year for year in xrange(1900,now.year+1)]
+    decades=[''] + [decade for decade in xrange(1900, now.year+1, 10)]
     GENRES = ['', 'Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
               'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Game-Show',
               'History', 'Horror', 'Japanese', 'Korean', 'Music', 'Musical',
