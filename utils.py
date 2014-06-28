@@ -544,6 +544,7 @@ def get_adv_search_query(section):
     CANCEL_BUTTON = 201
     HEADER_LABEL=100
     ACTION_PREVIOUS_MENU = 10
+    ACTION_BACK = 92
     CENTER_Y=6
     CENTER_X=2
     now = datetime.datetime.now()
@@ -603,7 +604,8 @@ def get_adv_search_query(section):
             header.setLabel(header_text)
         
         def onAction(self,action):
-            if action==ACTION_PREVIOUS_MENU:
+            #print 'Action: %s' %(action.getId())
+            if action==ACTION_PREVIOUS_MENU or action==ACTION_BACK:
                 self.close()
 
         def onControl(self,control):
