@@ -573,16 +573,7 @@ def get_adv_search_query(section):
             self.query_controls=[]
             # add edits for title, tag, actor and director
             for i in xrange(9):
-                if self.params[i][0]=='month':
-                    self.query_controls.append(self.__add_listcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4], months))
-                elif self.params[i][0]=='year':
-                    self.query_controls.append(self.__add_listcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4], years))
-                elif self.params[i][0]=='decade':
-                    self.query_controls.append(self.__add_listcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4], decades))
-                elif self.params[i][0]=='genre':
-                    self.query_controls.append(self.__add_listcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4], GENRES))
-                else:
-                    self.query_controls.append(self.__add_editcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4]))
+                self.query_controls.append(self.__add_editcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4]))
                 if i>0:
                     self.query_controls[i].controlUp(self.query_controls[i-1])
                     self.query_controls[i].controlLeft(self.query_controls[i-1])
@@ -619,6 +610,9 @@ def get_adv_search_query(section):
         def onClick(self, control):
             #print 'onClick: %s' %(control)
             if control==SEARCH_BUTTON:
+                if not self.__validateFields():
+                    return
+                
                 self.search=True
             if control==CANCEL_BUTTON:
                 self.search=False
@@ -641,6 +635,44 @@ def get_adv_search_query(section):
             query=dict(zip(params, texts))
             return query
         
+        def __validateFields(self):
+            success=True
+            all_values = ''.join([control.getText() for control in self.query_controls])
+            if all_values == '':
+                error_string = 'Enter at least one criteria to search on.'
+                success=False
+            else:                
+                # validate fields with allowed values
+                valid_fields=['genre', 'month', 'year', 'decade']
+                field_names=[param[0] for param in self.params]
+                for field in valid_fields:
+                    field_value=self.query_controls[field_names.index(field)].getText()
+                    print field,field_value
+                    if field_value != '':
+                        if field == 'genre':
+                            if field_value not in GENRES:
+                                error_string = 'Genre must be one of: %s' % (GENRES[1:])
+                                success=False
+                                break
+                        elif field == 'month':
+                            if field_value not in months:
+                                error_string = 'Month must be one of: %s' %(months[1:])
+                                success=False
+                                break
+                        elif field == 'year':
+                            if field_value not in years:
+                                error_string = 'Year must be a 4 digit number between %s and %s.' % (years[1], years[-1])
+                                success=False
+                                break
+                        elif field == 'decade':
+                            if field_value not in decades:
+                                error_string = 'Decade must be one of: %s' % (decades[1:])
+                                success=False
+                                break
+                            
+            _1CH.show_ok_dialog([error_string], title='PrimeWire')
+            return success
+        
         # have to add edit controls programatically because getControl() (hard) crashes XBMC on them 
         def __add_editcontrol(self,x, y, height, width):
             temp=xbmcgui.ControlEdit(0,0,0,0,'', font='font12', textColor='0xFFFFFFFF', focusTexture='button-focus2.png', noFocusTexture='button-nofocus.png', _alignment=CENTER_Y|CENTER_X)
@@ -648,17 +680,6 @@ def get_adv_search_query(section):
             temp.setHeight(height)
             temp.setWidth(width)
             self.addControl(temp)
-            return temp
-
-        def __add_listcontrol(self,x, y, height, width, items):
-            temp=xbmcgui.ControlList(x, y, width, height, font='font12', buttonTexture='button-nofocus.png', buttonFocusTexture='button-focus2.png', _itemHeight=height)
-            self.addControl(temp)
-            temp.setPosition(x, y)
-            temp.setHeight(height)
-            temp.setWidth(width)
-            temp.setVisible(True)
-            for item in items:
-                temp.addItem(str(item))
             return temp
 
     dialog=AdvSearchDialog('AdvSearchDialog.xml', _1CH.get_path())
