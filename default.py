@@ -1785,7 +1785,7 @@ elif mode == 'Search':
     Search(section,query)
 elif mode == 'SearchAdvanced':
     criteria = unpack_query(query)
-    SearchAdvanced(section, criteria['title'], criteria['tag'], True, criteria['country'], criteria['genre'], criteria['actor'], criteria['director'], criteria['year'], criteria['month'], criteria['decade'])
+    SearchAdvanced(section, criteria['title'], criteria['tag'], False, criteria['country'], criteria['genre'], criteria['actor'], criteria['director'], criteria['year'], criteria['month'], criteria['decade'])
 elif mode == 'SearchDesc':
     SearchDesc(section,query)
 elif mode == '7000':  # Enables Remote Search
