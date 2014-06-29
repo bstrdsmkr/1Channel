@@ -647,7 +647,6 @@ def get_adv_search_query(section):
                 field_names=[param[0] for param in self.params]
                 for field in valid_fields:
                     field_value=self.query_controls[field_names.index(field)].getText()
-                    print field,field_value
                     if field_value != '':
                         if field == 'genre':
                             if field_value not in GENRES:
