@@ -9,6 +9,7 @@
         <setting id="auto-watch" type="bool" label="30801" default="true"/>
         <setting id="watched-percent" type="enum" values="70[B] %[/B]|80[B] %[/B]|90[B] %[/B]" label="30802" default="2"
                  enable="!eq(-1,false)"/>
+        <setting id="dir-cache" type="bool" label="Cache Directory Listings (ON=Faster, but triggers XBMC bugs in resume)" default="false"/>
         <setting id="flush_cache" type="action" label="Flush webpage cache..." enable="true"
                  action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=flush_cache)"/>
 		<setting id="use_remote_db" type="bool" label="Use a remote MySQL DB" default="False"/>

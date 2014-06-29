@@ -746,7 +746,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
              'page': next_page},
             meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
 
-    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 
 def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
@@ -828,7 +828,7 @@ def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
 
         create_item(section_params, ShowTitle, year, img, epurl, imdbnum, season, epnum)
 
-    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 def get_section_params(section):
     section_params={}
