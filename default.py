@@ -870,9 +870,9 @@ def browse_favorites(section):
     
     section_params = get_section_params(section)
     if section=='tv':
-        label='Add Favorite TV Show to Library'
+        label='Add Favorite TV Shows to Library'
     else:
-        label='Add Favorite Movie to Library'
+        label='Add Favorite Movies to Library'
         
     liz = xbmcgui.ListItem(label=label)
     liz_url = _1CH.build_plugin_url({'mode': 'fav2Library', 'section': section})
