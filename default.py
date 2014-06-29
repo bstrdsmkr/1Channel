@@ -805,6 +805,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
 
     if not seasons_found:
         _1CH.log_error("No Seasons Found for %s at %s" % (title, url))
+        _1CH.show_small_popup('PrimeWire','No Seasons Found for %s' % (title), 3000, ICON_PATH)
         return
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -868,13 +869,20 @@ def browse_favorites(section):
     db.close()
     
     section_params = get_section_params(section)
-    
-    for row in favs:
-        (title,favurl,year) = row
+    if section=='tv':
+        label='Add Favorite TV Show to Library'
+    else:
+        label='Add Favorite Movie to Library'
         
-        remfavstring = 'RunScript(plugin.video.1channel,%s,?mode=DeleteFav&section=%s&title=%s&year=%s&url=%s)' % (
-            sys.argv[1], section, title, year, favurl)
-        menu_items = [('Remove from Favorites', remfavstring)]
+    liz = xbmcgui.ListItem(label=label)
+    liz_url = _1CH.build_plugin_url({'mode': 'fav2Library', 'section': section})
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
+
+    for row in favs:
+        title,favurl,year = row
+        
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': title, 'url': favurl, 'year': year})
+        menu_items = [('Remove from Favorites', runstring)]
 
         create_item(section_params,title,year,'',favurl,menu_items=menu_items)
     _1CH.end_of_directory()
@@ -891,6 +899,15 @@ def browse_favorites_website(section):
         liz = xbmcgui.ListItem(label='Upload Local Favorites')
         liz_url = _1CH.build_plugin_url({'mode': 'migrateFavs'})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
+        
+    if section=='tv':
+        label='Add Favorite TV Shows to Library'
+    else:
+        label='Add Favorite Movies to Library'
+
+    liz = xbmcgui.ListItem(label=label)
+    liz_url = _1CH.build_plugin_url({'mode': 'fav2Library', 'section': section})
+    xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
         
 
     section_params = get_section_params(section)
@@ -952,6 +969,35 @@ def migrate_favs_to_web():
         else:
             cur.execute('DELETE FROM favorites')
     xbmc.executebuiltin("XBMC.Container.Refresh")
+
+def add_favs_to_library(section):    
+    if not section: section='movie'
+    section_params=get_section_params(section)
+    if utils.website_is_integrated():
+        for fav in pw_scraper.get_favorities(section):
+            add_to_library(section_params['video_type'], fav['url'], fav['title'], fav['img'], fav['year'], '')
+    else:
+        sql = 'SELECT name, url, year FROM favorites WHERE type = ? ORDER BY name'
+        db = utils.connect_db()
+        if DB == 'mysql':
+            sql = sql.replace('?', '%s')
+        cur = db.cursor()
+        cur.execute(sql, (section,))
+        favs = cur.fetchall()
+        cur.close()
+        db.close()
+        
+        for fav in favs:
+            title, url, year = fav
+            add_to_library(section_params['video_type'], url, title, '', year, '')
+        
+    if section=='tv':
+        message='Favorite TV Shows Added to Library'
+    else:
+        message='Favorite Movies Added to Library'
+        
+    builtin = 'XBMC.Notification(Primewire,%s,4000, %s)'
+    xbmc.executebuiltin(builtin % (message,ICON_PATH))
 
 def create_meta(video_type, title, year, thumb):
     try:
@@ -1813,6 +1859,8 @@ elif mode == 'migrateDB':
     utils.migrate_to_mysql()
 elif mode == 'migrateFavs':
     migrate_favs_to_web()
+elif mode == 'fav2Library':
+    add_favs_to_library(section)
 elif mode == 'Help':
     _1CH.log('Showing help popup')
     try: utils.TextBox()
