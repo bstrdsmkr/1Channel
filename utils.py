@@ -669,7 +669,8 @@ def get_adv_search_query(section):
                                 success=False
                                 break
                             
-            _1CH.show_ok_dialog([error_string], title='PrimeWire')
+            if not success:
+                _1CH.show_ok_dialog([error_string], title='PrimeWire')
             return success
         
         # have to add edit controls programatically because getControl() (hard) crashes XBMC on them 
