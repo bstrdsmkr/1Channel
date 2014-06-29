@@ -2,7 +2,7 @@
 	<defaultcontrol always="false">200</defaultcontrol>
 	<coordinates>
 		<system>1</system>
-		<posx>280</posx>
+		<posx>385</posx>
 		<posy>95</posy>
 	</coordinates>
 	<include>dialogeffect</include>
@@ -13,7 +13,7 @@
 				<description>Background Image</description>
 				<posx>0</posx>
 				<posy>0</posy>
-				<width>720</width>
+				<width>510</width>
 				<height>530</height>
 				<texture border="40">DialogBack2.png</texture>
 			</control>
@@ -21,7 +21,7 @@
 				<description>Dialog Header image</description>
 				<left>40</left>
 				<top>16</top>
-				<width>660</width>
+				<width>450</width>
 				<height>40</height>
 				<texture>dialogheader.png</texture>
 			</control>
@@ -29,7 +29,7 @@
 				<description>header label</description>
 				<left>40</left>
 				<top>20</top>
-				<width>660</width>
+				<width>450</width>
 				<height>30</height>
 				<font>font13_title</font>
 				<label></label>
@@ -40,7 +40,7 @@
 			</control>
 			<control type="button">
 				<description>Close Window button</description>
-				<left>630</left>
+				<left>420</left>
 				<top>15</top>
 				<width>64</width>
 				<height>32</height>
@@ -136,7 +136,7 @@
 			</control>
 			<control type="label">
 				<description>Year Label</description>
-				<left>225</left>
+				<left>155</left>
 				<top>330</top>
 				<width>0</width>
 				<height>0</height>
@@ -147,7 +147,7 @@
 			</control>
 			<control type="label">
 				<description>Decade Label</description>
-				<left>450</left>
+				<left>310</left>
 				<top>330</top>
 				<width>0</width>
 				<height>0</height>
@@ -160,7 +160,7 @@
 		<control type="group" id="9001">
 			<control type="button" id="200">
 				<description>Search Button</description>
-				<left>155</left>
+				<left>50</left>
 				<top>460</top>
 				<width>200</width>
 				<height>40</height>
@@ -173,7 +173,7 @@
 			</control>
 			<control type="button" id="201">
 				<description>Cancel Button</description>
-				<left>365</left>
+				<left>260</left>
 				<top>460</top>
 				<width>200</width>
 				<height>40</height>

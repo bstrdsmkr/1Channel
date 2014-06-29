@@ -548,10 +548,11 @@ def get_adv_search_query(section):
     CENTER_Y=6
     CENTER_X=2
     now = datetime.datetime.now()
-    months = [''] + [month for month in xrange(1,13)]
-    years =[''] +  [year for year in xrange(1900,now.year+1)]
-    decades=[''] + [decade for decade in xrange(1900, now.year+1, 10)]
-    GENRES = ['', 'Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
+    allowed_values={}
+    allowed_values['month'] = [''] + [month for month in xrange(1,13)]
+    allowed_values['year'] = [''] +  [year for year in xrange(1900,now.year+1)]
+    allowed_values['decade'] =[''] + [decade for decade in xrange(1900, now.year+1, 10)]
+    allowed_values['genre'] = ['', 'Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
               'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Game-Show',
               'History', 'Horror', 'Japanese', 'Korean', 'Music', 'Musical',
               'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport',
@@ -560,15 +561,15 @@ def get_adv_search_query(section):
         ypos=85
         gap=55
         params=[
-                ('title', 30, ypos, 30, 660),
-                ('tag', 30, ypos+gap, 30, 660),
-                ('actor', 30, ypos+gap*2, 30, 660),
-                ('director', 30, ypos+gap*3, 30, 660),
-                ('country', 30, ypos+gap*4, 30, 660),
-                ('genre', 30, ypos+gap*5, 30, 660),
-                ('month', 30, ypos+gap*6, 30, 210),
-                ('year', 255, ypos+gap*6, 30, 210),
-                ('decade', 480, ypos+gap*6, 30, 210)]
+                ('title', 30, ypos, 30, 450),
+                ('tag', 30, ypos+gap, 30, 450),
+                ('actor', 30, ypos+gap*2, 30, 450),
+                ('director', 30, ypos+gap*3, 30, 450),
+                ('country', 30, ypos+gap*4, 30, 450),
+                ('genre', 30, ypos+gap*5, 30, 450),
+                ('month', 30, ypos+gap*6, 30, 140),
+                ('year', 185, ypos+gap*6, 30, 140),
+                ('decade', 340, ypos+gap*6, 30, 140)]
         def onInit(self):
             self.query_controls=[]
             # add edits for title, tag, actor and director
@@ -635,12 +636,13 @@ def get_adv_search_query(section):
             query=dict(zip(params, texts))
             return query
         
+        # returns True if everything validates, false otherwise
         def __validateFields(self):
-            success=True
-            all_values = ''.join([control.getText() for control in self.query_controls])
+            error=False
+            all_values = ''.join([control.getText().strip() for control in self.query_controls])
             if all_values == '':
                 error_string = 'Enter at least one criteria to search on.'
-                success=False
+                error=True
             else:                
                 # validate fields with allowed values
                 valid_fields=['genre', 'month', 'year', 'decade']
@@ -648,30 +650,17 @@ def get_adv_search_query(section):
                 for field in valid_fields:
                     field_value=self.query_controls[field_names.index(field)].getText()
                     if field_value != '':
-                        if field == 'genre':
-                            if field_value not in GENRES:
-                                error_string = 'Genre must be one of: %s' % (GENRES[1:])
-                                success=False
-                                break
-                        elif field == 'month':
-                            if field_value not in months:
-                                error_string = 'Month must be one of: %s' %(months[1:])
-                                success=False
-                                break
-                        elif field == 'year':
-                            if field_value not in years:
-                                error_string = 'Year must be a 4 digit number between %s and %s.' % (years[1], years[-1])
-                                success=False
-                                break
-                        elif field == 'decade':
-                            if field_value not in decades:
-                                error_string = 'Decade must be one of: %s' % (decades[1:])
-                                success=False
-                                break
-                            
-            if not success:
+                        if field_value not in allowed_values[field]:
+                            error_string = '%s must be one of: %s' % (field.capitalize(), allowed_values[field][1:])
+                            # override error string on year
+                            if field == 'year':
+                                error_string = 'Year must be a 4 digit number between %s and %s.' % (allowed_values[field][1], allowed_values[field][-1])
+                            error=True
+                            break
+                        
+            if error:
                 _1CH.show_ok_dialog([error_string], title='PrimeWire')
-            return success
+            return not error
         
         # have to add edit controls programatically because getControl() (hard) crashes XBMC on them 
         def __add_editcontrol(self,x, y, height, width):
