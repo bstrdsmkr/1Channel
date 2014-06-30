@@ -1,13 +1,22 @@
-import os
+"""
+    1Channel XBMC Addon
+    Copyright (C) 2014 Bstrdsmkr, tknorris
 
-# workaround for bug in Python imports
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import datetime
-# noinspection PyUnresolvedReferences
-import _strptime
-# noinspection PyUnresolvedReferences
-import time
 import json
-
 import xbmc
 import xbmcgui
 import xbmcaddon
@@ -16,34 +25,6 @@ import utils
 hours_list = [2, 5, 10, 15, 24]
 
 ADDON = xbmcaddon.Addon(id='plugin.video.1channel')
-
-try:
-    DB_NAME = ADDON.getSetting('db_name')
-    DB_USER = ADDON.getSetting('db_user')
-    DB_PASS = ADDON.getSetting('db_pass')
-    DB_ADDR = ADDON.getSetting('db_address')
-
-    if ADDON.getSetting('use_remote_db') == 'true' and \
-                    DB_ADDR is not None and \
-                    DB_USER is not None and \
-                    DB_PASS is not None and \
-                    DB_NAME is not None:
-        import mysql.connector as database
-
-        xbmc.log('PrimeWire: Service: Loading MySQL as DB engine')
-        DB = 'mysql'
-    else:
-        xbmc.log('PrimeWire: Service: MySQL not enabled or not setup correctly')
-        raise ValueError('MySQL not enabled or not setup correctly')
-except:
-    try:
-        from sqlite3 import dbapi2 as database
-        xbmc.log('PrimeWire: Service: Loading sqlite3 as DB engine')
-    except:
-        from pysqlite2 import dbapi2 as database
-        xbmc.log('PrimeWire: Service: Loading pysqlite2 as DB engine')
-    DB = 'sqlite'
-    db_dir = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
 
 def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched=''):
     from metahandler import metahandlers
