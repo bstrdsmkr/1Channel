@@ -166,14 +166,13 @@ def save_favorite(fav_type, name, url, img, year):
             builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
             xbmc.executebuiltin(builtin % ICON_PATH)
 
-def delete_favorite(fav_type, name, url):
-    if fav_type != 'tv': fav_type = 'movie'
-    _1CH.log('Deleting Fav: %s, %s, %s' % (fav_type, name, url))
+def delete_favorite(url):
+    _1CH.log('Deleting Fav: %s, %s, %s' % (url))
     
     if utils.website_is_integrated():
         pw_scraper.delete_favorite(url)
     else:
-        db_connection.delete_favorite(fav_type, name, url)
+        db_connection.delete_favorite(url)
 
 def get_sources(url, title, img, year, imdbnum, dialog):
     url = urllib.unquote(url)
@@ -408,12 +407,8 @@ def GetSearchQuery(section):
             if search_text == '!#repair meta': repair_missing_images()
             if search_text == '!#install all meta': install_all_meta()
             if search_text.startswith('!#sql'):
-                db = utils.connect_db()
-                db.execute(search_text[5:])
-                db.commit()
-                db.close()
+                db_connection.execute_sql(search_text[5:])
         else:
-            #Search(section, keyboard.getText())
             queries = {'mode': 'Search', 'section': section, 'query': keyboard.getText()}
             pluginurl = _1CH.build_plugin_url(queries)
             builtin = 'Container.Update(%s)' %(pluginurl)
@@ -451,12 +446,8 @@ def GetSearchQueryDesc(section):
             if search_text == '!#repair meta': repair_missing_images()
             if search_text == '!#install all meta': install_all_meta()
             if search_text.startswith('!#sql'):
-                db = utils.connect_db()
-                db.execute(search_text[5:])
-                db.commit()
-                db.close()
+                db_connection.execute_sql(search_text[5:])
         else:
-            #SearchDesc(section, keyboard.getText())
             queries = {'mode': 'SearchDesc', 'section': section, 'query': keyboard.getText()}
             pluginurl = _1CH.build_plugin_url(queries)
             builtin = 'Container.Update(%s)' %(pluginurl)
@@ -512,7 +503,6 @@ def AddonMenu():  # homescreen
         _1CH.log('Showing update popup')
         utils.TextBox()
         adn = xbmcaddon.Addon('plugin.video.1channel')
-        utils.upgrade_db()
         adn.setSetting('domain', 'http://www.primewire.ag')
         adn.setSetting('old_version', _1CH.get_version())
     _1CH.add_directory({'mode': 'BrowseListMenu', 'section': ''}, {'title': 'Movies'}, img=art('movies.png'),
@@ -803,7 +793,7 @@ def get_section_params(section):
 
 def browse_favorites(section):
     if not section: section='movie'
-    favs=db_connection.get_favorites(section)
+    favs=db_connection.get_all_favorites(section)
     
     section_params = get_section_params(section)
     if section=='tv':
@@ -858,7 +848,7 @@ def migrate_favs_to_web():
     ln1 = 'Uploading your favorites to www.primewire.ag...'
     progress.create('Uploading Favorites', ln1)
     successes = []
-    all_favs= db_connection.get_favorites()
+    all_favs= db_connection.get_all_favorites()
     fav_len = len(all_favs)
     count=0
     for fav in all_favs:
@@ -895,15 +885,7 @@ def add_favs_to_library(section):
         for fav in pw_scraper.get_favorities(section):
             add_to_library(section_params['video_type'], fav['url'], fav['title'], fav['img'], fav['year'], '')
     else:
-        sql = 'SELECT name, url, year FROM favorites WHERE type = ? ORDER BY name'
-        db = utils.connect_db()
-        if DB == 'mysql':
-            sql = sql.replace('?', '%s')
-        cur = db.cursor()
-        cur.execute(sql, (section,))
-        favs = cur.fetchall()
-        cur.close()
-        db.close()
+        favs=db_connection.get_all_favorites(section)
         
         for fav in favs:
             title, url, year = fav
@@ -1151,88 +1133,89 @@ def is_metapack_installed(pack):
 
 
 def repair_missing_images():
-    cont = metacontainers.MetaContainer()
-    if DB == 'mysql':
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-    else:
-        db = orm.connect(cont.videocache)
-    dbcur = db.cursor()
-    dlg = xbmcgui.DialogProgress()
-    dlg.create('Repairing Images', '', '', '')
-    for video_type in ('tvshow', 'movie'):
-        total = 'SELECT count(*) from %s_meta WHERE ' % video_type
-        total += 'imgs_prepacked = "true"'
-        total = dbcur.execute(total).fetchone()[0]
-        statement = 'SELECT title,cover_url,backdrop_url'
-        if video_type == 'tvshow': statement += ',banner_url'
-        statement += ' FROM %s_meta WHERE imgs_prepacked = "true"' % video_type
-        complete = 1.0
-        start_time = time.time()
-        already_existing = 0
-
-        for row in dbcur.execute(statement):
-            title = row[0]
-            cover = row[1]
-            backdrop = row[2]
-            if video_type == 'tvshow':
-                banner = row[3]
-            else:
-                banner = False
-            percent = int((complete * 100) / total)
-            entries_per_sec = (complete - already_existing)
-            entries_per_sec /= max(float((time.time() - start_time)), 1)
-            total_est_time = total / max(entries_per_sec, 1)
-            eta = total_est_time - (time.time() - start_time)
-
-            eta = utils.format_eta(eta)
-            dlg.update(percent, eta + title, '')
-            if cover:
-                dlg.update(percent, eta + title, cover)
-                img_name = __metaget__._picname(cover)
-                img_path = os.path.join(__metaget__.mvcovers, img_name[0].lower())
-                file_path = os.path.join(img_path, img_name)
-                if not os.path.isfile(file_path):
-                    retries = 4
-                    while retries:
-                        try:
-                            __metaget__._downloadimages(cover, img_path, img_name)
-                            break
-                        except:
-                            retries -= 1
-                else:
-                    already_existing -= 1
-            if backdrop:
-                dlg.update(percent, eta + title, backdrop)
-                img_name = __metaget__._picname(backdrop)
-                img_path = os.path.join(__metaget__.mvbackdrops, img_name[0].lower())
-                file_path = os.path.join(img_path, img_name)
-                if not os.path.isfile(file_path):
-                    retries = 4
-                    while retries:
-                        try:
-                            __metaget__._downloadimages(backdrop, img_path, img_name)
-                            break
-                        except:
-                            retries -= 1
-                else:
-                    already_existing -= 1
-            if banner:
-                dlg.update(percent, eta + title, banner)
-                img_name = __metaget__._picname(banner)
-                img_path = os.path.join(__metaget__.tvbanners, img_name[0].lower())
-                file_path = os.path.join(img_path, img_name)
-                if not os.path.isfile(file_path):
-                    retries = 4
-                    while retries:
-                        try:
-                            __metaget__._downloadimages(banner, img_path, img_name)
-                            break
-                        except:
-                            retries -= 1
-                else:
-                    already_existing -= 1
-            if dlg.iscanceled(): return False
-            complete += 1
+    pass
+#     cont = metacontainers.MetaContainer()
+#     if DB == 'mysql':
+#         db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
+#     else:
+#         db = orm.connect(cont.videocache)
+#     dbcur = db.cursor()
+#     dlg = xbmcgui.DialogProgress()
+#     dlg.create('Repairing Images', '', '', '')
+#     for video_type in ('tvshow', 'movie'):
+#         total = 'SELECT count(*) from %s_meta WHERE ' % video_type
+#         total += 'imgs_prepacked = "true"'
+#         total = dbcur.execute(total).fetchone()[0]
+#         statement = 'SELECT title,cover_url,backdrop_url'
+#         if video_type == 'tvshow': statement += ',banner_url'
+#         statement += ' FROM %s_meta WHERE imgs_prepacked = "true"' % video_type
+#         complete = 1.0
+#         start_time = time.time()
+#         already_existing = 0
+# 
+#         for row in dbcur.execute(statement):
+#             title = row[0]
+#             cover = row[1]
+#             backdrop = row[2]
+#             if video_type == 'tvshow':
+#                 banner = row[3]
+#             else:
+#                 banner = False
+#             percent = int((complete * 100) / total)
+#             entries_per_sec = (complete - already_existing)
+#             entries_per_sec /= max(float((time.time() - start_time)), 1)
+#             total_est_time = total / max(entries_per_sec, 1)
+#             eta = total_est_time - (time.time() - start_time)
+# 
+#             eta = utils.format_eta(eta)
+#             dlg.update(percent, eta + title, '')
+#             if cover:
+#                 dlg.update(percent, eta + title, cover)
+#                 img_name = __metaget__._picname(cover)
+#                 img_path = os.path.join(__metaget__.mvcovers, img_name[0].lower())
+#                 file_path = os.path.join(img_path, img_name)
+#                 if not os.path.isfile(file_path):
+#                     retries = 4
+#                     while retries:
+#                         try:
+#                             __metaget__._downloadimages(cover, img_path, img_name)
+#                             break
+#                         except:
+#                             retries -= 1
+#                 else:
+#                     already_existing -= 1
+#             if backdrop:
+#                 dlg.update(percent, eta + title, backdrop)
+#                 img_name = __metaget__._picname(backdrop)
+#                 img_path = os.path.join(__metaget__.mvbackdrops, img_name[0].lower())
+#                 file_path = os.path.join(img_path, img_name)
+#                 if not os.path.isfile(file_path):
+#                     retries = 4
+#                     while retries:
+#                         try:
+#                             __metaget__._downloadimages(backdrop, img_path, img_name)
+#                             break
+#                         except:
+#                             retries -= 1
+#                 else:
+#                     already_existing -= 1
+#             if banner:
+#                 dlg.update(percent, eta + title, banner)
+#                 img_name = __metaget__._picname(banner)
+#                 img_path = os.path.join(__metaget__.tvbanners, img_name[0].lower())
+#                 file_path = os.path.join(img_path, img_name)
+#                 if not os.path.isfile(file_path):
+#                     retries = 4
+#                     while retries:
+#                         try:
+#                             __metaget__._downloadimages(banner, img_path, img_name)
+#                             break
+#                         except:
+#                             retries -= 1
+#                 else:
+#                     already_existing -= 1
+#             if dlg.iscanceled(): return False
+#             complete += 1
 
 
 def _pbhook(numblocks, blocksize, filesize, dlg, start_time):
@@ -1352,80 +1335,37 @@ def add_subscription(url, title, img, year, imdbnum, day=''):
     try:
         if len(day)==0: day=datetime.date.today().strftime('%A')
         elif day==' ': day=''
-        sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum, day) VALUES (?,?,?,?,?,?)' #sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?,?,?,?,?)'
-        db = utils.connect_db()
-        if DB == 'mysql':
-            sql = sql.replace('?', '%s')
-        cur = db.cursor()
-        try: 
-            cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
-        except: ## Note: Temp-Fix for Adding the Extra COLUMN to the SQL TABLE ##
-            try: 
-                cur.execute('ALTER TABLE subscriptions ADD day TEXT')
-                cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
-            except:
-                builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
-                xbmc.executebuiltin(builtin)
-                xbmc.executebuiltin('Container.Update')
-                return
-        db.commit()
-        db.close()
+        db_connection.add_subscription(url, title, img, year, imdbnum, day)
         add_to_library('tvshow', url, title, img, year, imdbnum)
         builtin = "XBMC.Notification(Subscribe,Subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)
-    except orm.IntegrityError:
+    except:
         builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)
     xbmc.executebuiltin('Container.Update')
 
 
 def cancel_subscription(url, title, img, year, imdbnum):
-    sql_delete = 'DELETE FROM subscriptions WHERE url=? AND title=? AND year=?'
-    db = utils.connect_db()
-    if DB == 'mysql':
-        sql_delete = sql_delete.replace('?', '%s')
-    db_cur = db.cursor()
-    title = unicode(title, 'utf-8')
-    db_cur.execute(sql_delete, (url, title, year))
-    db.commit()
-    db.close()
+    db_connection.delete_subscription(url)
     xbmc.executebuiltin('Container.Refresh')
 
-
 def update_subscriptions():
-    db = utils.connect_db()
-    cur = db.cursor()
-    cur.execute('SELECT * FROM subscriptions')
-    subs = cur.fetchall()
+    subs=db_connection.get_all_subscriptions()
     for sub in subs:
         add_to_library('tvshow', sub[0], sub[1], sub[2], sub[3], sub[4])
-    db.close()
     if _1CH.get_setting('library-update') == 'true':
         xbmc.executebuiltin('UpdateLibrary(video)')
 
 
 def clean_up_subscriptions():
     _1CH.log('Cleaning up dead subscriptions')
-    sql_delete = 'DELETE FROM subscriptions WHERE url=?'
-    db = utils.connect_db()
-    if DB == 'mysql':
-        sql_delete = sql_delete.replace('?', '%s')
-    cur = db.cursor()
-    cur.execute('SELECT * FROM subscriptions')
-    subs = cur.fetchall()
-    to_clean = []
+    subs=db_connection.get_all_subscriptions()
     for sub in subs:
         meta = __metaget__.get_meta('tvshow', sub[1], year=sub[3])
         if meta['status'] == 'Ended':
-            to_clean.append(sub[0])
             try: _1CH.log('Selecting %s  for removal' % sub[1])
             except: pass
-    if to_clean:
-        to_clean = zip(to_clean)
-        cur.executemany(sql_delete, to_clean)
-        db.commit()
-    db.close()
-
+            db_connection.delete_subscription(sub[0])
 
 def manage_subscriptions(day=''):
     liz = xbmcgui.ListItem(label='Update Subscriptions')
@@ -1449,12 +1389,8 @@ def manage_subscriptions(day=''):
         d='Saturday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
         d='Sunday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
     utils.set_view('tvshows', 'tvshows-view')
-    db = utils.connect_db()
-    cur = db.cursor()
-    S='SELECT * FROM subscriptions'
-    if len(day) > 0: S+=' WHERE day = "%s"' % (day)
-    cur.execute(S)
-    subs = cur.fetchall()
+
+    subs=db_connection.get_all_subscriptions(day)
     for sub in subs:
         meta = create_meta('tvshow', sub[1], sub[3], '')
         meta['title'] = utils.format_label_sub(meta)
@@ -1493,7 +1429,6 @@ def manage_subscriptions(day=''):
         li_url = _1CH.build_plugin_url(queries)
         try: xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, isFolder=True, totalItems=len(subs))
         except: pass
-    db.close()
     _1CH.end_of_directory()
 
 def compose(inner_func, *outer_funcs):
@@ -1715,7 +1650,7 @@ elif mode == 'browse_favorites_website':
 elif mode == 'SaveFav':
     save_favorite(section, title, url, img, year)
 elif mode == 'DeleteFav':
-    delete_favorite(section, title, url)
+    delete_favorite(url)
     xbmc.executebuiltin('Container.Refresh')
 elif mode == 'ChangeWatched':
     ChangeWatched(imdb_id=imdbnum, video_type=video_type, name=title, season=season, episode=episode, year=year)

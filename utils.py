@@ -329,59 +329,6 @@ def format_time(seconds):
     else:
         return "%02d:%02d" % (minutes, seconds)
 
-def cache_url(url,body):
-    now = time.time()
-    db = connect_db()
-    cur = db.cursor()
-    sql = "REPLACE INTO url_cache (url,response,timestamp) VALUES(%s,%s,%s)"
-    if DB == 'sqlite':
-        sql = 'INSERT OR ' + sql.replace('%s', '?')
-    cur.execute(sql, (url, body, now))
-    db.commit()
-    db.close()
-
-def get_cached_url(url, cache_limit=8):
-    html=''
-    db = connect_db()
-    cur = db.cursor()
-    now = time.time()
-    limit = 60 * 60 * cache_limit
-    cur.execute('SELECT * FROM url_cache WHERE url = "%s"' % url)
-    cached = cur.fetchone()
-    if cached:
-        created = float(cached[2])
-        age = now - created
-        if age < limit:
-            html=cached[1]
-
-    db.close()
-    return html
-
-def cache_season(season_num,season_html):
-    db = connect_db()
-    if DB == 'mysql':
-        sql = 'INSERT INTO seasons(season,contents) VALUES(%s,%s) ON DUPLICATE KEY UPDATE contents = VALUES(contents)'
-    else:
-        sql = 'INSERT or REPLACE into seasons (season,contents) VALUES(?,?)'
-
-    if not isinstance(season_html, unicode):
-        season_html = unicode(season_html, 'windows-1252')
-    cur = db.cursor()
-    cur.execute(sql, (season_num, season_html))
-    cur.close()
-    db.commit()
-    db.close()
-    
-def get_cached_season(season_num):
-    sql = 'SELECT contents FROM seasons WHERE season=?'
-    db = connect_db()
-    if DB == 'mysql':
-        sql = sql.replace('?', '%s')
-    cur = db.cursor()
-    cur.execute(sql, (season_num,))
-    season_html = cur.fetchone()[0]
-    db.close()
-    return season_html
 
 def get_adv_search_query(section):
     if section=='tv':

@@ -19,6 +19,7 @@ import sys
 import xbmc
 import os
 import urllib
+import time
 from addon.common.addon import Addon
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
@@ -53,9 +54,9 @@ class DB_Connection():
             self.db_type = 'sqlite'
             db_dir = xbmc.translatePath("special://database")
             self.db_path = os.path.join(db_dir, 'onechannelcache.db')
-        self.db=self.connect_to_db()
+        self.db=self.__connect_to_db()
     
-    def connect_to_db(self):
+    def __connect_to_db(self):
         if not self.db:
             if self.db_type == 'mysql':
                 self.db = db_lib.connect(database=self.db_name, user=self.username, password=self.password, host=self.db_address, buffered=True)
@@ -97,7 +98,7 @@ class DB_Connection():
         self.db.execute(sql,(url,))
         self.db.commit()
 
-    def get_favorites(self, section):
+    def get_all_favorites(self, section):
         sql = self.__format('SELECT type, name, url, year FROM favorites')
         if section: sql = sql + self.__format(" WHERE type = ? ORDER BY NAME")
         cur = self.db.cursor()
@@ -131,20 +132,98 @@ class DB_Connection():
         cursor.execute(sql, (urls))
         self.db.commit()
         
-    def delete_favorite(self, fav_type, name, url):
-        sql = self.__format('DELETE FROM favorites WHERE type=%s AND name=%s AND url=%s')
-        cursor = self.db.cursor()
-        cursor.execute(sql, (fav_type, name, url))
-        self.db.commit()
+    def delete_favorite(self, url):
+        self.delete_favorites([url])
 
-    def get_subscriptions(self):
+    def get_all_subscriptions(self, day=None):
+        sql=self.__format('SELECT url, title, img, year, imdbnum FROM subscriptions')
+        if day: sql += self.__format(' WHERE day = "%s"')
         cur = self.db.cursor()
-        cur.execute('SELECT url, title, img, year, imdbnum FROM subscriptions')
+        cur.execute(sql)
         rows=cur.fetchall()
         cur.close()
         return rows
-
     
+    def add_subscription(self, url, title, img, year, imdbnum, day):
+        sql = self.__format('INSERT INTO subscriptions (url, title, img, year, imdbnum, day) VALUES (?,?,?,?,?,?)')
+        cur = self.db.cursor()
+        try: 
+            cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
+            self.db.commit()
+
+        except: ## Note: Temp-Fix for Adding the Extra COLUMN to the SQL TABLE ##
+            try: 
+                cur.execute('ALTER TABLE subscriptions ADD day TEXT')
+                cur.execute(sql, (url, title, img, year, imdbnum, day))
+                self.db.commit()
+            except:
+                raise
+    def delete_subscription(self, url):
+        sql = self.__format('DELETE FROM subscriptions WHERE url=?')
+        cur = self.db.cursor()
+        cur.execute(sql, (url))
+        self.db.commit()
+
+    def cache_url(self,url,body):
+        now = time.time()
+        cur = self.db.cursor()
+        sql = self.__format("REPLACE INTO url_cache (url,response,timestamp) VALUES(?, ?, ?)")
+        cur.execute(sql, (url, body, now))
+        self.db.commit()
+    
+    def get_cached_url(self, url, cache_limit=8):
+        html=''
+        db = connect_db()
+        cur = db.cursor()
+        now = time.time()
+        limit = 60 * 60 * cache_limit
+        cur.execute('SELECT * FROM url_cache WHERE url = "%s"' % url)
+        cached = cur.fetchone()
+        if cached:
+            created = float(cached[2])
+            age = now - created
+            if age < limit:
+                html=cached[1]
+    
+        db.close()
+        return html
+    
+    def cache_season(self, season_num,season_html):
+        db = connect_db()
+        if DB == 'mysql':
+            sql = 'INSERT INTO seasons(season,contents) VALUES(%s,%s) ON DUPLICATE KEY UPDATE contents = VALUES(contents)'
+        else:
+            sql = 'INSERT or REPLACE into seasons (season,contents) VALUES(?,?)'
+    
+        if not isinstance(season_html, unicode):
+            season_html = unicode(season_html, 'windows-1252')
+        cur = db.cursor()
+        cur.execute(sql, (season_num, season_html))
+        cur.close()
+        db.commit()
+        db.close()
+    
+    def get_cached_season(self, season_num):
+        sql = 'SELECT contents FROM seasons WHERE season=?'
+        db = connect_db()
+        if DB == 'mysql':
+            sql = sql.replace('?', '%s')
+        cur = db.cursor()
+        cur.execute(sql, (season_num,))
+        season_html = cur.fetchone()[0]
+        db.close()
+        return season_html
+
+    def execute_sql(self, sql):
+        self.db.execute(sql)
+        self.db.commit()
+
+    # apply formatting changes to make sql work with a particular db driver
     def __format(self, sql):
         if self.db_type =='mysql':
             sql = sql.replace('?', '%s')
+            
+        if self.db_type == 'sqlite' :
+            if sql.left(6)=='REPLACE':
+                sql = 'INSERT OR ' + sql
+            
