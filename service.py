@@ -25,6 +25,7 @@ import utils
 from db_utils import DB_Connection
 
 db_connection = DB_Connection()
+db_connection.init_database()
 
 hours_list = [2, 5, 10, 15, 24]
 

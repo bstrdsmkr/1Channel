@@ -321,6 +321,14 @@ def get_resume_choice(url):
     question = 'Resume from %s' % (format_time(db_connection.get_bookmark(url)))
     return xbmcgui.Dialog().yesno('Resume?', question, None, None, 'Start from beginning', 'Resume')
 
+# simple wrapper to avoid instantiating a db_connection in pw_scraper
+def get_cached_url(url, cache_limit):
+    return db_connection.get_cached_url(url, cache_limit)
+
+# simple wrapper to avoid instantiating a db_connection in pw_scraper
+def cache_url(url, body):
+    return db_connection.cache_url(url,body)
+    
 def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)
     if minutes > 60:
@@ -328,7 +336,6 @@ def format_time(seconds):
         return "%02d:%02d:%02d" % (hours, minutes, seconds)
     else:
         return "%02d:%02d" % (minutes, seconds)
-
 
 def get_adv_search_query(section):
     if section=='tv':

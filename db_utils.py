@@ -16,10 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import sys
-import xbmc
 import os
 import urllib
 import time
+import xbmc
+import xbmcvfs
 from addon.common.addon import Addon
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
@@ -56,19 +57,12 @@ class DB_Connection():
             self.db_path = os.path.join(db_dir, 'onechannelcache.db')
         self.db=self.__connect_to_db()
     
-    def __connect_to_db(self):
-        if not self.db:
-            if self.db_type == 'mysql':
-                self.db = db_lib.connect(database=self.db_name, user=self.username, password=self.password, host=self.db_address, buffered=True)
-            else:
-                self.db = db_lib.connect(self.db_path)
-                self.db.text_factory = str
-
     def flush_cache(self):
         sql = 'DELETE FROM url_cache'
         cur = self.db.cursor()
         cur.execute(sql)
         self.db.commit()
+        cur.close()
 
     # return the bookmark for the requested url or None if not found
     def get_bookmark(self,url):
@@ -81,6 +75,7 @@ class DB_Connection():
             return bookmark[0]
         else:
             return None
+        cur.close()
 
     # return true if bookmark exists
     def bookmark_exists(self, url):
@@ -117,20 +112,23 @@ class DB_Connection():
     
     def save_favorite(self, fav_type, name, url, year):
         sql = self.__format('INSERT INTO favorites (type, name, url, year) VALUES (%s,%s,%s,%s)')
-        cursor = self.db.cursor()
+        cur = self.db.cursor()
         try:
             title = urllib.unquote_plus(unicode(name, 'latin1'))
-            cursor.execute(sql, (fav_type, title, url, year))
+            cur.execute(sql, (fav_type, title, url, year))
             self.db.commit()
+            cur.close()
         except db_lib.IntegrityError:
             raise
+        
     
     def delete_favorites(self, urls):
         url_string=', '.join('%s' for _ in urls)
         sql = self.__format('DELETE FROM favorites WHERE url in ('+url_string+')')
-        cursor = self.db.cursor()
-        cursor.execute(sql, (urls))
+        cur = self.db.cursor()
+        cur.execute(sql, (urls))
         self.db.commit()
+        cur.close()
         
     def delete_favorite(self, url):
         self.delete_favorites([url])
@@ -158,11 +156,13 @@ class DB_Connection():
                 self.db.commit()
             except:
                 raise
+
     def delete_subscription(self, url):
         sql = self.__format('DELETE FROM subscriptions WHERE url=?')
         cur = self.db.cursor()
         cur.execute(sql, (url))
         self.db.commit()
+        cur.close()
 
     def cache_url(self,url,body):
         now = time.time()
@@ -170,53 +170,99 @@ class DB_Connection():
         sql = self.__format("REPLACE INTO url_cache (url,response,timestamp) VALUES(?, ?, ?)")
         cur.execute(sql, (url, body, now))
         self.db.commit()
+        cur.close()
     
     def get_cached_url(self, url, cache_limit=8):
         html=''
-        db = connect_db()
-        cur = db.cursor()
+        cur = self.db.cursor()
         now = time.time()
         limit = 60 * 60 * cache_limit
-        cur.execute('SELECT * FROM url_cache WHERE url = "%s"' % url)
+        sql = self.__format('SELECT * FROM url_cache WHERE url = "%s"')
+        cur.execute( sql, (url,))
         cached = cur.fetchone()
         if cached:
             created = float(cached[2])
             age = now - created
             if age < limit:
                 html=cached[1]
-    
-        db.close()
+        cur.close()
         return html
     
     def cache_season(self, season_num,season_html):
-        db = connect_db()
-        if DB == 'mysql':
-            sql = 'INSERT INTO seasons(season,contents) VALUES(%s,%s) ON DUPLICATE KEY UPDATE contents = VALUES(contents)'
-        else:
-            sql = 'INSERT or REPLACE into seasons (season,contents) VALUES(?,?)'
-    
+        sql = self.__format('REPLACE INTO seasons(season,contents) VALUES(%s,%s)')        
+
         if not isinstance(season_html, unicode):
             season_html = unicode(season_html, 'windows-1252')
-        cur = db.cursor()
+        cur = self.db.cursor()
         cur.execute(sql, (season_num, season_html))
         cur.close()
-        db.commit()
-        db.close()
+        self.db.commit()
     
     def get_cached_season(self, season_num):
-        sql = 'SELECT contents FROM seasons WHERE season=?'
-        db = connect_db()
-        if DB == 'mysql':
-            sql = sql.replace('?', '%s')
-        cur = db.cursor()
+        sql = self.__format('SELECT contents FROM seasons WHERE season=?')
+        cur = self.db.cursor()
         cur.execute(sql, (season_num,))
         season_html = cur.fetchone()[0]
-        db.close()
         return season_html
 
     def execute_sql(self, sql):
         self.db.execute(sql)
         self.db.commit()
+
+    # intended to be a common method for creating a db from scratch
+    def init_database(self):
+        _1CH.log('Building PrimeWire Database')
+        cur = self.db.cursor()
+        if self.db_type == 'mysql':
+            cur.execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
+            cur.execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
+            cur.execute('CREATE TABLE IF NOT EXISTS subscriptions (url VARCHAR(255) UNIQUE, title TEXT, img TEXT, year TEXT, imdbnum TEXT, day TEXT)')
+            cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
+            cur.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
+            cur.execute('CREATE TABLE IF NOT EXISTS new_bkmark (url VARCHAR(255) PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')            
+        else:
+            self.__create_db()
+            cur.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
+            cur.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
+            cur.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum, day)')
+            cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
+            cur.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
+            cur.execute('CREATE TABLE IF NOT EXISTS new_bkmark (url TEXT PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')
+            cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
+            cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
+            cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
+        
+        self.__do_db_fixes()
+        sql = self.__format("REPLACE INTO db_info (setting, value) VALUES(%s,%s)")
+        cur.execute(sql, ('version', _1CH.get_version()))
+
+    # generic cleanup method to do whatever fixes might be required in this relase
+    def __do_db_fixes(self):
+        cur=self.db.cursor()
+        if self.db_type=='mysql':
+            #Need to update cache column to a bigger data type
+            cur.execute('ALTER TABLE url_cache MODIFY COLUMN response MEDIUMBLOB')
+            # try to add the column, ignore failures (e.g. exists already)
+            try: cur.execute('ALTER TABLE subscriptions ADD day TEXT')
+            except: pass
+        else:
+            #Fix previous index errors on bookmark table
+            cur.execute('DROP INDEX IF EXISTS unique_movie_bmk') # get rid of faulty index that might exist
+            cur.execute('DROP INDEX IF EXISTS unique_episode_bmk') # get rid of faulty index that might exist
+            cur.execute('DROP INDEX IF EXISTS unique_bmk') # drop this index too just in case it was wrong
+    
+    def __create_db(self):
+        if not xbmcvfs.exists(os.path.dirname(self.db_path)): 
+            try: xbmcvfs.mkdirs(os.path.dirname(self.db_path))
+            except: os.mkdir(os.path.dirname(self.db_path))
+    
+    def __connect_to_db(self):
+        if not self.db:
+            if self.db_type == 'mysql':
+                self.db = db_lib.connect(database=self.db_name, user=self.username, password=self.password, host=self.db_address, buffered=True)
+            else:
+                self.db = db_lib.connect(self.db_path)
+                self.db.text_factory = str
 
     # apply formatting changes to make sql work with a particular db driver
     def __format(self, sql):

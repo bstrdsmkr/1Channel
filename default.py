@@ -63,7 +63,9 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
+
 db_connection = DB_Connection()
+db_connection.init_database()
 
 PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
@@ -74,82 +76,6 @@ if not xbmcvfs.exists(_1CH.get_profile()):
 
 def art(name): 
     return os.path.join(THEME_PATH, name)
-
-def init_database():
-    _1CH.log('Building PrimeWire Database')
-    db = utils.connect_db()
-    if DB == 'mysql':
-        cur = db.cursor()
-        cur.execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
-        cur.execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
-        cur.execute('CREATE TABLE IF NOT EXISTS subscriptions (url VARCHAR(255) UNIQUE, title TEXT, img TEXT, year TEXT, imdbnum TEXT, day TEXT)')
-        cur.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type VARCHAR(10), title VARCHAR(255), season INTEGER, episode INTEGER, year VARCHAR(10), bookmark VARCHAR(10))')
-        cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
-        cur.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
-        cur.execute('CREATE TABLE IF NOT EXISTS new_bkmark (url VARCHAR(255) PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')
-        
-        #Need to update cache column to a bigger data type
-        cur.execute('ALTER TABLE url_cache MODIFY COLUMN response MEDIUMBLOB')
-        
-        try: 
-            cur.execute('CREATE UNIQUE INDEX unique_bmk ON bookmarks (video_type, title, season, episode, year)')
-        except:
-            #todo: delete all non-unique bookmarks and try again
-            pass
-
-        cur.execute('SELECT value FROM db_info WHERE setting = "version"')
-        db_ver = cur.fetchall() or [0]
-        #todo: write version number comparison logic to handle letters and etc
-        if _1CH.get_version() > db_ver[0]:
-            ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
-            #or there's nothing else we can do about it. Either way: ignore it and try to keep going
-            try: 
-                cur.execute('ALTER TABLE subscriptions ADD day TEXT')
-            #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
-            except: #todo: catch the specific exception
-                pass
-
-    else:
-        if not xbmcvfs.exists(os.path.dirname(DB_DIR)): 
-            try: xbmcvfs.mkdirs(os.path.dirname(DB_DIR))
-            except: os.mkdir(os.path.dirname(DB_DIR))
-        db.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
-        db.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
-        db.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum, day)')
-        db.execute('CREATE TABLE IF NOT EXISTS bookmarks (video_type, title, season, episode, year, bookmark)')
-        db.execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
-        db.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
-        db.execute('CREATE TABLE IF NOT EXISTS new_bkmark (url TEXT PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')
-        db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
-        db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
-        
-        #Fix previous index errors on bookmark table
-        db.execute('DROP INDEX IF EXISTS unique_movie_bmk') # get rid of faulty index that might exist
-        db.execute('DROP INDEX IF EXISTS unique_episode_bmk') # get rid of faulty index that might exist
-        db.execute('DROP INDEX IF EXISTS unique_bmk') # drop this index too just in case it was wrong
-
-        db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_bmk ON bookmarks (video_type, title, season, episode, year)')
-        db.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
-        
-        db_ver = db.execute('SELECT value FROM db_info WHERE setting = "version"').fetchall() or [0]
-        #todo: write version number comparison logic to handle letters and etc
-        if _1CH.get_version() > db_ver[0]:
-            ### Try to add the 'day' column to upgrade older DBs. If an error pops, it's either successful
-            #or there's nothing else we can do about it. Either way: ignore it and try to keep going
-            try: 
-                cur.execute('ALTER TABLE subscriptions ADD day')
-            #cur.execute('(SELECT IF((SELECT COUNT(day) FROM subscriptions) > 0,"SELECT 1","ALTER TABLE table_name ADD col_name VARCHAR(100)"))')
-            except: #todo: catch the specific exception
-                pass
-
-    sql = "REPLACE INTO db_info (setting, value) VALUES(%s,%s)"
-    if DB == 'sqlite':
-        sql = 'INSERT OR ' + sql.replace('%s', '?')
-        db.execute(sql, ('version', _1CH.get_version()))
-    else:
-        cur.execute(sql, ('version', _1CH.get_version()))
-    db.close()
-
 
 def save_favorite(fav_type, name, url, img, year):
     if fav_type != 'tv': fav_type = 'movie'
@@ -498,7 +424,6 @@ def SearchDesc(section, query):
 
 def AddonMenu():  # homescreen
     _1CH.log('Main Menu')
-    init_database()
     if utils.has_upgraded():
         _1CH.log('Showing update popup')
         utils.TextBox()
@@ -727,7 +652,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
                     pass
 
         label = 'Season %s' % season_num
-        utils.cache_season(season_num, season_html)
+        db_connection.cache_season(season_num, season_html)
         listitem = xbmcgui.ListItem(label, iconImage=temp['cover_url'],
                                     thumbnailImage=temp['cover_url'])
         listitem.setInfo('video', temp)
@@ -750,7 +675,7 @@ def TVShowSeasonList(url, title, year, old_imdb, old_tvdb=''):
     utils.set_view('seasons', 'seasons-view')
 
 def TVShowEpisodeList(ShowTitle, season, imdbnum, tvdbnum):
-    season_html = utils.get_cached_season(season)
+    season_html = db_connection.get_cached_season(season)
     r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
     episodes = re.finditer(r, season_html, re.DOTALL)
     
