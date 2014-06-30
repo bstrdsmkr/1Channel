@@ -65,7 +65,6 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 
 db_connection = DB_Connection()
-db_connection.init_database()
 
 PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
@@ -424,6 +423,7 @@ def SearchDesc(section, query):
 
 def AddonMenu():  # homescreen
     _1CH.log('Main Menu')
+    db_connection.init_database()
     if utils.has_upgraded():
         _1CH.log('Showing update popup')
         utils.TextBox()
