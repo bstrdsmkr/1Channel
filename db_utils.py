@@ -25,7 +25,6 @@ from addon.common.addon import Addon
 _1CH = Addon('plugin.video.1channel')
 
 class DB_Connection():
-    db=None
     def __init__(self):
         global db_lib
         self.dbname = _1CH.get_setting('db_name')
@@ -56,15 +55,15 @@ class DB_Connection():
     
     def flush_cache(self):
         sql = 'DELETE FROM url_cache'
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         cur.execute(sql)
-        DB_Connection.db.commit()
+        self.db.commit()
         cur.close()
 
     # return the bookmark for the requested url or None if not found
     def get_bookmark(self,url):
         if not url: return None
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         sql=self.__format("SELECT resumepoint FROM new_bkmark where url=?")
         cur.execute(sql, (url,))
         bookmark = cur.fetchone()
@@ -81,19 +80,19 @@ class DB_Connection():
     def set_bookmark(self, url,offset):
         if not url: return
         sql = self.__format("REPLACE INTO new_bkmark (url, resumepoint) VALUES(?,?)")
-        DB_Connection.db.execute(sql,(url,offset))
-        DB_Connection.db.commit()
+        self.db.execute(sql,(url,offset))
+        self.db.commit()
         
     def clear_bookmark(self, url):
         if not url: return
         sql = self._format("DELETE FROM new_bkmark WHERE url=?")
-        DB_Connection.db.execute(sql,(url,))
-        DB_Connection.db.commit()
+        self.db.execute(sql,(url,))
+        self.db.commit()
 
     def get_all_favorites(self, section):
         sql = self.__format('SELECT type, name, url, year FROM favorites')
         if section: sql = sql + self.__format(" WHERE type = ? ORDER BY NAME")
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         cur.execute(sql, (section,))
         favs = cur.fetchall()
         cur.close()
@@ -102,18 +101,18 @@ class DB_Connection():
     def get_favorites_count(self, section):
         sql = self.__format('SELECT count(*) FROM favorites')
         if section: sql = sql + self.__format(" WHERE type = ?")
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         count=cur.execute(sql).fetchall()
         cur.close()
         return count
     
     def save_favorite(self, fav_type, name, url, year):
         sql = self.__format('INSERT INTO favorites (type, name, url, year) VALUES (%s,%s,%s,%s)')
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         try:
             title = urllib.unquote_plus(unicode(name, 'latin1'))
             cur.execute(sql, (fav_type, title, url, year))
-            DB_Connection.db.commit()
+            self.db.commit()
             cur.close()
         except db_lib.IntegrityError:
             raise
@@ -122,9 +121,9 @@ class DB_Connection():
     def delete_favorites(self, urls):
         url_string=', '.join('%s' for _ in urls)
         sql = self.__format('DELETE FROM favorites WHERE url in ('+url_string+')')
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         cur.execute(sql, (urls))
-        DB_Connection.db.commit()
+        self.db.commit()
         cur.close()
         
     def delete_favorite(self, url):
@@ -133,7 +132,7 @@ class DB_Connection():
     def get_all_subscriptions(self, day=None):
         sql=self.__format('SELECT url, title, img, year, imdbnum FROM subscriptions')
         if day: sql += self.__format(' WHERE day = "%s"')
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         cur.execute(sql)
         rows=cur.fetchall()
         cur.close()
@@ -141,37 +140,37 @@ class DB_Connection():
     
     def add_subscription(self, url, title, img, year, imdbnum, day):
         sql = self.__format('INSERT INTO subscriptions (url, title, img, year, imdbnum, day) VALUES (?,?,?,?,?,?)')
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         try: 
             cur.execute(sql, (url, title, img, year, imdbnum, day)) #cur.execute(sql, (url, title, img, year, imdbnum))
-            DB_Connection.db.commit()
+            self.db.commit()
 
         except: ## Note: Temp-Fix for Adding the Extra COLUMN to the SQL TABLE ##
             try: 
                 cur.execute('ALTER TABLE subscriptions ADD day TEXT')
                 cur.execute(sql, (url, title, img, year, imdbnum, day))
-                DB_Connection.db.commit()
+                self.db.commit()
             except:
                 raise
 
     def delete_subscription(self, url):
         sql = self.__format('DELETE FROM subscriptions WHERE url=?')
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         cur.execute(sql, (url))
-        DB_Connection.db.commit()
+        self.db.commit()
         cur.close()
 
     def cache_url(self,url,body):
         now = time.time()
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         sql = self.__format("REPLACE INTO url_cache (url,response,timestamp) VALUES(?, ?, ?)")
         cur.execute(sql, (url, body, now))
-        DB_Connection.db.commit()
+        self.db.commit()
         cur.close()
     
     def get_cached_url(self, url, cache_limit=8):
         html=''
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         now = time.time()
         limit = 60 * 60 * cache_limit
         sql = self.__format('SELECT * FROM url_cache WHERE url = "%s"')
@@ -190,26 +189,26 @@ class DB_Connection():
 
         if not isinstance(season_html, unicode):
             season_html = unicode(season_html, 'windows-1252')
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         cur.execute(sql, (season_num, season_html))
         cur.close()
-        DB_Connection.db.commit()
+        self.db.commit()
     
     def get_cached_season(self, season_num):
         sql = self.__format('SELECT contents FROM seasons WHERE season=?')
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         cur.execute(sql, (season_num,))
         season_html = cur.fetchone()[0]
         return season_html
 
     def execute_sql(self, sql):
-        DB_Connection.db.execute(sql)
-        DB_Connection.db.commit()
+        self.db.execute(sql)
+        self.db.commit()
 
     # intended to be a common method for creating a db from scratch
     def init_database(self):
         _1CH.log('Building PrimeWire Database')
-        cur = DB_Connection.db.cursor()
+        cur = self.db.cursor()
         if self.db_type == 'mysql':
             cur.execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
             cur.execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
@@ -232,12 +231,12 @@ class DB_Connection():
         self.__do_db_fixes()
         sql = self.__format("REPLACE INTO db_info (setting, value) VALUES(?,?)")
         cur.execute(sql, ('version', _1CH.get_version()))
-        DB_Connection.db.commit()
+        self.db.commit()
         cur.close()
 
     # generic cleanup method to do whatever fixes might be required in this relase
     def __do_db_fixes(self):
-        cur=DB_Connection.db.cursor()
+        cur=self.db.cursor()
         if self.db_type=='mysql':
             #Need to update cache column to a bigger data type
             cur.execute('ALTER TABLE url_cache MODIFY COLUMN response MEDIUMBLOB')
@@ -256,12 +255,12 @@ class DB_Connection():
             except: os.mkdir(os.path.dirname(self.db_path))
     
     def __connect_to_db(self):
-        if not DB_Connection.db:
+        if not self.db:
             if self.db_type == 'mysql':
-                DB_Connection.db = db_lib.connect(database=self.db_name, user=self.username, password=self.password, host=self.db_address, buffered=True)
+                self.db = db_lib.connect(database=self.db_name, user=self.username, password=self.password, host=self.db_address, buffered=True)
             else:
-                DB_Connection.db = db_lib.connect(self.db_path)
-                DB_Connection.db.text_factory = str
+                self.db = db_lib.connect(self.db_path)
+                self.db.text_factory = str
 
     # apply formatting changes to make sql work with a particular db driver
     def __format(self, sql):
