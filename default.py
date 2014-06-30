@@ -39,39 +39,9 @@ try: from metahandler import metacontainers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
 import utils
 from pw_scraper import PW_Scraper
+from db_utils import DB_Connection
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
-
-try:
-    DB_NAME = _1CH.get_setting('db_name')
-    DB_USER = _1CH.get_setting('db_user')
-    DB_PASS = _1CH.get_setting('db_pass')
-    DB_ADDR = _1CH.get_setting('db_address')
-
-    if _1CH.get_setting('use_remote_db') == 'true' and \
-                    DB_ADDR is not None and \
-                    DB_USER is not None and \
-                    DB_PASS is not None and \
-                    DB_NAME is not None:
-        import mysql.connector as orm
-
-        _1CH.log('Loading MySQL as DB engine')
-        DB = 'mysql'
-    else:
-        _1CH.log('MySQL not enabled or not setup correctly')
-        raise ValueError('MySQL not enabled or not setup correctly')
-except:
-    try:
-        from sqlite3 import dbapi2 as orm
-
-        _1CH.log('Loading sqlite3 as DB engine')
-    except:
-        from pysqlite2 import dbapi2 as orm
-
-        _1CH.log('pysqlite2 as DB engine')
-    DB = 'sqlite'
-    __translated__ = xbmc.translatePath("special://database")
-    DB_DIR = os.path.join(__translated__, 'onechannelcache.db')
 
 META_ON = _1CH.get_setting('use-meta') == 'true'
 FANART_ON = _1CH.get_setting('enable-fanart') == 'true'
@@ -93,6 +63,7 @@ GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
           'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
+db_connection = DB_Connection()
 
 PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
@@ -103,7 +74,6 @@ if not xbmcvfs.exists(_1CH.get_profile()):
 
 def art(name): 
     return os.path.join(THEME_PATH, name)
-
 
 def init_database():
     _1CH.log('Building PrimeWire Database')
@@ -185,31 +155,16 @@ def save_favorite(fav_type, name, url, img, year):
     if fav_type != 'tv': fav_type = 'movie'
     _1CH.log('Saving Favorite type: %s name: %s url: %s img: %s year: %s' % (fav_type, name, url, img, year))
     
-    if utils.website_is_integrated():
-        try:
+    try:
+        if utils.website_is_integrated():
             pw_scraper.add_favorite(url)
-            builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
-            xbmc.executebuiltin(builtin % ICON_PATH)
-        except:
-                builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
-                xbmc.executebuiltin(builtin % ICON_PATH)
-    else:
-        statement = 'INSERT INTO favorites (type, name, url, year) VALUES (%s,%s,%s,%s)'
-        db = utils.connect_db()
-        if DB == 'sqlite':
-            statement = statement.replace("%s", "?")
-        cursor = db.cursor()
-        try:
-            title = urllib.unquote_plus(unicode(name, 'latin1'))
-            cursor.execute(statement, (fav_type, title, url, year))
-            builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
-            xbmc.executebuiltin(builtin % ICON_PATH)
-        except orm.IntegrityError:
+        else:
+            db_connection.save_favorite(fav_type, name, url, year)
+        builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
+        xbmc.executebuiltin(builtin % ICON_PATH)
+    except:
             builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
             xbmc.executebuiltin(builtin % ICON_PATH)
-        db.commit()
-        db.close()
-
 
 def delete_favorite(fav_type, name, url):
     if fav_type != 'tv': fav_type = 'movie'
@@ -218,14 +173,7 @@ def delete_favorite(fav_type, name, url):
     if utils.website_is_integrated():
         pw_scraper.delete_favorite(url)
     else:
-        sql_del = 'DELETE FROM favorites WHERE type=%s AND name=%s AND url=%s'
-        db = utils.connect_db()
-        if DB == 'sqlite':
-            sql_del = sql_del.replace('%s', '?')
-        cursor = db.cursor()
-        cursor.execute(sql_del, (fav_type, name, url))
-        db.commit()
-        db.close()
+        db_connection.delete_favorite(fav_type, name, url)
 
 def get_sources(url, title, img, year, imdbnum, dialog):
     url = urllib.unquote(url)
@@ -235,7 +183,7 @@ def get_sources(url, title, img, year, imdbnum, dialog):
     dbid=xbmc.getInfoLabel('ListItem.DBID')
     
     resume = False
-    if utils.bookmark_exists(url):
+    if db_connection.bookmark_exists(url):
         resume = utils.get_resume_choice(url)
 
     pattern = r'tv-\d{1,10}-(.*)/season-(\d{1,4})-episode-(\d{1,4})'
@@ -412,7 +360,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, prim
     
     resume_point=0
     if resume: 
-        resume_point = utils.get_bookmark(primewire_url)
+        resume_point = db_connection.get_bookmark(primewire_url)
         
     _1CH.log("Playing Video from: %s secs"  % (resume_point))
     listitem.setProperty('ResumeTime', str(resume_point))
@@ -837,10 +785,7 @@ def get_section_params(section):
         section_params['nextmode'] = 'TVShowSeasonList'
         section_params['video_type'] = 'tvshow'
         section_params['folder'] = True
-        db = utils.connect_db()
-        cur = db.cursor()
-        cur.execute('SELECT url FROM subscriptions')
-        subscriptions = cur.fetchall()
+        subscriptions = db_connection.get_all_subscriptions()
         section_params['subs'] = [row[0] for row in subscriptions]
     elif section=='episode':
         section_params['nextmode'] = 'GetSources'
@@ -858,15 +803,7 @@ def get_section_params(section):
 
 def browse_favorites(section):
     if not section: section='movie'
-    sql = 'SELECT name, url, year FROM favorites WHERE type = ? ORDER BY name'
-    db = utils.connect_db()
-    if DB == 'mysql':
-        sql = sql.replace('?', '%s')
-    cur = db.cursor()
-    cur.execute(sql, (section,))
-    favs = cur.fetchall()
-    cur.close()
-    db.close()
+    favs=db_connection.get_favorites(section)
     
     section_params = get_section_params(section)
     if section=='tv':
@@ -879,7 +816,7 @@ def browse_favorites(section):
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
     for row in favs:
-        title,favurl,year = row
+        type, title,favurl,year = row
         
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': title, 'url': favurl, 'year': year})
         menu_items = [('Remove from Favorites', runstring)]
@@ -890,11 +827,8 @@ def browse_favorites(section):
 
 def browse_favorites_website(section):
     if not section: section='movies'
-    sql = 'SELECT count(*) FROM favorites'
-    db = utils.connect_db()
-    cur = db.cursor()
-    local_favs = cur.execute(sql).fetchall()
-
+    local_favs=db_connection.get_favorites_count()
+    
     if local_favs:
         liz = xbmcgui.ListItem(label='Upload Local Favorites')
         liz_url = _1CH.build_plugin_url({'mode': 'migrateFavs'})
@@ -920,18 +854,11 @@ def browse_favorites_website(section):
     _1CH.end_of_directory()
 
 def migrate_favs_to_web():
-    init_database()
-    sql = 'SELECT type, name, url, year FROM favorites ORDER BY name'
-    db = utils.connect_db()
-    if DB == 'mysql':
-        sql = sql.replace('?', '%s')
-    cur = db.cursor()
-    cur.execute(sql)
-    all_favs = cur.fetchall()
     progress = xbmcgui.DialogProgress()
     ln1 = 'Uploading your favorites to www.primewire.ag...'
     progress.create('Uploading Favorites', ln1)
-    failures = []
+    successes = []
+    all_favs= db_connection.get_favorites()
     fav_len = len(all_favs)
     count=0
     for fav in all_favs:
@@ -942,10 +869,10 @@ def migrate_favs_to_web():
             pw_scraper.add_favorite(favurl)
             ln3 = "Success"
             _1CH.log('%s added successfully' % title)
+            successes.append((title, favurl))
         except Exception as e:
             ln3= "Already Exists"
             _1CH.log(e)
-            failures.append((title, favurl))
         count += 1
         progress.update(count*100/fav_len, ln1, 'Processed %s' % title, ln3)
     progress.close()
@@ -958,16 +885,7 @@ def migrate_favs_to_web():
     ret = dialog.yesno('Migration Complete', ln1, ln2, ln3, yes, no)
     # failures = [('title1','url1'), ('title2','url2'), ('title3','url3'), ('title4','url4'), ('title5','url5'), ('title6','url6'), ('title7','url7')]
     if ret:
-        if failures:
-            params = ', '.join('%s' if DB == 'mysql' else '?' for item in failures)
-            sql_delete = 'DELETE FROM favorites WHERE url NOT IN (SELECT url FROM favorites WHERE url IN (%s))'
-            sql_delete %= params
-            _1CH.log(sql_delete)
-            urls = [item[1] for item in failures]
-            _1CH.log(urls)
-            # cur.execute(sql_delete, failures)
-        else:
-            cur.execute('DELETE FROM favorites')
+        db_connection.delete_favorites([fav[1] for fav in successes])
     xbmc.executebuiltin("XBMC.Container.Refresh")
 
 def add_favs_to_library(section):    

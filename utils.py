@@ -6,53 +6,13 @@ import datetime
 import xbmc
 import xbmcgui
 import xbmcplugin
-
+from addon.common.addon import Addon
+from db_utils import DB_Connection
 # from functools import wraps
 
-from addon.common.addon import Addon
+db_connection = DB_Connection()
 
 _1CH = Addon('plugin.video.1channel')
-
-try:
-    DB_NAME = _1CH.get_setting('db_name')
-    DB_USER = _1CH.get_setting('db_user')
-    DB_PASS = _1CH.get_setting('db_pass')
-    DB_ADDR = _1CH.get_setting('db_address')
-
-    if _1CH.get_setting('use_remote_db') == 'true' and \
-                    DB_ADDR is not None and \
-                    DB_USER is not None and \
-                    DB_PASS is not None and \
-                    DB_NAME is not None:
-        import mysql.connector as orm
-
-        _1CH.log('Loading MySQL as DB engine')
-        DB = 'mysql'
-    else:
-        _1CH.log('MySQL not enabled or not setup correctly')
-        raise ValueError('MySQL not enabled or not setup correctly')
-except:
-    try:
-        from sqlite3 import dbapi2 as orm
-
-        _1CH.log('Loading sqlite3 as DB engine')
-    except:
-        from pysqlite2 import dbapi2 as orm
-
-        _1CH.log('pysqlite2 as DB engine')
-    DB = 'sqlite'
-    __translated__ = xbmc.translatePath("special://database")
-    DB_DIR = os.path.join(__translated__, 'onechannelcache.db')
-
-    
-def connect_db():
-    if DB == 'mysql':
-        db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-    else:
-        db = orm.connect(DB_DIR)
-        db.text_factory = str
-    return db
-
 
 def format_label_tvshow(info):
     if 'premiered' in info:
@@ -188,35 +148,15 @@ def filename_from_title(title, video_type):
 
 
 def flush_cache():
-    dlg = xbmcgui.Dialog()
-    ln1 = 'Are you sure you want to '
-    ln2 = 'delete the url cache?'
-    ln3 = 'This will slow things down until rebuilt'
-    yes = 'Keep'
-    no = 'Delete'
-    ret = dlg.yesno('Flush web cache', ln1, ln2, ln3, yes, no)
-    if ret:
-        db = connect_db()
-        if DB == 'mysql':
-            sql = 'TRUNCATE TABLE url_cache'
-        else:
-            sql = 'DELETE FROM url_cache'
-        cur = db.cursor()
-        cur.execute(sql)
-        db.commit()
-        db.close()  
+        dlg = xbmcgui.Dialog()
+        ln1 = 'Are you sure you want to '
+        ln2 = 'delete the url cache?'
+        ln3 = 'This will slow things down until rebuilt'
+        yes = 'Keep'
+        no = 'Delete'
+        if dlg.yesno('Flush web cache', ln1, ln2, ln3, yes, no):
+            db_connection.flush_cache()
 
-
-def upgrade_db():
-    _1CH.log('Upgrading db...')
-    for table in ('subscriptions', 'favorites'):
-        sql = "UPDATE %s SET url = replace(url, 'http://www.1channel.ch', '')" % table
-        db = connect_db()
-        cur = db.cursor()
-        cur.execute(sql)
-        db.commit()
-        db.close()        
-        
 class TextBox:
     # constants
     WINDOW = 10147
@@ -250,54 +190,8 @@ def website_is_integrated():
     passwd = _1CH.get_setting('passwd') is not None
     return enabled and user and passwd
 
-
+#TODO: Add methods to db_utils to do this for you
 def migrate_to_mysql():
-    try:
-        from sqlite3 import dbapi2 as sqlite
-        _1CH.log('Loading sqlite3 for migration')
-    except:
-        from pysqlite2 import dbapi2 as sqlite
-        _1CH.log('pysqlite2 for migration')
-
-    DB_NAME = _1CH.get_setting('db_name')
-    DB_USER = _1CH.get_setting('db_user')
-    DB_PASS = _1CH.get_setting('db_pass')
-    DB_ADDR = _1CH.get_setting('db_address')
-
-    DB_DIR = os.path.join(xbmc.translatePath("special://database"), 'onechannelcache.db')
-    sqlite_db = sqlite.connect(DB_DIR)
-    mysql_db = orm.connect(database=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_ADDR, buffered=True)
-    table_count = 1
-    record_count = 1
-    all_tables = ['favorites', 'subscriptions', 'bookmarks']
-    prog_ln1 = 'Migrating table %s of %s' % (table_count, 3)
-    progress = xbmcgui.DialogProgress()
-    progress.create('DB Migration', prog_ln1)
-    while not progress.iscanceled() and table_count < 3:
-        for table in all_tables:
-            mig_prog = int((table_count * 100) / 3)
-            prog_ln1 = 'Migrating table %s of %s' % (table_count, 3)
-            progress.update(mig_prog, prog_ln1)
-            record_sql = 'SELECT * FROM %s' % table
-            print record_sql
-            cur = mysql_db.cursor()
-            all_records = sqlite_db.execute(record_sql).fetchall()
-            for record in all_records:
-                prog_ln1 = 'Migrating table %s of %s' % (table_count, 3)
-                prog_ln2 = 'Record %s of %s' % (record_count, len(all_records))
-                progress.update(mig_prog, prog_ln1, prog_ln2)
-                args = ','.join('?' * len(record))
-                args = args.replace('?', '%s')
-                insert_sql = 'REPLACE INTO %s VALUES(%s)' % (table, args)
-                print insert_sql
-                cur.execute(insert_sql, record)
-                record_count += 1
-            table_count += 1
-            record_count = 1
-            mysql_db.commit()
-    sqlite_db.close()
-    mysql_db.close()
-    progress.close()
     dlg = xbmcgui.Dialog()
     ln1 = 'Do you want to permanantly delete'
     ln2 = 'the old database?'
@@ -305,9 +199,6 @@ def migrate_to_mysql():
     yes = 'Keep'
     no = 'Delete'
     ret = dlg.yesno('Migration Complete', ln1, ln2, ln3, yes, no)
-    if ret:
-        os.remove(DB_DIR)
-
 
 def rank_host(source):
     host = source['host']
@@ -425,53 +316,10 @@ def format_eta(seconds):
         # return retval
         # return wrapper
 
-# return true if bookmark exists
-def bookmark_exists(url):
-    return get_bookmark(url) != None
-
-# return the bookmark for the requested url or 0 if not found
-def get_bookmark(url):
-    if not url: return None
-    db = connect_db()
-    cur = db.cursor()
-    sql="SELECT resumepoint FROM new_bkmark where url=?"
-    if DB=='mysql':
-        sql = sql.replace('?', '%s')
-    
-    cur.execute(sql, (url,))
-    bookmark = cur.fetchone()
-    db.close()
-    if bookmark:
-        return bookmark[0]
-    else:
-        return None
-
 # returns true if user chooses to resume, else false
 def get_resume_choice(url):
-    question = 'Resume from %s' % (format_time(get_bookmark(url)))
+    question = 'Resume from %s' % (format_time(db_connection.get_bookmark(url)))
     return xbmcgui.Dialog().yesno('Resume?', question, None, None, 'Start from beginning', 'Resume')
-
-def set_bookmark(url,offset):
-    if not url: return
-    sql = "REPLACE INTO new_bkmark (url, resumepoint) VALUES(?,?)"
-    if DB=='mysql':
-        sql = sql.replace('?', '%s')
-
-    db = connect_db()
-    db.execute(sql,(url,offset))
-    db.commit()
-    db.close()
-    
-def clear_bookmark(url):
-    if not url: return
-    sql = "DELETE FROM new_bkmark WHERE url=?"
-    if DB=='mysql':
-        sql = sql.replace('?', '%s')
-
-    db = connect_db()
-    db.execute(sql,(url,))
-    db.commit()
-    db.close()
 
 def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)

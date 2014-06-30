@@ -22,6 +22,9 @@ import xbmc
 import xbmcgui
 import xbmcaddon
 import utils
+from db_utils import DB_Connection
+
+db_connection = DB_Connection()
 
 hours_list = [2, 5, 10, 15, 24]
 
@@ -125,10 +128,10 @@ class Service(xbmc.Player):
                         xbmc.log('PrimeWire: Marking movie .strm as watched: %s' %result)
                 video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
                 ChangeWatched(self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
-                utils.clear_bookmark(self.primewire_url)
+                db_connection.clear_bookmark(self.primewire_url)
             elif playedTime>0:
                 xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark on %s to %s seconds' % (self.primewire_url,playedTime))
-                utils.set_bookmark(self.primewire_url,playedTime)
+                db_connection.set_bookmark(self.primewire_url,playedTime)
         self.reset()
 
     def onPlayBackEnded(self):
