@@ -31,6 +31,7 @@
 	<string id="30804">Movie Folder:</string>
 	<string id="30805">Enable automatic subscription updates</string>
 	<string id="30806">       Subscription update interval</string>
+	<string id="30815">       Run on start up</string>
 	<string id="30807">       Update library afterward?</string>
 	<string id="30808">       Clean Up subscriptions for ended shows</string>
 	<string id="30809">       During Playback?</string>
@@ -39,7 +40,7 @@
  	<string id="30812">       Run on start up</string>
 	<string id="30813">Update Now</string>
  	<string id="30814">Category</string>
-	
+ 	
 	<string id="30906">Use dialogs for source selection</string>
     <string id="30905">Auto-play</string>
 	<string id="30900">Enable sorting of sources</string>

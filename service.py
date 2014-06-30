@@ -137,14 +137,20 @@ class Service(xbmc.Player):
 monitor = Service()
 
 if ADDON.getSetting('auto-update-movies-startup') == 'true' and not xbmc.abortRequested:
-    xbmc.log('PrimeWire: Updating on start')
+    xbmc.log('PrimeWire: Starting...Updating Movie Categories')
     now = datetime.datetime.now()
     xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=MovieAutoUpdate)')
     ADDON.setSetting('auto-update-movies-last-run', now.strftime("%Y-%m-%d %H:%M:%S.%f"))
 
+if ADDON.getSetting('during-startup') == 'true' and not xbmc.abortRequested:
+    xbmc.log('PrimeWire: Starting...Updating Subscriptions')
+    now = datetime.datetime.now()
+    xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=update_subscriptions)')
+    ADDON.setSetting('last_run', now.strftime("%Y-%m-%d %H:%M:%S.%f"))
+
 while not xbmc.abortRequested:
+    now = datetime.datetime.now()
     if ADDON.getSetting('auto-update-subscriptions') == 'true':
-        now = datetime.datetime.now()
         last_run = ADDON.getSetting('last_run')
         hours = hours_list[int(ADDON.getSetting('subscription-interval'))]
 
@@ -167,7 +173,6 @@ while not xbmc.abortRequested:
                 xbmc.log('PrimeWire: Service: Scanning... Busy... Postponing subscription update')
 
     if ADDON.getSetting('auto-update-movies') == 'true':
-        now = datetime.datetime.now()
         last_run = ADDON.getSetting('auto-update-movies-last-run')
         last_run = datetime.datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S.%f")
         elapsed = now - last_run
