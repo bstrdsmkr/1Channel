@@ -174,20 +174,6 @@ class DB_Connection():
         season_html=self.__execute(sql, (season_num,))[0][0]
         return season_html
 
-    def __execute(self, sql, params=None):
-        if params is None:
-            params=[]
-            
-        rows=None
-        sql=self.__format(sql)
-        cur = self.db.cursor()
-        cur.execute(sql, params)
-        if sql[:6].upper() == 'SELECT':
-            rows=cur.fetchall()
-        cur.close()
-        self.db.commit()
-        return rows
-        
     def execute_sql(self, sql):
         self.db.execute(sql)
         self.db.commit()
@@ -220,6 +206,20 @@ class DB_Connection():
         self.__do_db_fixes()
         sql = 'REPLACE INTO db_info (setting, value) VALUES(?,?)'
         self.__execute(sql, ('version', _1CH.get_version()))
+
+    def __execute(self, sql, params=None):
+        if params is None:
+            params=[]
+            
+        rows=None
+        sql=self.__format(sql)
+        cur = self.db.cursor()
+        cur.execute(sql, params)
+        if sql[:6].upper() == 'SELECT':
+            rows=cur.fetchall()
+        cur.close()
+        self.db.commit()
+        return rows
 
     # generic cleanup method to do whatever fixes might be required in this release
     def __do_db_fixes(self):
