@@ -92,7 +92,7 @@ def save_favorite(fav_type, name, url, img, year):
             xbmc.executebuiltin(builtin % ICON_PATH)
 
 def delete_favorite(url):
-    _1CH.log('Deleting Fav: %s, %s, %s' % (url))
+    _1CH.log('Deleting Favorite: %s' % (url))
     
     if utils.website_is_integrated():
         pw_scraper.delete_favorite(url)
@@ -743,6 +743,7 @@ def browse_favorites(section):
 def browse_favorites_website(section):
     if not section: section='movies'
     local_favs=db_connection.get_favorites_count()
+    print 'count: %s' % (local_favs)
     
     if local_favs:
         liz = xbmcgui.ListItem(label='Upload Local Favorites')
