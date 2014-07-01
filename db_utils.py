@@ -144,7 +144,7 @@ class DB_Connection():
     def cache_url(self,url,body):
         now = time.time()
         sql = 'REPLACE INTO url_cache (url,response,timestamp) VALUES(?, ?, ?)'
-        self.__executel(sql, (url, body, now))
+        self.__execute(sql, (url, body, now))
     
     def get_cached_url(self, url, cache_limit=8):
         html=''
@@ -152,14 +152,12 @@ class DB_Connection():
         limit = 60 * 60 * cache_limit
         sql = 'SELECT * FROM url_cache WHERE url = ?'
         rows=self.__execute(sql, (url,))
-        if rows:
-            cached=rows[0]
             
-        if cached:
-            created = float(cached[2])
+        if rows:
+            created = float(rows[0][2])
             age = now - created
             if age < limit:
-                html=cached[1]
+                html=rows[0][1]
         return html
     
     def cache_season(self, season_num,season_html):
@@ -175,8 +173,7 @@ class DB_Connection():
         return season_html
 
     def execute_sql(self, sql):
-        self.db.execute(sql)
-        self.db.commit()
+        self.__execute(sql)
 
     # intended to be a common method for creating a db from scratch
     def init_database(self):
