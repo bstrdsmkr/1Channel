@@ -21,6 +21,7 @@ import time
 import xbmc
 import xbmcvfs
 from addon.common.addon import Addon
+import utils
 
 def enum(**enums):
     return type('Enum', (), enums)
@@ -204,6 +205,96 @@ class DB_Connection():
         sql = 'REPLACE INTO db_info (setting, value) VALUES(?,?)'
         self.__execute(sql, ('version', _1CH.get_version()))
 
+    def repair_meta_images(self):
+        from metahandler import metahandlers
+        from metahandler import metacontainers
+        import xbmcgui
+        PREPARE_ZIP = False
+        __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
+
+        cont = metacontainers.MetaContainer()
+        if self.db_type == DB_TYPES.MYSQL:
+            db = db_lib.connect(database=self.dbname, user=self.username, password=self.password, host=self.address, buffered=True)
+        else:
+            db = db_lib.connect(cont.videocache)
+        dbcur = db.cursor()
+        dlg = xbmcgui.DialogProgress()
+        dlg.create('Repairing Images', '', '', '')
+        for video_type in ('tvshow', 'movie'):
+            total = 'SELECT count(*) from %s_meta WHERE ' % video_type
+            total += 'imgs_prepacked = "true"'
+            total = dbcur.execute(total).fetchone()[0]
+            statement = 'SELECT title,cover_url,backdrop_url'
+            if video_type == 'tvshow': statement += ',banner_url'
+            statement += ' FROM %s_meta WHERE imgs_prepacked = "true"' % video_type
+            complete = 1.0
+            start_time = time.time()
+            already_existing = 0
+     
+            for row in dbcur.execute(statement):
+                title = row[0]
+                cover = row[1]
+                backdrop = row[2]
+                if video_type == 'tvshow':
+                    banner = row[3]
+                else:
+                    banner = False
+                percent = int((complete * 100) / total)
+                entries_per_sec = (complete - already_existing)
+                entries_per_sec /= max(float((time.time() - start_time)), 1)
+                total_est_time = total / max(entries_per_sec, 1)
+                eta = total_est_time - (time.time() - start_time)
+     
+                eta = utils.format_eta(eta)
+                dlg.update(percent, eta + title, '')
+                if cover:
+                    dlg.update(percent, eta + title, cover)
+                    img_name = __metaget__._picname(cover)
+                    img_path = os.path.join(__metaget__.mvcovers, img_name[0].lower())
+                    file_path = os.path.join(img_path, img_name)
+                    if not os.path.isfile(file_path):
+                        retries = 4
+                        while retries:
+                            try:
+                                __metaget__._downloadimages(cover, img_path, img_name)
+                                break
+                            except:
+                                retries -= 1
+                    else:
+                        already_existing -= 1
+                if backdrop:
+                    dlg.update(percent, eta + title, backdrop)
+                    img_name = __metaget__._picname(backdrop)
+                    img_path = os.path.join(__metaget__.mvbackdrops, img_name[0].lower())
+                    file_path = os.path.join(img_path, img_name)
+                    if not os.path.isfile(file_path):
+                        retries = 4
+                        while retries:
+                            try:
+                                __metaget__._downloadimages(backdrop, img_path, img_name)
+                                break
+                            except:
+                                retries -= 1
+                    else:
+                        already_existing -= 1
+                if banner:
+                    dlg.update(percent, eta + title, banner)
+                    img_name = __metaget__._picname(banner)
+                    img_path = os.path.join(__metaget__.tvbanners, img_name[0].lower())
+                    file_path = os.path.join(img_path, img_name)
+                    if not os.path.isfile(file_path):
+                        retries = 4
+                        while retries:
+                            try:
+                                __metaget__._downloadimages(banner, img_path, img_name)
+                                break
+                            except:
+                                retries -= 1
+                    else:
+                        already_existing -= 1
+                if dlg.iscanceled(): return False
+                complete += 1
+        
     def __execute(self, sql, params=None):
         if params is None:
             params=[]
