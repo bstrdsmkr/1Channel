@@ -225,6 +225,7 @@ class DB_Connection():
             cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
             cur.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
             cur.execute('CREATE TABLE IF NOT EXISTS new_bkmark (url VARCHAR(255) PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')            
+            cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)')
         else:
             self.__create_sqlite_db()
             cur.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
@@ -236,6 +237,8 @@ class DB_Connection():
             cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
             cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
             cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
+            cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)')
+            
         
         self.__do_db_fixes()
         sql = self.__format('REPLACE INTO db_info (setting, value) VALUES(?,?)')

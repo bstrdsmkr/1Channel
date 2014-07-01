@@ -814,7 +814,7 @@ def add_favs_to_library(section):
         favs=db_connection.get_all_favorites(section)
         
         for fav in favs:
-            title, url, year = fav
+            video_type, title, url, year = fav
             add_to_library(section_params['video_type'], url, title, '', year, '')
         
     if section=='tv':
