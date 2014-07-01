@@ -34,8 +34,6 @@ import xbmcplugin
 from addon.common.addon import Addon
 try: from metahandler import metahandlers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
-try: from metahandler import metacontainers
-except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
 import utils
 from pw_scraper import PW_Scraper
 from db_utils import DB_Connection
@@ -732,7 +730,7 @@ def browse_favorites(section):
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
     for row in favs:
-        type, title,favurl,year = row
+        _, title,favurl,year = row
         
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': title, 'url': favurl, 'year': year})
         menu_items = [('Remove from Favorites', runstring)]
@@ -814,7 +812,7 @@ def add_favs_to_library(section):
         favs=db_connection.get_favorites(section)
         
         for fav in favs:
-            video_type, title, url, year = fav
+            _, title, url, year = fav
             add_to_library(section_params['video_type'], url, title, '', year, '')
         
     if section=='tv':
@@ -841,7 +839,7 @@ def create_meta(video_type, title, year, thumb):
 
             else:  # movie
                 meta = __metaget__.get_meta(video_type, title, year=year)
-                alt_id = meta['tmdb_id']
+                _ = meta['tmdb_id']
 
             if video_type == 'tvshow' and not USE_POSTERS:
                 meta['cover_url'] = meta['banner_url']
