@@ -95,7 +95,7 @@ class DB_Connection():
         self.db.execute(sql, (url,))
         self.db.commit()
 
-    def get_all_favorites(self, section):
+    def get_favorites(self, section):
         sql = self.__format('SELECT type, name, url, year FROM favorites')
         cur = self.db.cursor()
         if section:
@@ -246,7 +246,7 @@ class DB_Connection():
         self.db.commit()
         cur.close()
 
-    # generic cleanup method to do whatever fixes might be required in this relase
+    # generic cleanup method to do whatever fixes might be required in this release
     def __do_db_fixes(self):
         cur=self.db.cursor()
         fixes=[]

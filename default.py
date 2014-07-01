@@ -718,7 +718,7 @@ def get_section_params(section):
 
 def browse_favorites(section):
     if not section: section='movie'
-    favs=db_connection.get_all_favorites(section)
+    favs=db_connection.get_favorites(section)
     
     section_params = get_section_params(section)
     if section=='tv':
@@ -743,7 +743,6 @@ def browse_favorites(section):
 def browse_favorites_website(section):
     if not section: section='movies'
     local_favs=db_connection.get_favorites_count()
-    print 'count: %s' % (local_favs)
     
     if local_favs:
         liz = xbmcgui.ListItem(label='Upload Local Favorites')
@@ -758,7 +757,6 @@ def browse_favorites_website(section):
     liz = xbmcgui.ListItem(label=label)
     liz_url = _1CH.build_plugin_url({'mode': 'fav2Library', 'section': section})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
-        
 
     section_params = get_section_params(section)
     
@@ -774,7 +772,7 @@ def migrate_favs_to_web():
     ln1 = 'Uploading your favorites to www.primewire.ag...'
     progress.create('Uploading Favorites', ln1)
     successes = []
-    all_favs= db_connection.get_all_favorites()
+    all_favs= db_connection.get_favorites()
     fav_len = len(all_favs)
     count=0
     for fav in all_favs:
@@ -811,7 +809,7 @@ def add_favs_to_library(section):
         for fav in pw_scraper.get_favorities(section):
             add_to_library(section_params['video_type'], fav['url'], fav['title'], fav['img'], fav['year'], '')
     else:
-        favs=db_connection.get_all_favorites(section)
+        favs=db_connection.get_favorites(section)
         
         for fav in favs:
             video_type, title, url, year = fav
