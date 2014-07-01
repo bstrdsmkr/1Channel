@@ -61,21 +61,15 @@ class DB_Connection():
     
     def flush_cache(self):
         sql = 'DELETE FROM url_cache'
-        cur = self.db.cursor()
-        cur.execute(sql)
-        self.db.commit()
-        cur.close()
+        self.__execute(sql)
 
     # return the bookmark for the requested url or None if not found
     def get_bookmark(self,url):
         if not url: return None
-        cur = self.db.cursor()
-        sql=self.__format('SELECT resumepoint FROM new_bkmark where url=?')
-        cur.execute(sql, (url,))
-        bookmark = cur.fetchone()
-        cur.close()
+        sql='SELECT resumepoint FROM new_bkmark where url=?'
+        bookmark = self.__execute(sql, (url,))
         if bookmark:
-            return bookmark[0]
+            return bookmark[0][0]
         else:
             return None
 
@@ -85,48 +79,38 @@ class DB_Connection():
     
     def set_bookmark(self, url,offset):
         if not url: return
-        sql = self.__format('REPLACE INTO new_bkmark (url, resumepoint) VALUES(?,?)')
-        self.db.execute(sql, (url,offset))
-        self.db.commit()
+        sql = 'REPLACE INTO new_bkmark (url, resumepoint) VALUES(?,?)'
+        self.__execute(sql, (url,offset))
         
     def clear_bookmark(self, url):
         if not url: return
-        sql = self.__format('DELETE FROM new_bkmark WHERE url=?')
-        self.db.execute(sql, (url,))
-        self.db.commit()
+        sql = 'DELETE FROM new_bkmark WHERE url=?'
+        self.__execute(sql, (url,))
 
     def get_favorites(self, section):
-        sql = self.__format('SELECT type, name, url, year FROM favorites')
-        cur = self.db.cursor()
+        sql = 'SELECT type, name, url, year FROM favorites'
         if section:
             sql = sql + self.__format(' WHERE type = ? ORDER BY NAME')
-            cur.execute(sql, (section,))
+            favs=self.__execute(sql, (section,))
         else:
-            cur.execute(sql)
-            
-        favs = cur.fetchall()
-        cur.close()
+            favs=self.__execute(sql)
         return favs
     
     def get_favorites_count(self, section=None):
-        sql = self.__format('SELECT count(*) FROM favorites')
-        cur = self.db.cursor()
+        sql = 'SELECT count(*) FROM favorites'
         if section:
             sql = sql + self.__format(' WHERE type = ?')
-            count=cur.execute(sql, (section,)).fetchall()
+            rows=self.__execute(sql, (section,))
         else:
-            count=cur.execute(sql).fetchall()
-        cur.close()
-        return count[0]
+            rows=self.__execute(sql)
+
+        return rows[0][0]
     
     def save_favorite(self, fav_type, name, url, year):
-        sql = self.__format('INSERT INTO favorites (type, name, url, year) VALUES (?, ?, ?, ?)')
-        cur = self.db.cursor()
+        sql = 'INSERT INTO favorites (type, name, url, year) VALUES (?, ?, ?, ?)'
         try:
             title = urllib.unquote_plus(unicode(name, 'latin1'))
-            cur.execute(sql, (fav_type, title, url, year))
-            self.db.commit()
-            cur.close()
+            self.__execute(sql, (fav_type, title, url, year))
         except db_lib.IntegrityError:
             raise
         
@@ -134,82 +118,76 @@ class DB_Connection():
     def delete_favorites(self, urls):
         url_string=', '.join('?' for _ in urls)
         sql = self.__format('DELETE FROM favorites WHERE url in ('+url_string+')')
-        cur = self.db.cursor()
-        cur.execute(sql, urls)
-        self.db.commit()
-        cur.close()
+        self.__execute(sql, urls)
         
     def delete_favorite(self, url):
         self.delete_favorites([url])
 
-    def get_all_subscriptions(self, day=None):
-        sql=self.__format('SELECT url, title, img, year, imdbnum FROM subscriptions')
-        cur = self.db.cursor()
+    def get_subscriptions(self, day=None):
+        sql = 'SELECT url, title, img, year, imdbnum FROM subscriptions'
+        params = []
         if day:
-            sql += self.__format(' WHERE day = ?')
-            cur.execute(sql, (day, ))
-        else:
-            cur.execute(sql)
-        rows=cur.fetchall()
-        cur.close()
+            sql += ' WHERE day = ?'
+            params = [day]
+            
+        rows=self.__execute(sql, params)
         return rows
     
     def add_subscription(self, url, title, img, year, imdbnum, day):
-        sql = self.__format('INSERT INTO subscriptions (url, title, img, year, imdbnum, day) VALUES (?, ?, ?, ?, ?, ?)')
-        cur = self.db.cursor()
-        cur.execute(sql, (url, title, img, year, imdbnum, day))
-        self.db.commit()
-        cur.close()
+        sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum, day) VALUES (?, ?, ?, ?, ?, ?)'
+        self.__execute(sql, (url, title, img, year, imdbnum, day))
 
     def delete_subscription(self, url):
-        sql = self.__format('DELETE FROM subscriptions WHERE url=?')
-        cur = self.db.cursor()
-        cur.execute(sql, (url,))
-        self.db.commit()
-        cur.close()
+        sql = 'DELETE FROM subscriptions WHERE url=?'
+        self.__execute(sql, (url,))
 
     def cache_url(self,url,body):
         now = time.time()
-        cur = self.db.cursor()
-        sql = self.__format('REPLACE INTO url_cache (url,response,timestamp) VALUES(?, ?, ?)')
-        cur.execute(sql, (url, body, now))
-        self.db.commit()
-        cur.close()
+        sql = 'REPLACE INTO url_cache (url,response,timestamp) VALUES(?, ?, ?)'
+        self.__executel(sql, (url, body, now))
     
     def get_cached_url(self, url, cache_limit=8):
         html=''
-        cur = self.db.cursor()
         now = time.time()
         limit = 60 * 60 * cache_limit
-        sql = self.__format('SELECT * FROM url_cache WHERE url = ?')
-        cur.execute( sql, (url,))
-        cached = cur.fetchone()
+        sql = 'SELECT * FROM url_cache WHERE url = ?'
+        rows=self.__execute(sql, (url,))
+        if rows:
+            cached=rows[0]
+            
         if cached:
             created = float(cached[2])
             age = now - created
             if age < limit:
                 html=cached[1]
-        cur.close()
         return html
     
     def cache_season(self, season_num,season_html):
-        sql = self.__format('REPLACE INTO seasons(season,contents) VALUES(?, ?)')        
+        sql = 'REPLACE INTO seasons(season,contents) VALUES(?, ?)'        
 
         if not isinstance(season_html, unicode):
             season_html = unicode(season_html, 'windows-1252')
-        cur = self.db.cursor()
-        cur.execute(sql, (season_num, season_html))
-        cur.close()
-        self.db.commit()
+        self.__execute(sql, (season_num, season_html))
     
     def get_cached_season(self, season_num):
-        sql = self.__format('SELECT contents FROM seasons WHERE season=?')
-        cur = self.db.cursor()
-        cur.execute(sql, (season_num,))
-        season_html = cur.fetchone()[0]
-        cur.close()
+        sql = 'SELECT contents FROM seasons WHERE season=?'
+        season_html=self.__execute(sql, (season_num,))[0][0]
         return season_html
 
+    def __execute(self, sql, params=None):
+        if params is None:
+            params=[]
+            
+        rows=None
+        sql=self.__format(sql)
+        cur = self.db.cursor()
+        cur.execute(sql, params)
+        if sql[:6].upper() == 'SELECT':
+            rows=cur.fetchall()
+        cur.close()
+        self.db.commit()
+        return rows
+        
     def execute_sql(self, sql):
         self.db.execute(sql)
         self.db.commit()
@@ -217,38 +195,34 @@ class DB_Connection():
     # intended to be a common method for creating a db from scratch
     def init_database(self):
         _1CH.log('Building PrimeWire Database')
-        cur = self.db.cursor()
         if self.db_type == DB_TYPES.MYSQL:
-            cur.execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
-            cur.execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
-            cur.execute('CREATE TABLE IF NOT EXISTS subscriptions (url VARCHAR(255) UNIQUE, title TEXT, img TEXT, year TEXT, imdbnum TEXT, day TEXT)')
-            cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
-            cur.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
-            cur.execute('CREATE TABLE IF NOT EXISTS new_bkmark (url VARCHAR(255) PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')            
-            cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)')
+            self.__execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
+            self.__execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
+            self.__execute('CREATE TABLE IF NOT EXISTS subscriptions (url VARCHAR(255) UNIQUE, title TEXT, img TEXT, year TEXT, imdbnum TEXT, day TEXT)')
+            self.__execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
+            self.__execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
+            self.__execute('CREATE TABLE IF NOT EXISTS new_bkmark (url VARCHAR(255) PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')            
+            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)')
         else:
             self.__create_sqlite_db()
-            cur.execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
-            cur.execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
-            cur.execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum, day)')
-            cur.execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
-            cur.execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
-            cur.execute('CREATE TABLE IF NOT EXISTS new_bkmark (url TEXT PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')
-            cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
-            cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
-            cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
-            cur.execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)')
+            self.__execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
+            self.__execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
+            self.__execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum, day)')
+            self.__execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
+            self.__execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
+            self.__execute('CREATE TABLE IF NOT EXISTS new_bkmark (url TEXT PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')
+            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
+            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
+            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
+            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)')
             
         
         self.__do_db_fixes()
-        sql = self.__format('REPLACE INTO db_info (setting, value) VALUES(?,?)')
-        cur.execute(sql, ('version', _1CH.get_version()))
-        self.db.commit()
-        cur.close()
+        sql = 'REPLACE INTO db_info (setting, value) VALUES(?,?)'
+        self.__execute(sql, ('version', _1CH.get_version()))
 
     # generic cleanup method to do whatever fixes might be required in this release
     def __do_db_fixes(self):
-        cur=self.db.cursor()
         fixes=[]
         if self.db_type==DB_TYPES.MYSQL:
             fixes.append('ALTER TABLE url_cache MODIFY COLUMN response MEDIUMBLOB')
@@ -264,11 +238,8 @@ class DB_Connection():
         
         # try fixes, ignore errors
         for fix in fixes:
-            try: cur.execute(fix)
+            try: self.__execute(fix)
             except: pass
-
-        self.db.commit()
-        cur.close()
     
     def __create_sqlite_db(self):
         if not xbmcvfs.exists(os.path.dirname(self.db_path)): 

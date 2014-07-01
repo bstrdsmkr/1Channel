@@ -700,7 +700,7 @@ def get_section_params(section):
         section_params['nextmode'] = 'TVShowSeasonList'
         section_params['video_type'] = 'tvshow'
         section_params['folder'] = True
-        subscriptions = db_connection.get_all_subscriptions()
+        subscriptions = db_connection.get_subscriptions()
         section_params['subs'] = [row[0] for row in subscriptions]
     elif section=='episode':
         section_params['nextmode'] = 'GetSources'
@@ -743,6 +743,7 @@ def browse_favorites(section):
 def browse_favorites_website(section):
     if not section: section='movies'
     local_favs=db_connection.get_favorites_count()
+    print local_favs
     
     if local_favs:
         liz = xbmcgui.ListItem(label='Upload Local Favorites')
@@ -1274,7 +1275,7 @@ def cancel_subscription(url, title, img, year, imdbnum):
     xbmc.executebuiltin('Container.Refresh')
 
 def update_subscriptions():
-    subs=db_connection.get_all_subscriptions()
+    subs=db_connection.get_subscriptions()
     for sub in subs:
         add_to_library('tvshow', sub[0], sub[1], sub[2], sub[3], sub[4])
     if _1CH.get_setting('library-update') == 'true':
@@ -1283,7 +1284,7 @@ def update_subscriptions():
 
 def clean_up_subscriptions():
     _1CH.log('Cleaning up dead subscriptions')
-    subs=db_connection.get_all_subscriptions()
+    subs=db_connection.get_subscriptions()
     for sub in subs:
         meta = __metaget__.get_meta('tvshow', sub[1], year=sub[3])
         if meta['status'] == 'Ended':
@@ -1314,7 +1315,7 @@ def manage_subscriptions(day=''):
         d='Sunday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
     utils.set_view('tvshows', 'tvshows-view')
 
-    subs=db_connection.get_all_subscriptions(day)
+    subs=db_connection.get_subscriptions(day)
     for sub in subs:
         meta = create_meta('tvshow', sub[1], sub[3], '')
         meta['title'] = utils.format_label_sub(meta)
