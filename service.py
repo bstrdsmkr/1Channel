@@ -31,6 +31,14 @@ hours_list = [2, 5, 10, 15, 24]
 
 ADDON = xbmcaddon.Addon(id='plugin.video.1channel')
 
+# temporary method to migrate from old watched setting to new one
+def mig_watched_setting():
+    new_values=[70, 80, 90]
+    watched=int(ADDON.getSetting('watched-percent'))
+    if 0 <= watched <= 2:
+        print "setting: %s, %s" % (watched, new_values[watched])
+        ADDON.setSetting('watched-percent', str(new_values[watched]))
+
 def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched=''):
     from metahandler import metahandlers
 
@@ -93,16 +101,15 @@ class Service(xbmc.Player):
         if self.tracking:
             DBID = self.meta['DBID'] if 'DBID' in self.meta else None
             playedTime = int(self._lastPos)
-            watched_values = [.7, .8, .9]
-            min_watched_percent = watched_values[int(ADDON.getSetting('watched-percent'))]
-            percent = int((playedTime / self._totalTime) * 100)
+            min_watched_percent = int(ADDON.getSetting('watched-percent'))
+            percent_played = int((playedTime / self._totalTime) * 100)
             pTime = utils.format_time(playedTime)
             tTime = utils.format_time(self._totalTime)
-            xbmc.log('PrimeWire: Service: %s played of %s total = %s%%' % (pTime, tTime, percent))
+            xbmc.log('PrimeWire: Service: Played %s of %s total = %s%%/%s%%' % (pTime, tTime, percent_played, min_watched_percent))
             videotype = 'movie' if self.video_type == 'movie' else 'episode'
             if playedTime == 0 and self._totalTime == 999999:
                 raise RuntimeError('XBMC silently failed to start playback')
-            elif ((playedTime / self._totalTime) > min_watched_percent) and (
+            elif (percent_played >= min_watched_percent) and (
                         self.video_type == 'movie' or (self.meta['season'] and self.meta['episode'])):
                 xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')
                 # meta['DBID'] only gets set for strms in default.py
@@ -139,6 +146,7 @@ class Service(xbmc.Player):
         xbmc.log('PrimeWire: Playback completed')
         self.onPlayBackStopped()
         
+mig_watched_setting() # migrate from old 0, 1, 2 setting to actual value
 monitor = Service()
 
 if ADDON.getSetting('auto-update-movies-startup') == 'true' and not xbmc.abortRequested:
