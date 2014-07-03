@@ -188,7 +188,7 @@ def play_unfiltered_dialog(hosters, title, img, year, imdbnum, video_type, seaso
     else:
         return 
 
-def play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, epsiode, primewire_url, resume):        
+def play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume):        
     for item in hosters:
         #_1CH.log(item)
         hosted_media = urlresolver.HostedMediaFile(url=item['url'])
@@ -213,7 +213,7 @@ def play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, ep
      
     _1CH.end_of_directory()
 
-def play_unfiltered_dir(hosters, title, img, year, imdbnum, video_type, season, epsiode, primewire_url, resume):
+def play_unfiltered_dir(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume):
     for item in hosters:
         #_1CH.log(item)
         label = utils.format_label_source(item)
