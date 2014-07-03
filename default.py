@@ -122,101 +122,145 @@ def get_sources(url, title, img, year, imdbnum, dialog):
         imdbnum=pw_scraper.get_last_imdbnum()
         __metaget__.update_meta('movie', title, imdb_id='',new_imdb_id=imdbnum, year=year)
 
+    _img = xbmc.getInfoImage('ListItem.Thumb')
+    if _img != "":
+        img = _img
+
     hosters=pw_scraper.get_sources(url)
     
-    sources = []
     if not hosters:
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
+
+    # auto play is on
+    if _1CH.get_setting('auto-play')=='true':
+        auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
         
-    if (dialog or (_1CH.get_setting('use-dialogs') == 'true' and _1CH.get_setting('auto-play') == 'false')): 
-        # sometimes you can't get the image from ListItem.Thumb
-        # so why not just you the main image
-        _img = xbmc.getInfoImage('ListItem.Thumb')
-        if _img != "":
-            img = _img
-        
-        for item in hosters:
-            try:
-                label = utils.format_label_source(item)
-                hosted_media = urlresolver.HostedMediaFile(url=item['url'], title=label)
-                sources.append(hosted_media)
-                if item['multi-part']:
-                    partnum = 2
-                    for part in item['parts']:
-                        label = utils.format_label_source_parts(item, partnum)
-                        hosted_media = urlresolver.HostedMediaFile(url=item['parts'][partnum - 2], title=label)
-                        sources.append(hosted_media)
-                        partnum += 1
-            except:
-                _1CH.log('Error while trying to resolve %s' % url)
+    else: # autoplay is off
+        if dialog or _1CH.get_setting('source-win') == 'Dialog': #dialog is needed (playing from strm or dialogs are turned on)
+            if _1CH.get_setting('filter-source') == 'true':
+                play_filtered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
+                
+            else:
+                play_unfiltered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
+                
+        else: # not from a strm (i.e. in the addon) and dialogs are off
+            if _1CH.get_setting('filter-source') == 'true':
+                play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume)
+                
+            else:
+                play_unfiltered_dir(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume)
 
-        source = urlresolver.choose_source(sources)
-        if source:
-            source=source.get_url()
-        else:
-            return
-
-        PlaySource(source, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid, strm=True)        
-
-    else:
+def play_filtered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid):
+    sources=[]
+    for item in hosters:
         try:
-            if _1CH.get_setting('auto-play') == 'false': raise Exception, 'auto-play disabled'
-
+            label = utils.format_label_source(item)
+            hosted_media = urlresolver.HostedMediaFile(url=item['url'], title=label)
+            sources.append(hosted_media)
+            if item['multi-part']:
+                partnum = 2
+                for part in item['parts']:
+                    label = utils.format_label_source_parts(item, partnum)
+                    hosted_media = urlresolver.HostedMediaFile(url=item['parts'][partnum - 2], title=label)
+                    sources.append(hosted_media)
+                    partnum += 1
         except:
-            for item in hosters:
-                _1CH.log(item)
-                label = utils.format_label_source(item)
-                _1CH.add_directory({'mode': 'PlaySource', 'url': item['url'], 'title': title,
+            _1CH.log('Error while trying to resolve %s' % url)
+    
+    source = urlresolver.choose_source(sources)
+    if source:
+        source=source.get_url()
+    else:
+        return
+    
+    PlaySource(source, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid, strm=True)
+
+def play_unfiltered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid):
+    sources=[]
+    for item in hosters:
+        label = utils.format_label_source(item)
+        sources.append(label)
+
+    dialog = xbmcgui.Dialog()       
+    index = dialog.select('Choose your stream', sources)
+    if index > -1:
+        PlaySource(hosters[index]['url'], title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid, strm=True)
+    else:
+        return 
+
+def play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, epsiode, primewire_url, resume):        
+    for item in hosters:
+        #_1CH.log(item)
+        hosted_media = urlresolver.HostedMediaFile(url=item['url'])
+        if hosted_media:
+            label = utils.format_label_source(item)
+            _1CH.add_directory({'mode': 'PlaySource', 'url': item['url'], 'title': title,
+                                'img': img, 'year': year, 'imdbnum': imdbnum,
+                                'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
+                               infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img, fanart=art('fanart.png'))
+            if item['multi-part']:
+                partnum = 2
+                for part in item['parts']:
+                    label = utils.format_label_source_parts(item, partnum)
+                    partnum += 1
+                    _1CH.add_directory({'mode': 'PlaySource', 'url': part, 'title': title,
+                                        'img': img, 'year': year, 'imdbnum': imdbnum,
+                                        'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
+                                       infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img,
+                                       fanart=art('fanart.png'))
+        else:
+            _1CH.log('Skipping unresolvable source: %s' % (item['url']))
+     
+    _1CH.end_of_directory()
+
+def play_unfiltered_dir(hosters, title, img, year, imdbnum, video_type, season, epsiode, primewire_url, resume):
+    for item in hosters:
+        #_1CH.log(item)
+        label = utils.format_label_source(item)
+        _1CH.add_directory({'mode': 'PlaySource', 'url': item['url'], 'title': title,
+                            'img': img, 'year': year, 'imdbnum': imdbnum,
+                            'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
+                           infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img, fanart=art('fanart.png'))
+        if item['multi-part']:
+            partnum = 2
+            for part in item['parts']:
+                label = utils.format_label_source_parts(item, partnum)
+                partnum += 1
+                _1CH.add_directory({'mode': 'PlaySource', 'url': part, 'title': title,
                                     'img': img, 'year': year, 'imdbnum': imdbnum,
                                     'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
-                                   infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img, fanart=art('fanart.png'))
-                if item['multi-part']:
-                    partnum = 2
-                    for part in item['parts']:
-                        label = utils.format_label_source_parts(item, partnum)
-                        partnum += 1
-                        _1CH.add_directory({'mode': 'PlaySource', 'url': part, 'title': title,
-                                            'img': img, 'year': year, 'imdbnum': imdbnum,
-                                            'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
-                                           infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img,
-                                           fanart=art('fanart.png'))
+                                   infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img,
+                                   fanart=art('fanart.png'))
+    
+    _1CH.end_of_directory()
 
-            _1CH.end_of_directory()
-
+def auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid):
+    dlg = xbmcgui.DialogProgress()
+    line1 = 'Trying Source:    '
+    dlg.create('PrimeWire')
+    total = len(hosters)
+    count = 1
+    success = False
+    while not (success or dlg.iscanceled() or xbmc.abortRequested):
+        for source in hosters:
+            if dlg.iscanceled(): return
+            percent = int((count * 100) / total)
+            label = utils.format_label_source(source)
+            dlg.update(percent, '', line1 + label)
+            _1CH.log('Trying Source: %s' % (source['host']))
+            if not PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid): 
+                dlg.update(percent, 'Playback Failed: %s' % (label), line1 + label)
+                _1CH.log('Source Failed: %s' % (source['host']))
+                count += 1
+            else:
+                success = True
+                break  # Playback was successful, break out of the loop
         else:
-            dlg = xbmcgui.DialogProgress()
-            line1 = 'Trying Sources...'
-            dlg.create('PrimeWire', line1)
-            total = len(hosters)
-            count = 1
-            success = False
-            while not (success or dlg.iscanceled() or xbmc.abortRequested):
-                for source in hosters:
-                    if dlg.iscanceled(): return
-                    percent = int((count * 100) / total)
-                    label = utils.format_label_source(source)
-                    dlg.update(percent, line1, label)
-                    try:
-                        if not PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid): 
-                            raise Exception, 'URL Decoding failed'
-                    except Exception, e:  # Playback failed, try the next one
-                        dlg.update(percent, line1, label, str(e))
-                        _1CH.log('%s source failed. Trying next source...' % source['host'])
-                        _1CH.log(str(e))
-                        count += 1
-                    else:
-                        success = True
-                        break  # Playback was successful, break out of the loop
-
-                else:
-                    _1CH.log('Playlist failed')
-                    dlg.update(100, 'Error', 'ALL SOURCES FAILED')
-                    while not dlg.iscanceled() or xbmc.abortRequested:
-                        xbmc.sleep(200)
-
-                dlg.close()
-                return success
-
+            _1CH.log('All sources failed to play')
+            dlg.close()
+            _1CH.show_ok_dialog(['All Sources Failed to Play'], title='PrimeWire')
+            break
+    
 def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid=None, strm=False):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
@@ -705,13 +749,13 @@ def get_section_params(section):
         section_params['nextmode'] = 'GetSources'
         section_params['video_type']='episode'
         utils.set_view('episodes', 'episodes-view')
-        section_params['folder'] = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
+        section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
         section_params['subs'] = []
     else:
         utils.set_view('movies', 'movies-view')
         section_params['nextmode'] = 'GetSources'
         section_params['video_type'] = 'movie'
-        section_params['folder'] = (_1CH.get_setting('use-dialogs') == 'false' and _1CH.get_setting('auto-play') == 'false')
+        section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
         section_params['subs'] = []
     return section_params
 
@@ -726,6 +770,8 @@ def browse_favorites(section):
         label='Add Favorite Movies to Library'
         
     liz = xbmcgui.ListItem(label=label)
+    liz.setProperty('resumetime',str(0))
+    liz.setProperty('totaltime',str(1))
     liz_url = _1CH.build_plugin_url({'mode': 'fav2Library', 'section': section})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
@@ -736,7 +782,8 @@ def browse_favorites(section):
         menu_items = [('Remove from Favorites', runstring)]
 
         create_item(section_params,title,year,'',favurl,menu_items=menu_items)
-    _1CH.end_of_directory()
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
+
 
 
 def browse_favorites_website(section):
@@ -755,6 +802,8 @@ def browse_favorites_website(section):
         label='Add Favorite Movies to Library'
 
     liz = xbmcgui.ListItem(label=label)
+    liz.setProperty('resumetime',str(0))
+    liz.setProperty('totaltime',str(1))
     liz_url = _1CH.build_plugin_url({'mode': 'fav2Library', 'section': section})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 

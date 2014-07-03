@@ -1,7 +1,7 @@
 <strings>
   
     <!-- Meta Data -->
-    <string id="30600">Enable MetaData (OFF=Faster, but no pretty pictures)</string>
+    <string id="30600">Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)</string>
 	<string id="30601">       MetaData Settings...</string>
 	<string id="30602">       Enable Fanart</string>
 	<string id="30603">       Use posters for TV shows</string>
