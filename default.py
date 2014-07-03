@@ -770,8 +770,6 @@ def browse_favorites(section):
         label='Add Favorite Movies to Library'
         
     liz = xbmcgui.ListItem(label=label)
-    liz.setProperty('resumetime',str(0))
-    liz.setProperty('totaltime',str(1))
     liz_url = _1CH.build_plugin_url({'mode': 'fav2Library', 'section': section})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
@@ -802,8 +800,6 @@ def browse_favorites_website(section):
         label='Add Favorite Movies to Library'
 
     liz = xbmcgui.ListItem(label=label)
-    liz.setProperty('resumetime',str(0))
-    liz.setProperty('totaltime',str(1))
     liz_url = _1CH.build_plugin_url({'mode': 'fav2Library', 'section': section})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
@@ -814,7 +810,7 @@ def browse_favorites_website(section):
         menu_items = [('Delete Favorite', runstring)]
         create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'],menu_items=menu_items)
         
-    _1CH.end_of_directory()
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 def migrate_favs_to_web():
     progress = xbmcgui.DialogProgress()
