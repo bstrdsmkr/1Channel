@@ -1,7 +1,7 @@
 <strings>
   
     <!-- Meta Data -->
-    <string id="30600">Enable MetaData</string>
+    <string id="30600">Enable MetaData (OFF=Faster, but no pretty pictures)</string>
 	<string id="30601">       MetaData Settings...</string>
 	<string id="30602">       Enable Fanart</string>
 	<string id="30603">       Use posters for TV shows</string>
@@ -41,7 +41,7 @@
 	<string id="30813">Update Now</string>
  	<string id="30814">Category</string>
  	
-	<string id="30906">Use dialogs for source selection</string>
+	<string id="30906">Use a dialog for source selection</string>
     <string id="30905">Automatically play sources</string>
 	<string id="30900">Enable sorting of sources</string>
 	<string id="30901">     Host Ranking (coma separated)</string>
