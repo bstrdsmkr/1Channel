@@ -25,6 +25,7 @@ import xbmc
 import xbmcgui
 import sys
 import os
+import math
 from operator import itemgetter
 from addon.common.net import Net
 from addon.common.addon import Addon
@@ -37,6 +38,7 @@ _1CH = Addon('plugin.video.1channel', sys.argv)
 ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 ITEMS_PER_PAGE=24
+FAVS_PER_PAGE=40
 MAX_PAGES=10
 
 class PW_Scraper():
@@ -78,24 +80,48 @@ class PW_Scraper():
             _1CH.log('Delete URL: %s' %(del_url))
             self.__get_url(del_url,login=True)
     
-    def get_favorities(self, section):
+    def get_favorities(self, section, page=None, paginate=False):
         _1CH.log('Getting %s favorite from website' % (section))
-        url = '/profile.php?user=%s&fav&show=%s'
-        url = self.base_url + url % (self.username, section)
+        fav_url = '/profile.php?user=%s&fav&show=%s'
+        if page: fav_url += '&page=%s' %(page)
+        url = self.base_url + fav_url % (self.username, section)
         html=self.__get_url(url)
+        r = re.search('strong>Favorites \(\s+([0-9,]+)\s+\)', html)
+        if r:
+            total = int(r.group(1).replace(',', ''))
+        else:
+            total = 0
+        self.res_pages = int(math.ceil(total/float(FAVS_PER_PAGE)))
+        self.res_total = total
+        return self.__get_fav_gen(html, url, page, paginate)   
+    
+    def __get_fav_gen(self, html, url, page, paginate):
+        if not page: page=1
         pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
         regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
-        fav={}
-        for item in regex.finditer(html):
-            link, img, year, title, delete = item.groups()
-            if not year or len(year) != 4: year = ''
-            fav['url']=link
-            fav['img']=img
-            fav['year']=year
-            fav['title']=title
-            fav['delete']=delete
-            yield fav
-        return
+        while True:
+            fav={}
+            for item in regex.finditer(html):
+                link, img, year, title, delete = item.groups()
+                if not year or len(year) != 4: year = ''
+                fav['url']=link
+                fav['img']=img
+                fav['year']=year
+                fav['title']=title
+                fav['delete']=delete
+                yield fav
+            
+            # if we're not paginating, then keep yielding until we run out of pages or hit the max
+            if not paginate:
+                if html.find('> >> <') == -1 or int(page)>MAX_PAGES:
+                    break
+                
+                page += 1
+                pageurl = '%s&page=%s' % (url, page)
+                html = self.__get_cached_url(pageurl, cache_limit=0)
+            # if we are paginating, just do this page
+            else:
+                break
     
     def get_sources(self, url):
         html = self.__get_cached_url(self.base_url + url, cache_limit=2)
@@ -195,7 +221,7 @@ class PW_Scraper():
             total = int(r.group(1).replace(',', ''))
         else:
             total = 0
-        self.res_pages = total/ITEMS_PER_PAGE
+        self.res_pages = int(math.ceil(total/float(ITEMS_PER_PAGE)))
         self.res_total = total
         return self.__search_gen(html,search_url)
     
@@ -221,7 +247,7 @@ class PW_Scraper():
             pageurl = '%s&page=%s' % (search_url, page)
             html = self.__get_cached_url(pageurl, cache_limit=0)
 
-    def get_filtered_results(self, section, genre, letter, sort, page):
+    def get_filtered_results(self, section, genre, letter, sort, page=None):
         pageurl = self.base_url + '/?'
         if section == 'tv': pageurl += 'tv'
         if genre:  pageurl += '&genre=' + genre
@@ -237,7 +263,7 @@ class PW_Scraper():
             total = int(r.group(1).replace(',', ''))
         else:
             total = 0
-        self.res_pages = total / ITEMS_PER_PAGE
+        self.res_pages = int(math.ceil(total/float(ITEMS_PER_PAGE)))
         return self.__filtered_results_gen(html)
         
     def __filtered_results_gen(self, html):

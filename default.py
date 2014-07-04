@@ -782,12 +782,9 @@ def browse_favorites(section):
         create_item(section_params,title,year,'',favurl,menu_items=menu_items)
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
-
-
-def browse_favorites_website(section):
+def browse_favorites_website(section, page=None):
     if not section: section='movies'
     local_favs=db_connection.get_favorites_count()
-    print local_favs
     
     if local_favs:
         liz = xbmcgui.ListItem(label='Upload Local Favorites')
@@ -805,10 +802,22 @@ def browse_favorites_website(section):
 
     section_params = get_section_params(section)
     
-    for fav in pw_scraper.get_favorities(section):
+    for fav in pw_scraper.get_favorities(section, page, paginate=True):
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': fav['title'], 'url': fav['url'], 'year': fav['year']})
         menu_items = [('Delete Favorite', runstring)]
         create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'],menu_items=menu_items)
+    
+    total_pages=pw_scraper.get_last_res_pages()
+    if not page: page = 1
+    next_page = int(page)+1
+
+    if int(page) < int(total_pages):
+        label = 'Skip to Page...'
+        command = _1CH.build_plugin_url({'mode': 'FavPageSelect', 'section': section, 'pages': total_pages})
+        command = 'RunPlugin(%s)' % command
+        menu_items = [(label, command)]
+        meta = {'title': 'Next Page >>'}
+        _1CH.add_directory({'mode': 'browse_favorites_website', 'section': section, 'page': next_page}, meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
         
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
@@ -851,7 +860,7 @@ def add_favs_to_library(section):
     if not section: section='movie'
     section_params=get_section_params(section)
     if utils.website_is_integrated():
-        for fav in pw_scraper.get_favorities(section):
+        for fav in pw_scraper.get_favorities(section, paginate=False):
             add_to_library(section_params['video_type'], fav['url'], fav['title'], fav['img'], fav['year'], '')
     else:
         favs=db_connection.get_favorites(section)
@@ -1227,6 +1236,20 @@ def update_movie_cat():
 
     return str("featured") # default
 
+def jump_to_page(queries={}):
+    pages = int(_1CH.queries['pages'])
+    dialog = xbmcgui.Dialog()
+    options = []
+    for page in range(pages):
+        label = 'Page %s' % str(page + 1)
+        options.append(label)
+    index = dialog.select('Skip to page', options)
+    if index>-1:
+        queries['page']=index+1
+        url = _1CH.build_plugin_url(queries)
+        builtin = 'Container.Update(%s)' % url
+        xbmc.executebuiltin(builtin)
+
 mode = _1CH.queries.get('mode', None)
 section = _1CH.queries.get('section', '')
 genre = _1CH.queries.get('genre', '')
@@ -1303,7 +1326,7 @@ elif mode == '7000':  # Enables Remote Search
 elif mode == 'browse_favorites':
     browse_favorites(section)
 elif mode == 'browse_favorites_website':
-    browse_favorites_website(section)
+    browse_favorites_website(section, page)
 elif mode == 'SaveFav':
     save_favorite(section, title, url, img, year)
 elif mode == 'DeleteFav':
@@ -1348,19 +1371,9 @@ elif mode == 'subscriptions_day':
     add_subscription(url, title, img, year, imdbnum, day)
     xbmc.executebuiltin('Container.Refresh')
 elif mode == 'PageSelect':
-    pages = int(_1CH.queries['pages'])
-    dialog = xbmcgui.Dialog()
-    options = []
-    for page in range(pages):
-        label = 'Page %s' % str(page + 1)
-        options.append(label)
-    index = dialog.select('Skip to page', options)
-    index += 1
-    queries = {'mode': 'GetFilteredResults', 'section': section, 'genre': genre, 'letter': letter, 'sort': sort,
-               'page': index}
-    url = _1CH.build_plugin_url(queries)
-    builtin = 'Container.Update(%s)' % url
-    xbmc.executebuiltin(builtin)
+    jump_to_page({'mode': 'GetFilteredResults', 'section': section, 'genre': genre, 'letter': letter, 'sort': sort})
+elif mode=='FavPageSelect':
+    jump_to_page({'mode': 'browse_favorites_website', 'section': section})
 elif mode == 'refresh_meta':
     utils.refresh_meta(video_type, title, imdbnum, alt_id, year)
 elif mode == 'flush_cache':
