@@ -1,3 +1,25 @@
+[B]Version 2.4.0[/B]
+[B]Major[/B]
+Replaced resume code with code that works better and more consistently.
+Unified all website code in a single class for better maintainability
+Unified all DB code into a single class for better maintainability
+Added skin integration to allow skins to show 1CH movie categories on the home screen
+Replaced multiple advanced search keyboards with one search dialog with error checking
+Add function to add all local or web favorites to library with one click
+Add subscription update on start up option
+Reorganized settings dialog to be more logically grouped
+Add performance options including cached directory listings and unfiltered source dirs/dialogs
+Compressed the pngs in all the themes to reduce the size of the addon by over 50%.
+
+[B]Minor[/B]
+Fixed movies not playing from certain results sets (i.e. the ".." bug)
+Make source list only process once using auto-play
+Fixed occasional bug where video totalTime = 0
+Several fixes to uploading favorites to website
+Fixed "unplayable" error on update subscriptions
+Fixed genre and a-z icons not showing up
+Fixed website favorites to paginate to support lists larger than 40.
+
 [B]Version 2.3.0[/B]
 - Corrected bug in SQLite bookmarks table, improper index was being created
 - Fix duplicate bookmarks/resumes
