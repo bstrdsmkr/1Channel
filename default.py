@@ -530,7 +530,7 @@ def BrowseAlphabetMenu(section=None):
                        {'title': '#123'}, img=art('123.png'), fanart=art('fanart.png'))
     for character in AZ_DIRECTORIES:
         _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'alphabet', 'letter': character},
-                           {'title': character}, img=art(character + '.png'), fanart=art('fanart.png'))
+                           {'title': character}, img=art(character.lower() + '.png'), fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
@@ -538,7 +538,7 @@ def BrowseByGenreMenu(section=None, letter=None): #2000
     print 'Browse by genres screen'
     for genre in GENRES:
         _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': '', 'genre': genre},
-                           {'title': genre})
+                           {'title': genre}, img=art(genre.lower() + '.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
