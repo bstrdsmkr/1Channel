@@ -39,12 +39,6 @@ def mig_watched_setting():
         print "setting: %s, %s" % (watched, new_values[watched])
         ADDON.setSetting('watched-percent', str(new_values[watched]))
 
-def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched=''):
-    from metahandler import metahandlers
-
-    metaget = metahandlers.MetaData(False)
-    metaget.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
-
 class Service(xbmc.Player):
     def __init__(self, *args, **kwargs):
         xbmc.Player.__init__(self, *args, **kwargs)
@@ -99,7 +93,6 @@ class Service(xbmc.Player):
         xbmc.log('PrimeWire: Playback Stopped')
         #Is the item from our addon?
         if self.tracking:
-            DBID = self.meta['DBID'] if 'DBID' in self.meta else None
             playedTime = int(self._lastPos)
             min_watched_percent = int(ADDON.getSetting('watched-percent'))
             percent_played = int((playedTime / self._totalTime) * 100)
@@ -111,31 +104,11 @@ class Service(xbmc.Player):
                 raise RuntimeError('XBMC silently failed to start playback')
             elif (percent_played >= min_watched_percent) and (
                         self.video_type == 'movie' or (self.meta['season'] and self.meta['episode'])):
-                xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')
-                # meta['DBID'] only gets set for strms in default.py
-                if DBID:
-                    if videotype == 'episode':
-                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid": %s, "properties": ["playcount"]}, "id": 1}'
-                        cmd = cmd %(DBID)
-                        result = json.loads(xbmc.executeJSONRPC(cmd))
-                        print result
-                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "playcount": %s}, "id": 1}'
-                        playcount = int(result['result']['episodedetails']['playcount']) + 1
-                        cmd = cmd %(DBID, playcount)
-                        result = xbmc.executeJSONRPC(cmd)
-                        xbmc.log('PrimeWire: Marking episode .strm as watched: %s' %result)
-                    if videotype == 'movie':
-                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid": %s, "properties": ["playcount"]}, "id": 1}'
-                        cmd = cmd %(DBID)
-                        result = json.loads(xbmc.executeJSONRPC(cmd))
-                        print result
-                        cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "playcount": %s}, "id": 1}'
-                        playcount = int(result['result']['moviedetails']['playcount']) + 1
-                        cmd = cmd %(DBID, playcount)
-                        result = xbmc.executeJSONRPC(cmd)
-                        xbmc.log('PrimeWire: Marking movie .strm as watched: %s' %result)
-                video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
-                ChangeWatched(self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
+                xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')                
+                video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']                
+                dbid = self.meta['DBID'] if 'DBID' in self.meta else ''
+                builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=ChangeWatched&imdbnum=%s&video_type=%s&title=%s&season=%s&episode=%s&year=%s&primewire_url=%s&dbid=%s&watched=%s)' % (self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], self.primewire_url, dbid, 7)
+                xbmc.executebuiltin(builtin)
                 db_connection.clear_bookmark(self.primewire_url)
             elif playedTime>0:
                 xbmc.log('PrimeWire: Service: Threshold not met. Setting bookmark on %s to %s seconds' % (self.primewire_url,playedTime))

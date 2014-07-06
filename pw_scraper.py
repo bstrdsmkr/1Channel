@@ -469,3 +469,37 @@ class PW_Scraper():
                 return 0
     
         return sorted(items, cmp=comparer)
+        
+    def get_watched(self, section):
+        _1CH.log('Getting %s watched list from website' % (section))
+        url = '/profile.php?user=%s&watched&show=%s'
+        url = self.base_url + url % (self.username, section)
+        html=self.__get_url(url)
+        pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_watched\'.+?<a href=\'(.+?)\' ref=\'add_watched\''''
+        regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+        video={}
+        for item in regex.finditer(html):
+            link, img, year, title, delete, rewatch  = item.groups()
+            if not year or len(year) != 4: year = ''
+            video['url']=link
+            video['img']=img
+            video['year']=year
+            video['title']=title
+            video['delete']=delete
+            video['rewatch']=rewatch
+            yield video
+        return
+        
+    def change_watched(self, primewire_url, watched):
+        if not utils.website_is_integrated(): return
+        
+        _1CH.log("Update Website Watched List")
+        id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', primewire_url)
+        if id_num:
+            action = 'add' if watched=='7' else 'delete'
+            change_url = '%s/addtowatched.php?id=%s&action=watched&whattodo=%s'            
+            change_url = change_url % (self.base_url, id_num.group(1), action)
+            _1CH.log('%s Watched URL: %s' %(action.capitalize(), change_url))
+            self.__get_url(change_url,login=True)       
+        else:
+            _1CH.log("pw.scraper.change_watched() couldn't scrape primewire ID")
