@@ -93,23 +93,116 @@ class PW_Scraper():
             total = 0
         self.res_pages = int(math.ceil(total/float(FAVS_PER_PAGE)))
         self.res_total = total
-        return self.__get_fav_gen(html, url, page, paginate)   
-    
-    def __get_fav_gen(self, html, url, page, paginate):
-        if not page: page=1
         pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
+        return self.__get_results_gen(html, url, page, paginate, pattern, self.__set_fav_result)   
+    
+    def __set_fav_result(self, match):
+        fav={}
+        link, img, year, title, delete = match
+        fav['url']=link
+        fav['img']=img
+        fav['year']=year
+        fav['title']=title
+        fav['delete']=delete
+        return fav
+    
+    # returns a generator of results of a title search each of which is a dictionary of url, title, img, and year
+    def search(self,section, query):
+        return self.__search(section, urllib.quote_plus(query))
+    
+    # returns a generator of results of a description search each of which is a dictionary of url, title, img, and year
+    def search_desc(self, section, query):
+        keywords = urllib.quote_plus(query)
+        keywords += '&desc_search=1' ## 1 = Search Descriptions
+        return self.__search(section, keywords)
+
+    # returns a generator of results of a advanced search each of which is a dictionary of url, title, img, and year
+    def search_advanced(self, section, query, tag, description, country, genre, actor, director, year, month, decade, host, rating, advanced):
+        keywords = urllib.quote_plus(query)
+        if (description==True): keywords += '&desc_search=1'
+        keywords += '&tag=' + urllib.quote_plus(tag)
+        keywords += '&genre=' + urllib.quote_plus(genre)
+        keywords += '&actor_name=' + urllib.quote_plus(actor)
+        keywords += '&director=' + urllib.quote_plus(director)
+        keywords += '&country=' + urllib.quote_plus(country)
+        keywords += '&year=' + urllib.quote_plus(year)
+        keywords += '&month=' + urllib.quote_plus(month)
+        keywords += '&decade=' + urllib.quote_plus(decade)
+        keywords += '&host=' + urllib.quote_plus(host)
+        keywords += '&search_rating=' + urllib.quote_plus(rating) ## Rating higher than (#), 0-4
+        keywords += '&advanced=' + urllib.quote_plus(advanced)
+        return self.__search(section, keywords)
+        
+    # internal search function once a search url is (mostly) built
+    def __search(self, section, keywords, page=None, paginate=False):
+        search_url = self.base_url + '/index.php?search_keywords='
+        search_url += keywords
+        html =self. __get_cached_url(self.base_url, cache_limit=0)
+        r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
+        search_url += '&key=' + r
+        if section == 'tv': search_url += '&search_section=2'
+        _1CH.log('Issuing search: %s' % (search_url))
+
+        html = self.__get_cached_url(search_url, cache_limit=0)
+        r = re.search('number_movies_result">([0-9,]+)', html)
+        if r:
+            total = int(r.group(1).replace(',', ''))
+        else:
+            total = 0
+        self.res_pages = int(math.ceil(total/float(ITEMS_PER_PAGE)))
+        self.res_total = total
+        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
+        return self.__get_results_gen(html, search_url, page, paginate, pattern, self.__set_search_result)
+    
+    def __set_search_result(self, match):
+            result={}
+            link, title, year, img = match
+            result['url']=link
+            result['title']=title
+            result['year']=year
+            result['img']=img
+            return result
+
+    def get_filtered_results(self, section, genre, letter, sort, page=None, paginate=False):
+        pageurl = self.base_url + '/?'
+        if section == 'tv': pageurl += 'tv'
+        if genre:  pageurl += '&genre=' + genre
+        if letter:  pageurl += '&letter=' + letter
+        if sort:     pageurl += '&sort=' + sort
+        if page:   pageurl += '&page=%s' % page
+        _1CH.log('Getting filtered results: %s' % (pageurl))
+    
+        html = self.__get_cached_url(pageurl)
+    
+        r = re.search('number_movies_result">([0-9,]+)', html)
+        if r:
+            total = int(r.group(1).replace(',', ''))
+        else:
+            total = 0
+        self.res_pages = int(math.ceil(total/float(ITEMS_PER_PAGE)))
+        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
+        return self.__get_results_gen(html, pageurl, page, paginate, pattern, self.__set_filtered_result)
+
+    def __set_filtered_result(self, match):
+        result={}
+        link, title, year, img = match
+        result['url']=link
+        result['img']=img
+        result['year']=year
+        result['title']=title
+        return result
+        
+    # generic PW results parser. takes the html of the first result set, the base url of that set, what page to return, 
+    # whether or not to paginate, the pattern of match on, and a helper functon to set the return result 
+    def __get_results_gen(self, html, url, page, paginate, pattern, set_result):
+        if not page: page=1
         regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
         while True:
-            fav={}
+            result={}
             for item in regex.finditer(html):
-                link, img, year, title, delete = item.groups()
-                if not year or len(year) != 4: year = ''
-                fav['url']=link
-                fav['img']=img
-                fav['year']=year
-                fav['title']=title
-                fav['delete']=delete
-                yield fav
+                result = set_result(item.groups())
+                if not result['year'] or len(result['year']) != 4: result['year'] = ''
+                yield result
             
             # if we're not paginating, then keep yielding until we run out of pages or hit the max
             if not paginate:
@@ -122,7 +215,16 @@ class PW_Scraper():
             # if we are paginating, just do this page
             else:
                 break
+            
+    def get_last_res_pages(self):
+        return self.res_pages
+
+    def get_last_res_total(self):
+        return self.res_total
     
+    def get_last_imdbnum(self):
+        return self.imdb_num
+
     def get_sources(self, url):
         html = self.__get_cached_url(self.base_url + url, cache_limit=2)
         adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
@@ -178,116 +280,6 @@ class PW_Scraper():
         
         return hosters
                     
-    # returns a generator of results of a title search each of which is a dictionary of url, title, img, and year
-    def search(self,section, query):
-        return self.__search(section, urllib.quote_plus(query))
-    
-    # returns a generator of results of a description search each of which is a dictionary of url, title, img, and year
-    def search_desc(self, section, query):
-        keywords = urllib.quote_plus(query)
-        keywords += '&desc_search=1' ## 1 = Search Descriptions
-        return self.__search(section, keywords)
-
-    # returns a generator of results of a advanced search each of which is a dictionary of url, title, img, and year
-    def search_advanced(self, section, query, tag, description, country, genre, actor, director, year, month, decade, host, rating, advanced):
-        keywords = urllib.quote_plus(query)
-        if (description==True): keywords += '&desc_search=1'
-        keywords += '&tag=' + urllib.quote_plus(tag)
-        keywords += '&genre=' + urllib.quote_plus(genre)
-        keywords += '&actor_name=' + urllib.quote_plus(actor)
-        keywords += '&director=' + urllib.quote_plus(director)
-        keywords += '&country=' + urllib.quote_plus(country)
-        keywords += '&year=' + urllib.quote_plus(year)
-        keywords += '&month=' + urllib.quote_plus(month)
-        keywords += '&decade=' + urllib.quote_plus(decade)
-        keywords += '&host=' + urllib.quote_plus(host)
-        keywords += '&search_rating=' + urllib.quote_plus(rating) ## Rating higher than (#), 0-4
-        keywords += '&advanced=' + urllib.quote_plus(advanced)
-        return self.__search(section, keywords)
-        
-    # internal search function once a search url is (mostly) built
-    def __search(self, section, keywords):
-        search_url = self.base_url + '/index.php?search_keywords='
-        search_url += keywords
-        html =self. __get_cached_url(self.base_url, cache_limit=0)
-        r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
-        search_url += '&key=' + r
-        if section == 'tv': search_url += '&search_section=2'
-        _1CH.log('Issuing search: %s' % (search_url))
-
-        html = self.__get_cached_url(search_url, cache_limit=0)
-        r = re.search('number_movies_result">([0-9,]+)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        self.res_pages = int(math.ceil(total/float(ITEMS_PER_PAGE)))
-        self.res_total = total
-        return self.__search_gen(html,search_url)
-    
-    # generator function for search results
-    def __search_gen(self,html,search_url):
-        page=1
-        while page<=MAX_PAGES:
-            pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-            result={}
-            for item in re.finditer(pattern, html, re.DOTALL):
-                link, title, year, img = item.groups()
-                if not year or len(year) != 4: year = ''
-                result['url']=link
-                result['title']=title
-                result['year']=year
-                result['img']=img
-                yield result
-            
-            if html.find('> >> <') == -1:
-                break
-            
-            page += 1
-            pageurl = '%s&page=%s' % (search_url, page)
-            html = self.__get_cached_url(pageurl, cache_limit=0)
-
-    def get_filtered_results(self, section, genre, letter, sort, page=None):
-        pageurl = self.base_url + '/?'
-        if section == 'tv': pageurl += 'tv'
-        if genre:  pageurl += '&genre=' + genre
-        if letter:  pageurl += '&letter=' + letter
-        if sort:     pageurl += '&sort=' + sort
-        if page:   pageurl += '&page=%s' % page
-        _1CH.log('Getting filtered results: %s' % (pageurl))
-    
-        html = self.__get_cached_url(pageurl)
-    
-        r = re.search('number_movies_result">([0-9,]+)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        self.res_pages = int(math.ceil(total/float(ITEMS_PER_PAGE)))
-        return self.__filtered_results_gen(html)
-        
-    def __filtered_results_gen(self, html):
-        pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
-        regex = re.compile(pattern, re.DOTALL)
-        result={}
-        for item in regex.finditer(html):
-            link, title, year, img = item.groups()
-            if not year or len(year) != 4: year = ''
-            result['url']=link
-            result['title']=title
-            result['year']=year
-            result['img']=img
-            yield result
-    
-    def get_last_res_pages(self):
-        return self.res_pages
-
-    def get_last_res_total(self):
-        return self.res_total
-    
-    def get_last_imdbnum(self):
-        return self.imdb_num
-
     def get_season_list(self, url, cached=True):
         _1CH.log('Getting season list (%s): %s' % (cached,url))
         if cached:

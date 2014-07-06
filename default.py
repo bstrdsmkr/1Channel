@@ -611,7 +611,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
     _1CH.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % (section, genre, letter, sort, page))
 
     section_params = get_section_params(section)
-    results = pw_scraper.get_filtered_results(section, genre, letter, sort, page)
+    results = pw_scraper.get_filtered_results(section, genre, letter, sort, page, paginate=True)
     total_pages = pw_scraper.get_last_res_pages()
 
     resurls = []
