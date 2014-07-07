@@ -74,23 +74,23 @@
                  default="special://userdata/addon_data/plugin.video.1channel/TVShows"/>
         <setting id="movie-folder" type="folder" label="30804"
                  default="special://userdata/addon_data/plugin.video.1channel/Movies"/>
-        <setting id="auto-update-subscriptions" type="bool" label="30805" default="false"/>
-        <setting id="subscription-interval" type="enum" values="2h|5h|10h|15h|24h" label="30806" default="3"
+        <setting id="auto-update_subscriptions" type="bool" label="30805" default="false"/>
+        <setting id="update_subscriptions-interval" type="enum" values="2h|5h|10h|15h|24h" label="30806" default="3"
                  enable="eq(-1,true)"/>
-        <setting id="during-playback" type="bool" label="30809" default="true" enable="eq(-2,true)"/>
-        <setting id="during-startup" type="bool" label="30815" default="false" enable="eq(-3,true)" />
+        <setting id="update_subscriptions-during-playback" type="bool" label="30809" default="true" enable="eq(-2,true)"/>
+        <setting id="update_subscriptions-during-startup" type="bool" label="30815" default="false" enable="eq(-3,true)" />
         <setting id="library-update" type="bool" label="30807" default="true" enable="eq(-4,true)"/>
         <setting id="cleanup-subscriptions" type="bool" label="30808" default="true" enable="eq(-5,true)"/>
-        <setting id="last_run" type="text" default="1970-01-01 23:59:00.000000" visible="false"/>
+        <setting id="update_subscriptions-last_run" type="text" default="1970-01-01 23:59:00.000000" visible="false"/>
     </category>
 
     <category label="Skin Integration">
-        <setting id="auto-update-movies-cat" type="labelenum" values="Featured|Most Popular|Highly Rated|Date Released|Date Added" label="30814" default="0" />
+        <setting id="auto-movie_update" type="labelenum" values="Featured|Most Popular|Highly Rated|Date Released|Date Added" label="30814" default="0" />
         <setting id="auto-update-movies" type="bool" label="30810" default="false"/>
-        <setting enable="!eq(-1,false)" id="auto-update-movies-startup" type="bool" label="30812" default="false"/>
-        <setting enable="!eq(-2,false)" id="auto-update-movies-interval" type="enum" values="2h|5h|10h|15h|24h" label="30811" default="3" />
-        <setting label="30813" type="action" option="close" action="RunPlugin(plugin://plugin.video.1channel/?mode=MovieAutoUpdate)" />
-        <setting id="auto-update-movies-last-run" type="text" default="1970-01-01 23:59:00.000000" visible="false"/>
+        <setting enable="!eq(-1,false)" id="movie_update-during-startup" type="bool" label="30812" default="false"/>
+        <setting enable="!eq(-2,false)" id="movie_update-interval" type="enum" values="2h|5h|10h|15h|24h" label="30811" default="3" />
+        <setting label="30813" type="action" option="close" action="RunPlugin(plugin://plugin.video.1channel/?mode=movie_update)" />
+        <setting id="movie_update-last_run" type="text" default="1970-01-01 23:59:00.000000" visible="false"/>
     </category>
 
     <category label="Label Formatting">
@@ -112,11 +112,20 @@
 
 	<category label="Database">
 		<setting id="use_remote_db" type="bool" label="Use a MySQL DB" default="False"/>
-        <setting id="db_address" type="text" label="    Address" enable="eq(-1,true)" default=""/>
-        <setting id="db_port" type="integer" label="    Port" enable="eq(-2,true)" default=""/>
-        <setting id="db_user" type="text" label="    Username" enable="eq(-3,true)" default=""/>
-        <setting id="db_pass" type="text" label="    Password" enable="eq(-4,true)" default="" option="hidden"/>
-        <setting id="db_name" type="text" label="    Database" enable="eq(-5,true)" default="1channel"/>
+        <setting id="db_address" type="text" label="    Address" enable="eq(-1,true)" visible="eq(-1,true)" default=""/>
+        <setting id="db_port" type="integer" label="    Port" enable="eq(-2,true)" visible="eq(-2,true)" default=""/>
+        <setting id="db_user" type="text" label="    Username" enable="eq(-3,true)" visible="eq(-3,true)" default=""/>
+        <setting id="db_pass" type="text" label="    Password" enable="eq(-4,true)" visible="eq(-4,true)" default="" option="hidden"/>
+        <setting id="db_name" type="text" label="    Database" enable="eq(-5,true)" visible="eq(-5,true)" default="1channel"/>
+		<setting type="sep"/>
+        <setting id="auto-backup_db" type="bool" label="Enable automatic 1Channel DB Backups" default="false"/>
+        <setting id="backup_db-folder" type="folder" label="     Export Folder" default="special://database" enable="eq(-1,true)" visible="eq(-1,true)"/>
+        <setting id="backup_db-interval" type="enum" values="12h|1d|7d|30d" label="     Export Interval" default="3"
+                 enable="eq(-2,true)" visible="eq(-2,true)"/>
+        <setting id="backup_db-during-playback" type="bool" label="     During Playback?" default="true" enable="eq(-3,true)" visible="eq(-3,true)"/>
+        <setting id="backup_db-during-startup" type="bool" label="     On Startup?" default="false" enable="eq(-4,true)" visible="eq(-4,true)"/>
+        <setting id="backup_db-last_run" type="text" default="1970-01-01 23:59:00.000000" visible="false"/>
+		<setting type="sep"/>
         <setting id="flush_cache" type="action" label="Flush webpage cache..." enable="true"
                  action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=flush_cache)"/>
 		<setting id="db_export" type="action" label="Export data from 1Channel DB" enable="true"

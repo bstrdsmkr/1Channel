@@ -614,9 +614,9 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
     liz_url = _1CH.build_plugin_url(queries)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,section_params['folder'],totalItems)
 
-def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None):
-    _1CH.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % (section, genre, letter, sort, page))
-    paginate=(_1CH.get_setting('paginate-lists')=='true' and _1CH.get_setting('paginate')=='true')
+def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None, paginate=None):
+    _1CH.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s Paginate: %s' % (section, genre, letter, sort, page, paginate))
+    if paginate is None: paginate=(_1CH.get_setting('paginate-lists')=='true' and _1CH.get_setting('paginate')=='true')
     section_params = get_section_params(section)
     results = pw_scraper.get_filtered_results(section, genre, letter, sort, page, paginate)
     total_pages = pw_scraper.get_last_res_pages()
@@ -1272,6 +1272,12 @@ def import_db():
         xbmc.executebuiltin(builtin)
         raise
 
+def backup_db():
+    path = xbmc.translatePath("special://database")
+    now_str = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+    full_path = path + 'db_backup_' + now_str +'.csv'
+    db_connection.export_from_db(full_path)
+
 def main(argv=None):
     if sys.argv: argv=sys.argv
         
@@ -1301,12 +1307,12 @@ def main(argv=None):
     
     if mode == 'main':
         AddonMenu()
-    elif mode == "MovieAutoUpdate":
+    elif mode == "movie_update":
         builtin = "XBMC.Notification(Updating,Please wait...,5000,%s)" % xbmcaddon.Addon().getAddonInfo('icon')
         xbmc.executebuiltin(builtin)
         sort = update_movie_cat()
         section = 'movies'
-        GetFilteredResults(section, genre, letter, sort, page)
+        GetFilteredResults(section, genre, letter, sort, page, paginate=True)
     elif mode == 'GetSources':
         import urlresolver
         get_sources(url, title, img, year, imdbnum, dialog)
@@ -1400,6 +1406,8 @@ def main(argv=None):
         export_db()
     elif mode == 'import_db':
         import_db()
+    elif mode == 'backup_db':
+        backup_db()
     elif mode == 'Help':
         _1CH.log('Showing help popup')
         try: utils.TextBox()
