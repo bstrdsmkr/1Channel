@@ -350,6 +350,7 @@ def get_adv_search_query(section):
     CENTER_Y=6
     CENTER_X=2
     now = datetime.datetime.now()
+    # allowed values have to be list of strings
     allowed_values={}
     allowed_values['month'] = [''] + [str(month) for month in xrange(1,13)]
     allowed_values['year'] = [''] +  [str(year) for year in xrange(1900,now.year+1)]
@@ -452,6 +453,7 @@ def get_adv_search_query(section):
                 for field in valid_fields:
                     field_value=self.query_controls[field_names.index(field)].getText()
                     if field_value != '':
+                        print field_value
                         if field_value not in allowed_values[field]:
                             error_string = '%s must be one of: %s' % (field.capitalize(), str(allowed_values[field][1:]).replace("'",""))
                             # override error string on year

@@ -107,18 +107,18 @@ class PW_Scraper():
         return fav
     
     # returns a generator of results of a title search each of which is a dictionary of url, title, img, and year
-    def search(self, section, query):
-        return self.__search(section, urllib.quote_plus(query))
+    def search(self, section, query, page=None, paginate=False):
+        return self.__search(section, urllib.quote_plus(query), page, paginate)
     
     # returns a generator of results of a description search each of which is a dictionary of url, title, img, and year
-    def search_desc(self, section, query):
+    def search_desc(self, section, query, page=None, paginate=False):
         keywords = urllib.quote_plus(query)
         keywords += '&desc_search=1'  # # 1 = Search Descriptions
-        return self.__search(section, keywords)
+        return self.__search(section, keywords, page, paginate)
 
     # returns a generator of results of a advanced search each of which is a dictionary of url, title, img, and year
-    def search_advanced(self, section, query, tag, description, country, genre, actor, director, year, month, decade, host, rating, advanced):
-        keywords = urllib.quote_plus(query)
+    def search_advanced(self, section, title, tag, description, country, genre, actor, director, year, month, decade, host='', rating='', advanced='1', page=None, paginate=False):
+        keywords = urllib.quote_plus(title)
         if (description == True): keywords += '&desc_search=1'
         keywords += '&tag=' + urllib.quote_plus(tag)
         keywords += '&genre=' + urllib.quote_plus(genre)
@@ -131,7 +131,7 @@ class PW_Scraper():
         keywords += '&host=' + urllib.quote_plus(host)
         keywords += '&search_rating=' + urllib.quote_plus(rating)  # # Rating higher than (#), 0-4
         keywords += '&advanced=' + urllib.quote_plus(advanced)
-        return self.__search(section, keywords)
+        return self.__search(section, keywords, page, paginate)
         
     # internal search function once a search url is (mostly) built
     def __search(self, section, keywords, page=None, paginate=False):
@@ -141,6 +141,7 @@ class PW_Scraper():
         r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
         search_url += '&key=' + r
         if section == 'tv': search_url += '&search_section=2'
+        if page: search_url += '&page=%s' % (page)
         _1CH.log('Issuing search: %s' % (search_url))
 
         html = self.__get_cached_url(search_url, cache_limit=0)

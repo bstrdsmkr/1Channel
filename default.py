@@ -54,6 +54,7 @@ THEME_PATH = os.path.join(_1CH.get_path(), 'art', 'themes', THEME)
 AUTO_WATCH = _1CH.get_setting('auto-watch') == 'true'
 ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
+ITEMS_PER_PAGE=24
 
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
 
@@ -429,44 +430,47 @@ def GetSearchQueryDesc(section):
         BrowseListMenu(section)
 
 
-def Search(section, query):
+def Search(mode, section, query, page=None):
     section_params = get_section_params(section)
+    paginate=(_1CH.get_setting('paginate-search')=='true' and _1CH.get_setting('paginate')=='true')
     
-    results=pw_scraper.search(section,query)
+    if mode=='Search':
+        results=pw_scraper.search(section,query, page, paginate)
+    elif mode=='SearchDesc':
+        results=pw_scraper.search_desc(section,query, page, paginate)
+    elif mode=='SearchAdvanced':
+        criteria = unpack_query(query)
+        results=pw_scraper.search_advanced(section, criteria['title'], criteria['tag'], False, criteria['country'], criteria['genre'],
+                                           criteria['actor'], criteria['director'], criteria['year'], criteria['month'], criteria['decade'], page=page, paginate=paginate)
+        
+    total_pages = pw_scraper.get_last_res_pages()
     total=pw_scraper.get_last_res_total()
+    if paginate:
+        if page != total_pages:
+            total=ITEMS_PER_PAGE
+        else:
+            total=total % ITEMS_PER_PAGE
     
     resurls = []
     for result in results:
         if result['url'] not in resurls:
             resurls.append(result['url'])                
             create_item(section_params,result['title'],result['year'],result['img'],result['url'],totalItems=total)
-    _1CH.end_of_directory()
-
-
-def SearchAdvanced(section, query='', tag='', description=False, country='', genre='', actor='', director='', year='0', month='0', decade='0', host='', rating='', advanced='1'):
-    section_params = get_section_params(section)
     
-    results=pw_scraper.search_advanced(section, query, tag, description, country, genre, actor, director, year, month, decade, host, rating, advanced)
-    total=pw_scraper.get_last_res_total()
-    
-    resurls = []
-    for result in results:
-        if result['url'] not in resurls:
-            resurls.append(result['url'])                
-            create_item(section_params,result['title'],result['year'],result['img'],result['url'],totalItems=total)
-    _1CH.end_of_directory()
+    if not page: page = 1
+    next_page = int(page) + 1
 
+    if int(page) < int(total_pages) and paginate:
+        label = 'Skip to Page...'
+        command = _1CH.build_plugin_url(
+            {'mode': 'SearchPageSelect', 'pages': total_pages, 'query': query, 'search': mode})
+        command = 'RunPlugin(%s)' % command
+        menu_items = [(label, command)]
+        meta = {'title': 'Next Page >>'}
+        _1CH.add_directory(
+            {'mode': mode, 'query': query, 'page': next_page},
+            meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
 
-def SearchDesc(section, query):
-    section_params = get_section_params(section)
-    results=pw_scraper.search_desc(section,query)
-    total=pw_scraper.get_last_res_total()
-
-    resurls = []
-    for result in results:
-        if result['url'] not in resurls:
-            resurls.append(result['url'])
-            create_item(section_params, result['title'], result['year'], result['img'], result['url'], totalItems=total)
     _1CH.end_of_directory()
 
 def AddonMenu():  # homescreen
@@ -614,9 +618,9 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
 
 def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None):
     _1CH.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s' % (section, genre, letter, sort, page))
-
+    paginate=(_1CH.get_setting('paginate-lists')=='true' and _1CH.get_setting('paginate')=='true')
     section_params = get_section_params(section)
-    results = pw_scraper.get_filtered_results(section, genre, letter, sort, page, paginate=True)
+    results = pw_scraper.get_filtered_results(section, genre, letter, sort, page, paginate)
     total_pages = pw_scraper.get_last_res_pages()
 
     resurls = []
@@ -649,7 +653,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
     if not page: page = 1
     next_page = int(page)+1
 
-    if int(page) < int(total_pages):
+    if int(page) < int(total_pages) and paginate:
         label = 'Skip to Page...'
         command = _1CH.build_plugin_url(
             {'mode': 'PageSelect', 'pages': total_pages, 'section': section, 'genre': genre, 'letter': letter,
@@ -812,8 +816,9 @@ def browse_favorites_website(section, page=None):
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
     section_params = get_section_params(section)
+    paginate=(_1CH.get_setting('paginate-favs')=='true' and _1CH.get_setting('paginate')=='true')
     
-    for fav in pw_scraper.get_favorities(section, page, paginate=True):
+    for fav in pw_scraper.get_favorities(section, page, paginate):
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': fav['title'], 'url': fav['url'], 'year': fav['year']})
         menu_items = [('Delete Favorite', runstring)]
         create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'],menu_items=menu_items)
@@ -822,7 +827,7 @@ def browse_favorites_website(section, page=None):
     if not page: page = 1
     next_page = int(page)+1
 
-    if int(page) < int(total_pages):
+    if int(page) < int(total_pages) and paginate:
         label = 'Skip to Page...'
         command = _1CH.build_plugin_url({'mode': 'FavPageSelect', 'section': section, 'pages': total_pages})
         command = 'RunPlugin(%s)' % command
@@ -1321,13 +1326,8 @@ def main(argv=None):
         GetSearchQueryAdvanced(section)
     elif mode == 'GetSearchQueryDesc':
         GetSearchQueryDesc(section)
-    elif mode == 'Search':
-        Search(section,query)
-    elif mode == 'SearchAdvanced':
-        criteria = unpack_query(query)
-        SearchAdvanced(section, criteria['title'], criteria['tag'], False, criteria['country'], criteria['genre'], criteria['actor'], criteria['director'], criteria['year'], criteria['month'], criteria['decade'])
-    elif mode == 'SearchDesc':
-        SearchDesc(section,query)
+    elif mode == 'Search' or mode=='SearchDesc' or mode == 'SearchAdvanced':
+        Search(mode, section,query,page)
     elif mode == '7000':  # Enables Remote Search
         Search(section, query)
     elif mode == 'browse_favorites':
@@ -1381,6 +1381,9 @@ def main(argv=None):
         jump_to_page({'mode': 'GetFilteredResults', 'section': section, 'genre': genre, 'letter': letter, 'sort': sort})
     elif mode=='FavPageSelect':
         jump_to_page({'mode': 'browse_favorites_website', 'section': section})
+    elif mode=='SearchPageSelect':
+        search=_1CH.queries.get('search','')
+        jump_to_page({'mode': search, 'query': query})
     elif mode == 'refresh_meta':
         utils.refresh_meta(video_type, title, imdbnum, alt_id, year)
     elif mode == 'flush_cache':
