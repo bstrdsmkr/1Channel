@@ -351,9 +351,9 @@ def get_adv_search_query(section):
     CENTER_X=2
     now = datetime.datetime.now()
     allowed_values={}
-    allowed_values['month'] = [''] + [month for month in xrange(1,13)]
-    allowed_values['year'] = [''] +  [year for year in xrange(1900,now.year+1)]
-    allowed_values['decade'] =[''] + [decade for decade in xrange(1900, now.year+1, 10)]
+    allowed_values['month'] = [''] + [str(month) for month in xrange(1,13)]
+    allowed_values['year'] = [''] +  [str(year) for year in xrange(1900,now.year+1)]
+    allowed_values['decade'] =[''] + [str(decade) for decade in xrange(1900, now.year+1, 10)]
     allowed_values['genre'] = ['', 'Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
               'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Game-Show',
               'History', 'Horror', 'Japanese', 'Korean', 'Music', 'Musical',
