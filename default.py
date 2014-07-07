@@ -38,11 +38,10 @@ import utils
 from pw_scraper import PW_Scraper
 from db_utils import DB_Connection
 
-_1CH = Addon('plugin.video.1channel', sys.argv)
+# hack to keep eclipse from thinking urlresolver import isn't defined :|
+global urlresolver
 
-mode = _1CH.queries.get('mode', None)
-if mode == 'GetSources' or mode == 'PlaySource':
-    import urlresolver # import only when needed because it's expensive
+_1CH = Addon('plugin.video.1channel', sys.argv)
 
 META_ON = _1CH.get_setting('use-meta') == 'true'
 FANART_ON = _1CH.get_setting('enable-fanart') == 'true'
@@ -350,7 +349,6 @@ def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='
 
 
 def PlayTrailer(url):
-    import urlresolver
     url = url.decode('base-64')
     _1CH.log('Attempting to resolve and play trailer at %s' % url)
     sources = []
@@ -1303,10 +1301,13 @@ def main(argv=None):
         section = 'movies'
         GetFilteredResults(section, genre, letter, sort, page)
     elif mode == 'GetSources':
+        import urlresolver
         get_sources(url, title, img, year, imdbnum, dialog)
     elif mode == 'PlaySource':
+        import urlresolver
         PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume)
     elif mode == 'PlayTrailer':
+        import urlresolver
         PlayTrailer(url)
     elif mode == 'BrowseListMenu':
         BrowseListMenu(section)
@@ -1344,12 +1345,10 @@ def main(argv=None):
         xbmc.executebuiltin('Container.Refresh')
     elif mode == '9988':  # Metahandler Settings
         print "Metahandler Settings"
-        import metahandler
-    
+        import metahandler  
         metahandler.display_settings()
     elif mode == 'ResolverSettings':
         import urlresolver
-    
         urlresolver.display_settings()
     elif mode == 'install_metapack':
         metapacks.install_metapack(title)
