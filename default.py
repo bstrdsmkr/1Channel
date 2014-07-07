@@ -1239,6 +1239,39 @@ def jump_to_page(queries={}):
         builtin = 'Container.Update(%s)' % url
         xbmc.executebuiltin(builtin)
 
+def export_db():
+    try:
+        dialog = xbmcgui.Dialog()
+        export_path = dialog.browse(0, 'Select Export Directory', 'files')
+        if export_path:
+            keyboard = xbmc.Keyboard('export.csv', 'Enter Export Filename')
+            keyboard.doModal()
+            if keyboard.isConfirmed():
+                export_filename = keyboard.getText()
+                export_file = export_path + export_filename
+                db_connection.export_from_db(export_file)
+                builtin = "XBMC.Notification(Export Successful,Exported to %s,2000, %s)" % (export_file, ICON_PATH)
+                xbmc.executebuiltin(builtin)
+    except Exception as e:
+        _1CH.log('Export Failed: %s' % (e))
+        builtin = "XBMC.Notification(Export,Export Failed,2000, %s)" % (ICON_PATH)
+        xbmc.executebuiltin(builtin)
+
+def import_db():
+    try:
+        dialog = xbmcgui.Dialog()
+        import_file = dialog.browse(1, 'Select Import File', 'files')
+        if import_file:
+            db_connection.init_database()
+            db_connection.import_into_db(import_file)
+            builtin = "XBMC.Notification(Import Success,Imported from %s,5000, %s)" % (import_file, ICON_PATH)
+            xbmc.executebuiltin(builtin)
+    except Exception as e:
+        _1CH.log('Import Failed: %s' % (e))
+        builtin = "XBMC.Notification(Import,Import Failed,2000, %s)" % (ICON_PATH)
+        xbmc.executebuiltin(builtin)
+        raise
+
 def main(argv=None):
     if sys.argv: argv=sys.argv
         
@@ -1363,6 +1396,10 @@ def main(argv=None):
         migrate_favs_to_web()
     elif mode == 'fav2Library':
         add_favs_to_library(section)
+    elif mode == 'export_db':
+        export_db()
+    elif mode == 'import_db':
+        import_db()
     elif mode == 'Help':
         _1CH.log('Showing help popup')
         try: utils.TextBox()

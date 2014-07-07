@@ -117,10 +117,12 @@
         <setting id="db_user" type="text" label="    Username" enable="eq(-3,true)" default=""/>
         <setting id="db_pass" type="text" label="    Password" enable="eq(-4,true)" default="" option="hidden"/>
         <setting id="db_name" type="text" label="    Database" enable="eq(-5,true)" default="1channel"/>
-        <setting id="migrateDB" type="action" label="    Migrate local DB..." enable="eq(-6,true)"
-                 action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=migrateDB)"/>
         <setting id="flush_cache" type="action" label="Flush webpage cache..." enable="true"
                  action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=flush_cache)"/>
+		<setting id="db_export" type="action" label="Export data from 1Channel DB" enable="true"
+				action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=export_db)"/>
+		<setting id="db_import" type="action" label="Import data into 1Channel DB" enable="true"
+				action="RunPlugin(plugin://plugin.video.1channel/default.py?mode=import_db)"/>
 	</category>
 
 <!-- 

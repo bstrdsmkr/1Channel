@@ -18,6 +18,7 @@
 import os
 import urllib
 import time
+import csv
 import xbmc
 import xbmcvfs
 from addon.common.addon import Addon
@@ -27,6 +28,7 @@ def enum(**enums):
     return type('Enum', (), enums)
 
 DB_TYPES= enum(MYSQL='mysql', SQLITE='sqlite')
+CSV_MARKERS = enum(FAVORITES='***FAVORITES***', SUBSCRIPTIONS='***SUBSCRIPTIONS***', BOOKMARKS='***BOOKMARKS***')
 
 _1CH = Addon('plugin.video.1channel')
 
@@ -74,6 +76,12 @@ class DB_Connection():
         else:
             return None
 
+    # get all bookmarks
+    def get_bookmarks(self):
+        sql='SELECT url, resumepoint FROM new_bkmark'
+        bookmarks = self.__execute(sql)
+        return bookmarks
+    
     # return true if bookmark exists
     def bookmark_exists(self, url):
         return self.get_bookmark(url) != None
@@ -88,7 +96,7 @@ class DB_Connection():
         sql = 'DELETE FROM new_bkmark WHERE url=?'
         self.__execute(sql, (url,))
 
-    def get_favorites(self, section):
+    def get_favorites(self, section=None):
         sql = 'SELECT type, name, url, year FROM favorites'
         if section:
             sql = sql + self.__format(' WHERE type = ? ORDER BY NAME')
@@ -130,7 +138,7 @@ class DB_Connection():
         return rows
     
     def add_subscription(self, url, title, img, year, imdbnum):
-        sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?, ?, ?, ?, ?)'
+        sql = 'REPLACE INTO subscriptions (url, title, img, year, imdbnum) VALUES (?, ?, ?, ?, ?)'
         self.__execute(sql, (url, title, img, year, imdbnum))
 
     def delete_subscription(self, url):
@@ -167,7 +175,42 @@ class DB_Connection():
         sql = 'SELECT contents FROM seasons WHERE season=?'
         season_html=self.__execute(sql, (season_num,))[0][0]
         return season_html
-
+    
+    def export_from_db(self, full_path):
+        with open(full_path, 'w') as f:
+            writer=csv.writer(f)
+            f.write(CSV_MARKERS.FAVORITES)
+            f.write('\n')
+            for fav in self.get_favorites():
+                writer.writerow(fav)
+            f.write(CSV_MARKERS.SUBSCRIPTIONS)
+            f.write('\n')
+            for sub in self.get_subscriptions():
+                writer.writerow(sub)
+            f.write(CSV_MARKERS.BOOKMARKS)
+            f.write('\n')
+            for bookmark in self.get_bookmarks():
+                writer.writerow(bookmark)
+    
+    def import_into_db(self, full_path):
+        with open(full_path,'r') as f:
+            reader=csv.reader(f)
+            mode=''
+            for line in reader:
+                if CSV_MARKERS.FAVORITES in line[0] or CSV_MARKERS.SUBSCRIPTIONS in line[0] or CSV_MARKERS.BOOKMARKS in line[0]:
+                    mode=line[0]
+                    continue
+                elif mode==CSV_MARKERS.FAVORITES:
+                    try:
+                        self.save_favorite(line[0], line[1], line[2], line[3])
+                    except: pass # save_favorite throws exception on dupe
+                elif mode==CSV_MARKERS.SUBSCRIPTIONS:
+                    self.add_subscription(line[0], line[1], line[2], line[3], line[4])
+                elif mode==CSV_MARKERS.BOOKMARKS:
+                    self.set_bookmark(line[0], line[1])
+                else:
+                    raise Exception('CSV line found while in no mode')
+    
     def execute_sql(self, sql):
         self.__execute(sql)
 
