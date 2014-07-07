@@ -108,8 +108,6 @@
         <setting id="format-source" type="text" label="32000" default="[{q}] {h} {p} ({v} views)"/>
         <setting id="format-source-verified" type="text" label="32001" default="[COLOR gold]{L}[/COLOR]"/>
         <setting id="format-source-parts" type="text" label="32002" default="     {h} {p}"/>
-        <setting id="format-subscription-day" type="text" label="Subscription Day" default="[COLOR deeppink]%s[/COLOR]"/>
-        <setting id="format-subscription-day-tag" type="text" label="Subscription Day Brackets" default="[COLOR blueviolet][[/COLOR]%s[COLOR blueviolet]][/COLOR]"/>
     </category>
 
 	<category label="Database">

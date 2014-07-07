@@ -124,19 +124,14 @@ class DB_Connection():
     def delete_favorite(self, url):
         self.delete_favorites([url])
 
-    def get_subscriptions(self, day=None):
+    def get_subscriptions(self):
         sql = 'SELECT url, title, img, year, imdbnum FROM subscriptions'
-        params = []
-        if day:
-            sql += ' WHERE day = ?'
-            params = [day]
-            
-        rows=self.__execute(sql, params)
+        rows=self.__execute(sql)
         return rows
     
-    def add_subscription(self, url, title, img, year, imdbnum, day):
-        sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum, day) VALUES (?, ?, ?, ?, ?, ?)'
-        self.__execute(sql, (url, title, img, year, imdbnum, day))
+    def add_subscription(self, url, title, img, year, imdbnum):
+        sql = 'INSERT INTO subscriptions (url, title, img, year, imdbnum) VALUES (?, ?, ?, ?, ?)'
+        self.__execute(sql, (url, title, img, year, imdbnum))
 
     def delete_subscription(self, url):
         sql = 'DELETE FROM subscriptions WHERE url=?'
@@ -316,11 +311,7 @@ class DB_Connection():
         fixes=[]
         if self.db_type==DB_TYPES.MYSQL:
             fixes.append('ALTER TABLE url_cache MODIFY COLUMN response MEDIUMBLOB')
-            # add day to sub table
-            fixes.append('ALTER TABLE subscriptions ADD day TEXT')
         else:
-            # add day to sub table
-            fixes.append('ALTER TABLE subscriptions ADD day TEXT')
             #Fix previous index errors on bookmark table
             fixes.append('DROP INDEX IF EXISTS unique_movie_bmk') # get rid of faulty index that might exist
             fixes.append('DROP INDEX IF EXISTS unique_episode_bmk') # get rid of faulty index that might exist

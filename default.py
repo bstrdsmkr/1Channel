@@ -1011,11 +1011,9 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
             _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
 
 
-def add_subscription(url, title, img, year, imdbnum, day=''):
+def add_subscription(url, title, img, year, imdbnum):
     try:
-        if len(day)==0: day=datetime.date.today().strftime('%A')
-        elif day==' ': day=''
-        db_connection.add_subscription(url, title, img, year, imdbnum, day)
+        db_connection.add_subscription(url, title, img, year, imdbnum)
         add_to_library('tvshow', url, title, img, year, imdbnum)
         builtin = "XBMC.Notification(Subscribe,Subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)
@@ -1047,7 +1045,8 @@ def clean_up_subscriptions():
             except: pass
             db_connection.delete_subscription(sub[0])
 
-def manage_subscriptions(day=''):
+def manage_subscriptions():
+    utils.set_view('tvshows', 'tvshows-view')
     liz = xbmcgui.ListItem(label='Update Subscriptions')
     liz_url = _1CH.build_plugin_url({'mode': 'update_subscriptions'})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
@@ -1056,21 +1055,8 @@ def manage_subscriptions(day=''):
     liz_url = _1CH.build_plugin_url({'mode': 'clean_up_subscriptions'})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
-    D1Code=_1CH.get_setting('format-subscription-day')
-    D2Code=_1CH.get_setting('format-subscription-day-tag')
-    fanart = art('fanart.png')
-    _1CH.add_directory({'day':'','mode':'manage_subscriptions'},{'title':D1Code % 'ALL'},is_folder=True,fanart=fanart,img=art('subscriptions.png'))
-    if day=='':
-        d='Monday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-        d='Tuesday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-        d='Wednesday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-        d='Thursday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-        d='Friday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-        d='Saturday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-        d='Sunday'; _1CH.add_directory({'day':d,'mode':'manage_subscriptions'},{'title':D1Code % d},is_folder=True,fanart=fanart,img=art(d+'.png'))
-    utils.set_view('tvshows', 'tvshows-view')
-
-    subs=db_connection.get_subscriptions(day)
+    subs=db_connection.get_subscriptions()
+    subs_len=len(subs)
     for sub in subs:
         meta = create_meta('tvshow', sub[1], sub[3], '')
         meta['title'] = utils.format_label_sub(meta)
@@ -1079,12 +1065,6 @@ def manage_subscriptions(day=''):
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
             {'mode': 'cancel_subscription', 'url': sub[0], 'title': sub[1], 'img': sub[2], 'year': sub[3], 'imdbnum': sub[4]})
         menu_items.append(('Cancel subscription', runstring,))
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-            {'mode': 'subscriptions_day', 'url': sub[0], 'title': sub[1], 'img': sub[2], 'year': sub[3], 'imdbnum': sub[4], 'day': ' '})
-        menu_items.append(('Remove Day', runstring,))
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-            {'mode': 'subscriptions_day', 'url': sub[0], 'title': sub[1], 'img': sub[2], 'year': sub[3], 'imdbnum': sub[4], 'day': str(datetime.date.today().strftime('%A'))})
-        menu_items.append(('Subscription Day', runstring,))
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
             {'mode': 'SaveFav', 'section': 'tv', 'title': sub[1], 'url': sub[0], 'year': sub[3]})
         menu_items.append(('Add to Favorites', runstring,))
@@ -1097,18 +1077,13 @@ def manage_subscriptions(day=''):
             except: img = ''
         else: fanart = art('fanart.png'); img = ''
 
-        # _1CH.add_item({'mode':'manage_subscriptions'},meta,menu_items,True,img,fanart,is_folder=True)
-        try: 
-            if len(sub[5]) > 0: meta['title']=(D2Code % (D1Code % (sub[5])))+' '+meta['title']
-        except: pass
         listitem = xbmcgui.ListItem(meta['title'], iconImage=img, thumbnailImage=img)
         listitem.setInfo('video', meta)
         listitem.setProperty('fanart_image', fanart)
         listitem.addContextMenuItems(menu_items, replaceItems=True)
         queries = {'mode': 'TVShowSeasonList', 'title': sub[1], 'url': sub[0], 'img': img, 'imdbnum': meta['imdb_id'], 'video_type': 'tvshow', 'year': sub[3]}
         li_url = _1CH.build_plugin_url(queries)
-        try: xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, isFolder=True, totalItems=len(subs))
-        except: pass
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, isFolder=True, totalItems=subs_len)
     _1CH.end_of_directory()
 
 def compose(inner_func, *outer_funcs):
@@ -1285,7 +1260,6 @@ def main(argv=None):
     tvdbnum = _1CH.queries.get('tvdbnum', '')
     alt_id = _1CH.queries.get('alt_id', '')
     dialog = _1CH.queries.get('dialog', '')
-    day = _1CH.queries.get('day', '')
     resume = _1CH.queries.get('resume', False)
     primewire_url = _1CH.queries.get('primewire_url', '')
     
@@ -1367,15 +1341,11 @@ def main(argv=None):
     elif mode == 'add_subscription':
         add_subscription(url, title, img, year, imdbnum)
     elif mode == 'manage_subscriptions':
-        manage_subscriptions(day)
+        manage_subscriptions()
     elif mode == 'cancel_subscription':
         cancel_subscription(url, title, img, year, imdbnum)
     elif mode == 'clean_up_subscriptions':
         clean_up_subscriptions()
-    elif mode == 'subscriptions_day':
-        cancel_subscription(url, title, img, year, imdbnum)
-        add_subscription(url, title, img, year, imdbnum, day)
-        xbmc.executebuiltin('Container.Refresh')
     elif mode == 'PageSelect':
         jump_to_page({'mode': 'GetFilteredResults', 'section': section, 'genre': genre, 'letter': letter, 'sort': sort})
     elif mode=='FavPageSelect':
