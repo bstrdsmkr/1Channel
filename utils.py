@@ -12,6 +12,11 @@ from db_utils import DB_Connection
 
 db_connection = DB_Connection()
 
+hours_list={}
+hours_list['update_subscriptions'] = [2, 5, 10, 15, 24]
+hours_list['movie_update'] = [2, 5, 10, 15, 24]
+hours_list['backup_db'] = [12, 24, 168, 720]
+
 _1CH = Addon('plugin.video.1channel')
 
 def format_label_tvshow(info):
@@ -336,6 +341,39 @@ def format_time(seconds):
         return "%02d:%02d:%02d" % (hours, minutes, seconds)
     else:
         return "%02d:%02d" % (minutes, seconds)
+
+# Run a task on startup. Settings and mode values must match task name
+def do_startup_task(task):
+    if _1CH.get_setting('%s-during-startup' % task) == 'true' and not xbmc.abortRequested:
+        _1CH.log('Service: Running startup task [%s]' % (task))
+        now = datetime.datetime.now()
+        xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task))
+        _1CH.set_setting('%s-last_run' % (task), now.strftime("%Y-%m-%d %H:%M:%S.%f"))
+    
+# Run a recurring scheduled task. Settings and move values much match task name
+def do_scheduled_task(task, isPlaying):
+    now = datetime.datetime.now()
+    if _1CH.get_setting('auto-%s' % task) == 'true':
+        last_run = _1CH.get_setting('%s-last_run' % (task))
+        hours = hours_list[task][int(_1CH.get_setting('%s-interval' % (task)))]
+        last_run = datetime.datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S.%f")
+        elapsed = now - last_run
+
+        threshold = datetime.timedelta(hours=hours)
+        #_1CH.log("Update Status on [%s]: %s of %s" % (task, elapsed, threshold))
+        if elapsed > threshold:
+            is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
+            if not is_scanning:
+                during_playback = _1CH.get_setting('%s-during-playback' % (task))=='true'
+                if during_playback or not isPlaying:
+                    _1CH.log('Service: Running Scheduled Task: [%s]' % (task))
+                    builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task)
+                    xbmc.executebuiltin(builtin)
+                    _1CH.set_setting('%s-last_run' % task, now.strftime("%Y-%m-%d %H:%M:%S.%f"))
+                else:
+                    _1CH.log('Service: Playing... Busy... Postponing [%s]' % (task))
+            else:
+                _1CH.log('Service: Scanning... Busy... Postponing [%s]' % (task))
 
 def get_adv_search_query(section):
     if section=='tv':

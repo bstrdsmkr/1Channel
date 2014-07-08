@@ -27,8 +27,6 @@ from db_utils import DB_Connection
 db_connection = DB_Connection()
 db_connection.init_database()
 
-hours_list = [2, 5, 10, 15, 24]
-
 ADDON = xbmcaddon.Addon(id='plugin.video.1channel')
 
 # temporary method to migrate from old watched setting to new one
@@ -45,39 +43,6 @@ def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='
     metaget = metahandlers.MetaData(False)
     metaget.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
 
-# Run a task on startup. Settings and mode values must match task name
-def doStartupTask(task):
-    if ADDON.getSetting('%s-during-startup' % task) == 'true' and not xbmc.abortRequested:
-        xbmc.log('PrimeWire Service: Running startup task [%s]' % (task))
-        now = datetime.datetime.now()
-        xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task))
-        ADDON.setSetting('%s-last_run' % (task), now.strftime("%Y-%m-%d %H:%M:%S.%f"))
-    
-# Run a recurring scheduled task. Settings and move values much match task name
-def doScheduledTask(task):
-    now = datetime.datetime.now()
-    if ADDON.getSetting('auto-%s' % task) == 'true':
-        last_run = ADDON.getSetting('%s-last_run' % (task))
-        hours = hours_list[int(ADDON.getSetting('%s-interval' % (task)))]
-        last_run = datetime.datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S.%f")
-        elapsed = now - last_run
-
-        threshold = datetime.timedelta(hours=hours)
-        #xbmc.log("Update Status: %s of %s" % (elapsed,threshold))
-        if elapsed > threshold:
-            is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
-            if not is_scanning:
-                during_playback = ADDON.getSetting('%s-during-playback' % (task))
-                if during_playback == 'true' or not monitor.isPlaying():
-                    xbmc.log('PrimeWire Service: Running Scheduled Task: [%s]' % (task))
-                    builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task)
-                    xbmc.executebuiltin(builtin)
-                    ADDON.setSetting('%s-last_run' % task, now.strftime("%Y-%m-%d %H:%M:%S.%f"))
-                else:
-                    xbmc.log('PrimeWire Service: Playing... Busy... Postponing [%s]' % (task))
-            else:
-                xbmc.log('PrimeWire Service: Scanning... Busy... Postponing [%s]' % (task))
-
 class Service(xbmc.Player):
     def __init__(self, *args, **kwargs):
         xbmc.Player.__init__(self, *args, **kwargs)
@@ -85,11 +50,11 @@ class Service(xbmc.Player):
 
         self.last_run = 0
         self.DB = ''
-        xbmc.log('PrimeWire Service starting...')
+        xbmc.log('1Channel: Service starting...')
 
 
     def reset(self):
-        xbmc.log('PrimeWire Service: Resetting...')
+        xbmc.log('1Channel: Service: Resetting...')
         win = xbmcgui.Window(10000)
         win.clearProperty('1ch.playing.title')
         win.clearProperty('1ch.playing.year')
@@ -109,10 +74,10 @@ class Service(xbmc.Player):
 
 
     def onPlayBackStarted(self):
-        xbmc.log('PrimeWire Service: Playback started')
+        xbmc.log('1Channel: Service: Playback started')
         meta = self.win.getProperty('1ch.playing')
         if meta: #Playback is ours
-            xbmc.log('PrimeWire Service: tracking progress...')
+            xbmc.log('1Channel: Service: tracking progress...')
             self.tracking = True
             self.meta = json.loads(meta)
             self.video_type = 'tvshow' if 'episode' in self.meta else 'movie'
@@ -129,7 +94,7 @@ class Service(xbmc.Player):
                 print "Total Time: %s"   % (self._totalTime)
 
     def onPlayBackStopped(self):
-        xbmc.log('PrimeWire Playback Stopped')
+        xbmc.log('1Channel: Playback Stopped')
         #Is the item from our addon?
         if self.tracking:
             DBID = self.meta['DBID'] if 'DBID' in self.meta else None
@@ -138,13 +103,13 @@ class Service(xbmc.Player):
             percent_played = int((playedTime / self._totalTime) * 100)
             pTime = utils.format_time(playedTime)
             tTime = utils.format_time(self._totalTime)
-            xbmc.log('PrimeWire Service: Played %s of %s total = %s%%/%s%%' % (pTime, tTime, percent_played, min_watched_percent))
+            xbmc.log('1Channel: Service: Played %s of %s total = %s%%/%s%%' % (pTime, tTime, percent_played, min_watched_percent))
             videotype = 'movie' if self.video_type == 'movie' else 'episode'
             if playedTime == 0 and self._totalTime == 999999:
                 raise RuntimeError('XBMC silently failed to start playback')
             elif (percent_played >= min_watched_percent) and (
                         self.video_type == 'movie' or (self.meta['season'] and self.meta['episode'])):
-                xbmc.log('PrimeWire Service: Threshold met. Marking item as watched')
+                xbmc.log('1Channel: Service: Threshold met. Marking item as watched')
                 # meta['DBID'] only gets set for strms in default.py
                 if DBID:
                     if videotype == 'episode':
@@ -156,7 +121,7 @@ class Service(xbmc.Player):
                         playcount = int(result['result']['episodedetails']['playcount']) + 1
                         cmd = cmd %(DBID, playcount)
                         result = xbmc.executeJSONRPC(cmd)
-                        xbmc.log('PrimeWire Marking episode .strm as watched: %s' %result)
+                        xbmc.log('1Channel: Marking episode .strm as watched: %s' %result)
                     if videotype == 'movie':
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid": %s, "properties": ["playcount"]}, "id": 1}'
                         cmd = cmd %(DBID)
@@ -166,32 +131,33 @@ class Service(xbmc.Player):
                         playcount = int(result['result']['moviedetails']['playcount']) + 1
                         cmd = cmd %(DBID, playcount)
                         result = xbmc.executeJSONRPC(cmd)
-                        xbmc.log('PrimeWire Service: Marking movie .strm as watched: %s' %result)
+                        xbmc.log('1Channel: Service: Marking movie .strm as watched: %s' %result)
                 video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']
                 ChangeWatched(self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], watched=7)
                 db_connection.clear_bookmark(self.primewire_url)
             elif playedTime>0:
-                xbmc.log('PrimeWire Service: Threshold not met. Setting bookmark on %s to %s seconds' % (self.primewire_url,playedTime))
+                xbmc.log('1Channel: Service: Threshold not met. Setting bookmark on %s to %s seconds' % (self.primewire_url,playedTime))
                 db_connection.set_bookmark(self.primewire_url,playedTime)
         self.reset()
 
     def onPlayBackEnded(self):
-        xbmc.log('PrimeWire Playback completed')
+        xbmc.log('1Channel: Playback completed')
         self.onPlayBackStopped()
 
 mig_watched_setting() # migrate from old 0, 1, 2 setting to actual value
 monitor = Service()
-doStartupTask('update_subscriptions')
-doStartupTask('movie_update')
-doStartupTask('backup_db')
+utils.do_startup_task('update_subscriptions')
+utils.do_startup_task('movie_update')
+utils.do_startup_task('backup_db')
 
 while not xbmc.abortRequested:
-    doScheduledTask('update_subscriptions')
-    doScheduledTask('movie_update')
-    doScheduledTask('backup_db')
+    isPlaying=monitor.isPlaying()
+    utils.do_scheduled_task('update_subscriptions', isPlaying)
+    utils.do_scheduled_task('movie_update', isPlaying)
+    utils.do_scheduled_task('backup_db', isPlaying)
 
     if monitor.tracking and monitor.isPlayingVideo():
         monitor._lastPos = monitor.getTime()
 
     xbmc.sleep(1000)
-xbmc.log('PrimeWire Service: shutting down...')
+xbmc.log('1Channel: Service: shutting down...')

@@ -85,8 +85,8 @@
     </category>
 
     <category label="Skin Integration">
-        <setting id="auto-movie_update" type="labelenum" values="Featured|Most Popular|Highly Rated|Date Released|Date Added" label="30814" default="0" />
-        <setting id="auto-update-movies" type="bool" label="30810" default="false"/>
+        <setting id="auto-update-movies-cat" type="labelenum" values="Featured|Most Popular|Highly Rated|Date Released|Date Added" label="30814" default="0" />
+        <setting id="auto-movie_update" type="bool" label="30810" default="false"/>
         <setting enable="!eq(-1,false)" id="movie_update-during-startup" type="bool" label="30812" default="false"/>
         <setting enable="!eq(-2,false)" id="movie_update-interval" type="enum" values="2h|5h|10h|15h|24h" label="30811" default="3" />
         <setting label="30813" type="action" option="close" action="RunPlugin(plugin://plugin.video.1channel/?mode=movie_update)" />
