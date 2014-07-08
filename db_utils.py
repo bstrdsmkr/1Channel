@@ -40,8 +40,8 @@ class DB_Connection():
         self.db=None
         
         if _1CH.get_setting('use_remote_db') == 'true':
-            if self.db_address is not None and self.username is not None \
-            and self.password is not None and self.db_name is not None:
+            if self.address is not None and self.username is not None \
+            and self.password is not None and self.dbname is not None:
                 import mysql.connector as db_lib
                 _1CH.log('Loading MySQL as DB engine')
                 self.db_type = DB_TYPES.MYSQL
@@ -186,7 +186,9 @@ class DB_Connection():
             self.__execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS new_bkmark (url VARCHAR(255) PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')            
-            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)')
+            self.__execute('ALTER IGNORE TABLE db_info DROP INDEX unique_db_info')            
+            self.__execute('ALTER IGNORE TABLE db_info ADD UNIQUE INDEX unique_db_info (setting (255))')
+            # self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)')
         else:
             self.__create_sqlite_db()
             self.__execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
@@ -337,7 +339,7 @@ class DB_Connection():
     def __connect_to_db(self):
         if not self.db:
             if self.db_type == DB_TYPES.MYSQL:
-                self.db = db_lib.connect(database=self.db_name, user=self.username, password=self.password, host=self.db_address, buffered=True)
+                self.db = db_lib.connect(database=self.dbname, user=self.username, password=self.password, host=self.address, buffered=True)
             else:
                 self.db = db_lib.connect(self.db_path)
                 self.db.text_factory = str
