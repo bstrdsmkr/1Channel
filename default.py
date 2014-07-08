@@ -1450,4 +1450,3 @@ elif mode == 'Help':
     _1CH.log('Showing help popup')
     try: utils.TextBox()
     except: pass
-    
