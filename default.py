@@ -1027,7 +1027,8 @@ def cancel_subscription(url, title, img, year, imdbnum):
     xbmc.executebuiltin('Container.Refresh')
 
 def update_subscriptions():
-    subs=db_connection.get_subscriptions()
+    day=datetime.datetime.now().weekday()
+    subs=db_connection.get_subscriptions(day)
     for sub in subs:
         add_to_library('tvshow', sub[0], sub[1], sub[2], sub[3], sub[4])
     if _1CH.get_setting('library-update') == 'true':
@@ -1290,8 +1291,7 @@ def backup_db():
     db_connection.export_from_db(full_path)
 
 def edit_days(url, days):
-    keyboard = xbmc.Keyboard()
-    keyboard.setDefault(utils.get_days_string_from_days(days))
+    keyboard = xbmc.Keyboard(utils.get_days_string_from_days(days), 'Days to update Subscription (e.g. MTWHFSaSu)')
     keyboard.doModal()
     if keyboard.isConfirmed():
         days_string=keyboard.getText()

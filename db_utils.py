@@ -78,7 +78,7 @@ class DB_Connection():
 
     # get all bookmarks
     def get_bookmarks(self):
-        sql='SELECT url, resumepoint FROM new_bkmark'
+        sql='SELECT * FROM new_bkmark'
         bookmarks = self.__execute(sql)
         return bookmarks
     
@@ -97,7 +97,7 @@ class DB_Connection():
         self.__execute(sql, (url,))
 
     def get_favorites(self, section=None):
-        sql = 'SELECT type, name, url, year FROM favorites'
+        sql = 'SELECT * FROM favorites'
         if section:
             sql = sql + self.__format(' WHERE type = ? ORDER BY NAME')
             favs=self.__execute(sql, (section,))
@@ -132,10 +132,15 @@ class DB_Connection():
     def delete_favorite(self, url):
         self.delete_favorites([url])
 
-    def get_subscriptions(self):
+    def get_subscriptions(self, day=None):
         # order subscription by their days values, forcing ALLs to the top, forcing disabled (i.e. nulls and blank) to the end, with the rest sorted lexicographically, then by alphabetically by title
-        sql = 'SELECT url, title, img, year, imdbnum, days FROM subscriptions ORDER BY CASE WHEN days="0123456" THEN 0 WHEN days IS NULL THEN 2 WHEN days="" THEN 2 ELSE 1 END, days,title'
-        rows=self.__execute(sql)
+        sql = 'SELECT * FROM subscriptions'
+        if day: sql += ' WHERE days like ?'
+        sql += ' ORDER BY CASE WHEN days="0123456" THEN 0 WHEN days IS NULL THEN 2 WHEN days="" THEN 2 ELSE 1 END, days,title'
+        if day:
+            rows=self.__execute(sql,('%{}%'.format(day),))
+        else:
+            rows=self.__execute(sql)
         return rows
     
     def add_subscription(self, url, title, img, year, imdbnum, days):
@@ -184,22 +189,18 @@ class DB_Connection():
     def export_from_db(self, full_path):
         with open(full_path, 'w') as f:
             writer=csv.writer(f)
-            f.write('***VERSION: %s***\n' % _1CH.get_version())
-            f.write(CSV_MARKERS.FAVORITES)
-            f.write('\n')
+            f.write('***VERSION: %s***\n' % self.__get_db_version())
+            f.write(CSV_MARKERS.FAVORITES+'\n')
             for fav in self.get_favorites():
                 writer.writerow(fav)
-            f.write(CSV_MARKERS.SUBSCRIPTIONS)
-            f.write('\n')
+            f.write(CSV_MARKERS.SUBSCRIPTIONS+'\n')
             for sub in self.get_subscriptions():
                 writer.writerow(sub)
-            f.write(CSV_MARKERS.BOOKMARKS)
-            f.write('\n')
+            f.write(CSV_MARKERS.BOOKMARKS+'\n')
             for bookmark in self.get_bookmarks():
                 writer.writerow(bookmark)
     
     def import_into_db(self, full_path):
-        self.init_database()
         with open(full_path,'r') as f:
             reader=csv.reader(f)
             mode=''
@@ -213,7 +214,9 @@ class DB_Connection():
                         self.save_favorite(line[0], line[1], line[2], line[3])
                     except: pass # save_favorite throws exception on dupe
                 elif mode==CSV_MARKERS.SUBSCRIPTIONS:
-                    self.add_subscription(line[0], line[1], line[2], line[3], line[4])
+                    # don't allow import of days with values other than 0-6
+                    if line[5].translate(None,'0123456'): line[5] = '0123456' 
+                    self.add_subscription(line[0], line[1], line[2], line[3], line[4], line[5])
                 elif mode==CSV_MARKERS.BOOKMARKS:
                     self.set_bookmark(line[0], line[1])
                 else:
@@ -224,6 +227,12 @@ class DB_Connection():
 
     # intended to be a common method for creating a db from scratch
     def init_database(self):
+        cur_version = _1CH.get_version()
+        db_version = self.__get_db_version()
+        if db_version is not None and cur_version !=  db_version:
+            _1CH.log('DB Upgrade from %s to %s detected.' % (db_version,cur_version))
+            self.__prep_for_reinit()
+
         _1CH.log('Building PrimeWire Database')
         if self.db_type == DB_TYPES.MYSQL:
             self.__execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
@@ -246,10 +255,14 @@ class DB_Connection():
             self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
             self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
             self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
-            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)')
-            
+            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)') 
         
-        self.__do_db_fixes()
+        # reload the previously saved backup export
+        if db_version is not None and cur_version !=  db_version:
+            _1CH.log('Restoring DB from backup at %s' % (self.mig_path))
+            self.import_into_db(self.mig_path)
+            _1CH.log('DB restored from %s' % (self.mig_path))
+
         sql = 'REPLACE INTO db_info (setting, value) VALUES(?,?)'
         self.__execute(sql, ('version', _1CH.get_version()))
 
@@ -357,34 +370,46 @@ class DB_Connection():
         self.db.commit()
         return rows
 
-    # generic cleanup method to do whatever fixes might be required in this release
-    def __do_db_fixes(self):
-        fixes=[]
-        if self.db_type==DB_TYPES.MYSQL:
-            fixes.append('ALTER TABLE url_cache MODIFY COLUMN response MEDIUMBLOB')
-        else:
-            #Fix previous index errors on bookmark table
-            fixes.append('DROP INDEX IF EXISTS unique_movie_bmk') # get rid of faulty index that might exist
-            fixes.append('DROP INDEX IF EXISTS unique_episode_bmk') # get rid of faulty index that might exist
-            fixes.append('DROP INDEX IF EXISTS unique_bmk') # drop this index too just in case it was wrong
-        
-        # try fixes, ignore errors
-        for fix in fixes:
-            try: self.__execute(fix)
-            except: pass
-
-        # add the days column to subscriptions, and migrate all the subscriptions as ALL subscriptions
+    def __get_db_version(self):
+        version=None
         try:
-            self.__execute('ALTER TABLE SUBSCRIPTIONS ADD COLUMN DAYS VARCHAR(7)')
-            self.__execute('UPDATE subscriptions SET days="0123456"') # only execute if the column was successfully added
+            sql = 'SELECT value FROM db_info WHERE setting="version"'
+            rows=self.__execute(sql)
         except:
-            pass
+            return None
+        
+        if rows: 
+            version=rows[0][0]
+            
+        return version
+    
+    # purpose is to save the current db with an export, drop the db, recreate it, then connect to it
+    def __prep_for_reinit(self):
+        self.mig_path = xbmc.translatePath("special://database") + 'mig_export.csv'
+        _1CH.log('Backing up DB to %s' % (self.mig_path))
+        self.export_from_db(self.mig_path)
+        _1CH.log('Backup export of DB created at %s' % (self.mig_path))
+        self.__drop_all()
+        _1CH.log('DB Objects Dropped')
         
     def __create_sqlite_db(self):
         if not xbmcvfs.exists(os.path.dirname(self.db_path)): 
             try: xbmcvfs.mkdirs(os.path.dirname(self.db_path))
             except: os.mkdir(os.path.dirname(self.db_path))
     
+    def __drop_all(self):
+        if self.db_type==DB_TYPES.MYSQL:
+            #TODO: find better way to list tables in mysql
+            db_objects=['seasons', 'favorites', 'subscriptions', 'url_cache', 'db_info', 'new_bkmark']
+        else:
+            sql = 'select name from sqlite_master where type="table"'
+            rows=self.__execute(sql)
+            db_objects = [row[0] for row in rows]
+            
+        for db_object in db_objects:
+            sql = 'DROP TABLE IF EXISTS %s' % (db_object)
+            self.__execute(sql)
+            
     def __connect_to_db(self):
         if not self.db:
             if self.db_type == DB_TYPES.MYSQL:
