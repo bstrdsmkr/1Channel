@@ -1012,7 +1012,7 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
 
 def add_subscription(url, title, img, year, imdbnum):
     try:
-        db_connection.add_subscription(url, title, img, year, imdbnum)
+        db_connection.add_subscription(url, title, img, year, imdbnum, '0123456')
         add_to_library('tvshow', url, title, img, year, imdbnum)
         builtin = "XBMC.Notification(Subscribe,Subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)
@@ -1057,10 +1057,23 @@ def manage_subscriptions():
     subs=db_connection.get_subscriptions()
     subs_len=len(subs)
     for sub in subs:
+        days=sub[5]
+        days_string = utils.get_days_string_from_days(days)
+        if days_string=='': days_string='DISABLED'
+        days_format = _1CH.get_setting('format-sub-days')
+
+        if '%s' in days_format:
+            days_string = days_format % (days_string)
+        else:
+            _1CH.log('Ignoring subscription days format because %s is missing')
+            
         meta = create_meta('tvshow', sub[1], sub[3], '')
         meta['title'] = utils.format_label_sub(meta)
 
         menu_items = add_contextsearchmenu(meta['title'], 'tv')
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
+            {'mode': 'edit_days', 'url': sub[0], 'days': days})
+        menu_items.append(('Edit days', runstring,))
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
             {'mode': 'cancel_subscription', 'url': sub[0], 'title': sub[1], 'img': sub[2], 'year': sub[3], 'imdbnum': sub[4]})
         menu_items.append(('Cancel subscription', runstring,))
@@ -1075,8 +1088,8 @@ def manage_subscriptions():
             try: img = meta['cover_url']
             except: img = ''
         else: fanart = art('fanart.png'); img = ''
-
-        listitem = xbmcgui.ListItem(meta['title'], iconImage=img, thumbnailImage=img)
+        label = '[%s] %s' % (days_string, meta['title'])
+        listitem = xbmcgui.ListItem(label, iconImage=img, thumbnailImage=img)
         listitem.setInfo('video', meta)
         listitem.setProperty('fanart_image', fanart)
         listitem.addContextMenuItems(menu_items, replaceItems=True)
@@ -1276,6 +1289,16 @@ def backup_db():
     full_path = path + 'db_backup_' + now_str +'.csv'
     db_connection.export_from_db(full_path)
 
+def edit_days(url, days):
+    keyboard = xbmc.Keyboard()
+    keyboard.setDefault(utils.get_days_string_from_days(days))
+    keyboard.doModal()
+    if keyboard.isConfirmed():
+        days_string=keyboard.getText()
+        days=utils.get_days_from_day_string(days_string)
+        db_connection.edit_days(url, days)
+        xbmc.executebuiltin('Container.Refresh')
+
 def main(argv=None):
     if sys.argv: argv=sys.argv
     global urlresolver
@@ -1300,6 +1323,7 @@ def main(argv=None):
     dialog = _1CH.queries.get('dialog', '')
     resume = _1CH.queries.get('resume', False)
     primewire_url = _1CH.queries.get('primewire_url', '')
+    days = _1CH.queries.get('days', '')
     
     _1CH.log(_1CH.queries)
     _1CH.log(argv)
@@ -1405,6 +1429,8 @@ def main(argv=None):
         import_db()
     elif mode == 'backup_db':
         backup_db()
+    elif mode == 'edit_days':
+        edit_days(url, days)
     elif mode == 'Help':
         _1CH.log('Showing help popup')
         try: utils.TextBox()

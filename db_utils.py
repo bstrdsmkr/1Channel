@@ -133,18 +133,23 @@ class DB_Connection():
         self.delete_favorites([url])
 
     def get_subscriptions(self):
-        sql = 'SELECT url, title, img, year, imdbnum FROM subscriptions'
+        # order subscription by their days values, forcing ALLs to the top, forcing disabled (i.e. nulls and blank) to the end, with the rest sorted lexicographically, then by alphabetically by title
+        sql = 'SELECT url, title, img, year, imdbnum, days FROM subscriptions ORDER BY CASE WHEN days="0123456" THEN 0 WHEN days IS NULL THEN 2 WHEN days="" THEN 2 ELSE 1 END, days,title'
         rows=self.__execute(sql)
         return rows
     
-    def add_subscription(self, url, title, img, year, imdbnum):
-        sql = 'REPLACE INTO subscriptions (url, title, img, year, imdbnum) VALUES (?, ?, ?, ?, ?)'
-        self.__execute(sql, (url, title, img, year, imdbnum))
+    def add_subscription(self, url, title, img, year, imdbnum, days):
+        sql = 'REPLACE INTO subscriptions (url, title, img, year, imdbnum, days) VALUES (?, ?, ?, ?, ?, ?)'
+        self.__execute(sql, (url, title, img, year, imdbnum, days))
 
     def delete_subscription(self, url):
         sql = 'DELETE FROM subscriptions WHERE url=?'
         self.__execute(sql, (url,))
 
+    def edit_days(self, url, days):
+        sql = "UPDATE subscriptions SET days=? WHERE url=?"
+        self.__execute(sql, (days, url))
+    
     def cache_url(self,url,body):
         now = time.time()
         sql = 'REPLACE INTO url_cache (url,response,timestamp) VALUES(?, ?, ?)'
@@ -223,7 +228,7 @@ class DB_Connection():
         if self.db_type == DB_TYPES.MYSQL:
             self.__execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
-            self.__execute('CREATE TABLE IF NOT EXISTS subscriptions (url VARCHAR(255) UNIQUE, title TEXT, img TEXT, year TEXT, imdbnum TEXT, day TEXT)')
+            self.__execute('CREATE TABLE IF NOT EXISTS subscriptions (url VARCHAR(255) UNIQUE, title TEXT, img TEXT, year TEXT, imdbnum TEXT, days VARCHAR(7)')
             self.__execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS new_bkmark (url VARCHAR(255) PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')            
@@ -234,7 +239,7 @@ class DB_Connection():
             self.__create_sqlite_db()
             self.__execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
             self.__execute('CREATE TABLE IF NOT EXISTS favorites (type, name, url, year)')
-            self.__execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum, day)')
+            self.__execute('CREATE TABLE IF NOT EXISTS subscriptions (url, title, img, year, imdbnum, days VARCHAR(7))')
             self.__execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
             self.__execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS new_bkmark (url TEXT PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')
@@ -367,7 +372,14 @@ class DB_Connection():
         for fix in fixes:
             try: self.__execute(fix)
             except: pass
-    
+
+        # add the days column to subscriptions, and migrate all the subscriptions as ALL subscriptions
+        try:
+            self.__execute('ALTER TABLE SUBSCRIPTIONS ADD COLUMN DAYS VARCHAR(7)')
+            self.__execute('UPDATE subscriptions SET days="0123456"') # only execute if the column was successfully added
+        except:
+            pass
+        
     def __create_sqlite_db(self):
         if not xbmcvfs.exists(os.path.dirname(self.db_path)): 
             try: xbmcvfs.mkdirs(os.path.dirname(self.db_path))

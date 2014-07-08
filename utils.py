@@ -20,6 +20,58 @@ hours_list['backup_db'] = [12, 24, 168, 720]
 
 _1CH = Addon('plugin.video.1channel')
 
+def get_days_string_from_days(days):
+    # empty days = all days
+    if days is None:
+        days=''
+        
+    days_string=''
+    if '0' in days:
+        days_string += 'M'
+    if '1' in days:
+        days_string += 'T'
+    if '2' in days:
+        days_string += 'W'
+    if '3' in days:
+        days_string += 'H'
+    if '4' in days:
+        days_string += 'F'
+    if '5' in days:
+        days_string += 'Sa'
+    if '6' in days:
+        days_string += 'Su'
+    
+    if days_string=='MTWHFSaSu':
+        days_string='All'
+        
+    return days_string
+
+def get_days_from_day_string(days_string):
+    if days_string is None:
+        days_string=''
+        
+    days_string=days_string.upper()
+    days=''
+    if days_string=='ALL':
+        days='0123456'
+    else:
+        if 'M' in days_string:
+            days += '0'
+        if 'T' in days_string:
+            days += '1'
+        if 'W' in days_string:
+            days += '2'
+        if 'H' in days_string:
+            days += '3'
+        if 'F' in days_string:
+            days += '4'
+        if 'SA' in days_string:
+            days += '5'
+        if 'SU' in days_string:
+            days += '6'
+    
+    return days
+
 def format_label_tvshow(info):
     if 'premiered' in info:
         year = info['premiered'][:4]
