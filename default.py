@@ -38,7 +38,6 @@ import utils
 from pw_scraper import PW_Scraper
 from db_utils import DB_Connection
 
-# hack to keep eclipse from thinking urlresolver import isn't defined :|
 global urlresolver
 
 _1CH = Addon('plugin.video.1channel', sys.argv)
@@ -1279,6 +1278,7 @@ def backup_db():
 
 def main(argv=None):
     if sys.argv: argv=sys.argv
+    global urlresolver
         
     mode = _1CH.queries.get('mode', None)
     section = _1CH.queries.get('section', '')

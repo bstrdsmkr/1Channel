@@ -202,6 +202,7 @@ class PW_Scraper():
             result = {}
             for item in regex.finditer(html):
                 result = set_result(item.groups())
+                result['title']=result['title'].strip()
                 if not result['year'] or len(result['year']) != 4: result['year'] = ''
                 yield result
             

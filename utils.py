@@ -299,19 +299,6 @@ def format_eta(seconds):
     else:
         return "ETA: %02d:%02d " % (minutes, seconds)
 
-        
-        # import cProfile
-
-        # def profiled(func):
-        # def wrapper(*args, **kwargs):
-        # datafn = func.__name__ + ".profile" # Name the data file sensibly
-        # datapath = os.path.join(addon.get_profile(), datafn)
-        # prof = cProfile.Profile()
-        # retval = prof.runcall(func, *args, **kwargs)
-        # prof.dump_stats(datapath)
-        # return retval
-        # return wrapper
-
 # returns true if user chooses to resume, else false
 def get_resume_choice(url):
     question = 'Resume from %s' % (format_time(db_connection.get_bookmark(url)))
@@ -335,7 +322,8 @@ def format_time(seconds):
 
 # Run a task on startup. Settings and mode values must match task name
 def do_startup_task(task):
-    if _1CH.get_setting('%s-during-startup' % task) == 'true' and not xbmc.abortRequested:
+    run_on_startup=_1CH.get_setting('auto-%s' % task)=='true' and _1CH.get_setting('%s-during-startup' % task) == 'true' 
+    if run_on_startup and not xbmc.abortRequested:
         _1CH.log('Service: Running startup task [%s]' % (task))
         now = datetime.datetime.now()
         xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task))
