@@ -3,6 +3,7 @@ import re
 import sys
 import time
 import datetime
+import _strptime # fix bug in python import
 import xbmc
 import xbmcgui
 import xbmcplugin
@@ -194,16 +195,6 @@ def website_is_integrated():
     user = _1CH.get_setting('usename') is not None
     passwd = _1CH.get_setting('passwd') is not None
     return enabled and user and passwd
-
-#TODO: Add methods to db_utils to do this for you
-def migrate_to_mysql():
-    dlg = xbmcgui.Dialog()
-    ln1 = 'Do you want to permanantly delete'
-    ln2 = 'the old database?'
-    ln3 = 'THIS CANNOT BE UNDONE'
-    yes = 'Keep'
-    no = 'Delete'
-    ret = dlg.yesno('Migration Complete', ln1, ln2, ln3, yes, no)
 
 def rank_host(source):
     host = source['host']

@@ -1262,7 +1262,6 @@ def import_db():
         dialog = xbmcgui.Dialog()
         import_file = dialog.browse(1, 'Select Import File', 'files')
         if import_file:
-            db_connection.init_database()
             db_connection.import_into_db(import_file)
             builtin = "XBMC.Notification(Import Success,Imported from %s,5000, %s)" % (import_file, ICON_PATH)
             xbmc.executebuiltin(builtin)
@@ -1396,8 +1395,6 @@ def main(argv=None):
         utils.refresh_meta(video_type, title, imdbnum, alt_id, year)
     elif mode == 'flush_cache':
         utils.flush_cache()
-    elif mode == 'migrateDB':
-        utils.migrate_to_mysql()
     elif mode == 'migrateFavs':
         migrate_favs_to_web()
     elif mode == 'fav2Library':

@@ -179,6 +179,7 @@ class DB_Connection():
     def export_from_db(self, full_path):
         with open(full_path, 'w') as f:
             writer=csv.writer(f)
+            f.write('***VERSION: %s***\n' % _1CH.get_version())
             f.write(CSV_MARKERS.FAVORITES)
             f.write('\n')
             for fav in self.get_favorites():
@@ -193,9 +194,11 @@ class DB_Connection():
                 writer.writerow(bookmark)
     
     def import_into_db(self, full_path):
+        self.init_database()
         with open(full_path,'r') as f:
             reader=csv.reader(f)
             mode=''
+            _=f.readline() #read header
             for line in reader:
                 if CSV_MARKERS.FAVORITES in line[0] or CSV_MARKERS.SUBSCRIPTIONS in line[0] or CSV_MARKERS.BOOKMARKS in line[0]:
                     mode=line[0]
