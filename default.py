@@ -358,19 +358,26 @@ def PlayTrailer(url):
     xbmc.Player().play(stream_url)
 
 
-def GetSearchQuery(section):
-    last_search = _1CH.load_data('search')
-    if not last_search: last_search = ''
+def GetSearchQuery(section, next_mode):
+    paginate=(_1CH.get_setting('paginate-search')=='true' and _1CH.get_setting('paginate')=='true')
     keyboard = xbmc.Keyboard()
     if section == 'tv':
         keyboard.setHeading('Search TV Shows')
     else:
         keyboard.setHeading('Search Movies')
-    keyboard.setDefault(last_search)
-    keyboard.doModal()
+    while True:
+        keyboard.doModal()
+        if keyboard.isConfirmed():
+            search_text = keyboard.getText()
+            if not paginate and not search_text:
+                _1CH.show_ok_dialog(['Blank searches are not allowed unless [B]Paginate Search Results[/B] is enabled.'], title='PrimeWire')
+                continue
+            else:
+                break
+        else:
+            break
+            
     if keyboard.isConfirmed():
-        search_text = keyboard.getText()
-        _1CH.save_data('search', search_text)
         if search_text.startswith('!#'):
             if search_text == '!#create metapacks': metapacks.create_meta_packs()
             if search_text == '!#repair meta': repair_missing_images()
@@ -379,7 +386,7 @@ def GetSearchQuery(section):
                 _1CH.log('Running SQL: |%s|' % (search_text[6:]))
                 db_connection.execute_sql(search_text[6:])
         else:
-            queries = {'mode': 'Search', 'section': section, 'query': keyboard.getText()}
+            queries = {'mode': next_mode, 'section': section, 'query': keyboard.getText()}
             pluginurl = _1CH.build_plugin_url(queries)
             builtin = 'Container.Update(%s)' %(pluginurl)
             xbmc.executebuiltin(builtin)
@@ -396,36 +403,6 @@ def GetSearchQueryAdvanced(section):
         xbmc.executebuiltin(builtin)
     except:
         BrowseListMenu(section)
-
-
-def GetSearchQueryDesc(section):
-    last_search = _1CH.load_data('search')
-    if not last_search: last_search = ''
-    keyboard = xbmc.Keyboard()
-    if section == 'tv':
-        keyboard.setHeading('Search TV Shows')
-    else:
-        keyboard.setHeading('Search Movies')
-    keyboard.setDefault(last_search)
-    keyboard.doModal()
-    if keyboard.isConfirmed():
-        search_text = keyboard.getText()
-        _1CH.save_data('search', search_text)
-        if search_text.startswith('!#'):
-            if search_text == '!#create metapacks': metapacks.create_meta_packs()
-            if search_text == '!#repair meta': repair_missing_images()
-            if search_text == '!#install all meta': metapacks.install_all_meta()
-            if search_text.startswith('!#sql:'):
-                _1CH.log('Running SQL: %s' % (search_text[6:]))
-                db_connection.execute_sql(search_text[6:])
-        else:
-            queries = {'mode': 'SearchDesc', 'section': section, 'query': keyboard.getText()}
-            pluginurl = _1CH.build_plugin_url(queries)
-            builtin = 'Container.Update(%s)' %(pluginurl)
-            xbmc.executebuiltin(builtin)
-    else:
-        BrowseListMenu(section)
-
 
 def Search(mode, section, query, page=None):
     section_params = get_section_params(section)
@@ -1358,11 +1335,11 @@ def main(argv=None):
     elif mode == 'TVShowEpisodeList':
         TVShowEpisodeList(title, season, imdbnum, tvdbnum)
     elif mode == 'GetSearchQuery':
-        GetSearchQuery(section)
+        GetSearchQuery(section, 'Search')
     elif mode == 'GetSearchQueryAdvanced':
         GetSearchQueryAdvanced(section)
     elif mode == 'GetSearchQueryDesc':
-        GetSearchQueryDesc(section)
+        GetSearchQuery(section, 'SearchDesc')
     elif mode == 'Search' or mode=='SearchDesc' or mode == 'SearchAdvanced':
         Search(mode, section,query,page)
     elif mode == '7000':  # Enables Remote Search
