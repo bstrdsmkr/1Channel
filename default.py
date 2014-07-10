@@ -593,7 +593,12 @@ def add_contextsearchmenu(title, video_type, resurl=''):
 
 def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
     #_1CH.log('Create Item: %s, %s, %s, %s, %s, %s, %s, %s, %s' % (section_params, title, year, img, url, imdbnum, season, episode, totalItems))
-    liz = build_listitem(section_params['video_type'], title, year, img, url, imdbnum, season, episode, extra_cms=menu_items, subs=section_params['subs'])
+    # fix episode url being added to subs
+    if section_params['video_type']=='episode':
+        temp_url=re.match('(/.*/).*',url).groups()[0]
+    else:
+        temp_url=url
+    liz = build_listitem(section_params['video_type'], title, year, img, temp_url, imdbnum, season, episode, extra_cms=menu_items, subs=section_params['subs'])
     img = liz.getProperty('img')
     imdbnum = liz.getProperty('imdb')
     if not section_params['folder']: # should only be when it's a movie and dialog are off and autoplay is off
