@@ -1,3 +1,16 @@
+[B][COLOR blue]2.4.0 Release Notes[/COLOR][/B]
+- The attempt in V2.3.0 to use XBMC's native resume functionality ultimately failed due to XBMC bugs that couldn't be worked around. The new approach is purely custom, but should work better and more consistently. One benefit of this approach is that resume points can be consistent within the addon and library.
+- Under the covers major changes in the code base have been made to make the whole addon easier to maintain.
+ - The advanced search function has been rewritten to make it far more usable.
+- There is a new function in the favorites list that allows you to add all your favorites to the library with one click.
+- Subscriptions can now be automatically updated during XBMC start up. (This can be turned off in settings)
+- Skinners can now add an automatically updated 1Channel movie category to other XBMC windows (e.g. the XBMC Home Screen) 
+- The Settings dialog has been reorganized to hopefully have all settings grouped more logically.
+- Several performance settings have been added that can be turned on/off to boost performance on slower hardware (e.g. the RPi). They are visible in the Performance tab in settings. 
+- Changes have been made in all the themes to reduce the overall size of the addon by over 50% without affecting presentation quality. This should make this and future updates easier to get out to everyone.
+- Several smaller fixes have also been made, most notable fixing the ".." problem when playing movies from certain views.
+
+[B][COLOR blue]2.3.0 and Prior Release Notes[/COLOR][/B]
 [B]New Features[/B]
 A lot of new features have been added to 1Channel recently, most importantly the Help button. Most of your questions should be answered after a read through there.
 
@@ -5,6 +18,7 @@ A lot of new features have been added to 1Channel recently, most importantly the
 
 [COLOR blue][B]Mark library items as watched[/B][/COLOR]
     Based on concepts from jded76 and code from lambda, watching items from .strm files in your library can now mark them as watched.
+    
 [COLOR blue][B]UK Users Blocked[/B][/COLOR]
     As of November 21st, UK ISP's - BT, Sky, Virgin Media, O2, EE and TalkTalk have begun blocking various websites including PrimeWire (formerly 1Channel)
     
@@ -16,24 +30,11 @@ A lot of new features have been added to 1Channel recently, most importantly the
     
     If for any reason none of these domains work for you, please visit [COLOR blue]www.XBMCHub.com[/COLOR] for OFFICIAL support. You can also enter your own Custom Domain if any of the above do not work.
 
-[COLOR blue][B]Subscriptions' Day Menus[/B][/COLOR]
-    A request had been heard for a while about adding the days of the week to either Favorites or Subscriptions.  Subscriptions now can include a Day marking of the current day they are added as, updated to the current day of the week, or the day marking removed.  Also you can view all subscriptions, or view subscriptions marked with a specific day of the week.  Psst!  Thank TwiztedZero for his suggested mind-control of me, if you come to like this.  You can also edit the label formating of this in addon-settings.
-
 [COLOR blue][B]Error Handling[/B][/COLOR]
     Error handling has been added in many place, most of all to logging, for sake of unhandled text.  This should help solve several of the script errors that accured due to unhandled text being printed to xbmc.log that would cause an error.
 
 [COLOR blue][B]PrimeWire.ag[/B][/COLOR]
     November of 2013 has come around and PrimeWire.ag has been the mainly used domain for 1Channel for quite some time now.  It was about time for a graphics to be updated.  Icon and Fanart were updated from what was made by fans a while back.  Also a new temp thing has been included called PrimeWire.  A lot of the 1Channel Text has also been switched to PrimeWire, within the addon.
-
-[COLOR blue][B]1Channel.ch under attack[/B][/COLOR]
-    -On 01May2013, www.1channel.ch was attacked and the domain hijacked. The site is currently available under the old domain www.letmewatchthis.ch. Until further notice, please
-    [COLOR red]DO NOT[/COLOR] use www.1channel.ch and especially do not attempt to log in there. If you have tried to login there, visit www.letmewatchthis.ch and change
-    your password immediately. 
-    
-    This updated version of the addon allows you to select to use 1channel.ch or letmewatchthis.ch via a setting under Miscellaneous -> Domain. Until the team behind the
-    1channel/letmewatchthis site give the all clear, please leave this set to Letmewatchthis.ch. You can keep up with them on Twitter @real_1channel.
-
-Here's a quick rundown of things that have changed or that you might not know about:
 
 [COLOR blue][B]Add to Library[/B][/COLOR]
     - Create .strm files to link directly to 1Ch content from your XBMC library
@@ -56,7 +57,7 @@ Here's a quick rundown of things that have changed or that you might not know ab
             
                 putlocker.com, sockshare.com, vidxden.com 
 
-        - To give two hosts equal prefrence, separate them with the | character:
+        - To give two hosts equal preference, separate them with the | character:
            For example:
             
                 putlocker.com|sockshare.com, vidxden.com, nowvideo.eu
@@ -65,7 +66,7 @@ Here's a quick rundown of things that have changed or that you might not know ab
         - Enabling Reverse Sort after a sorting option will sort them appropriately, then reverse the list
 
 [COLOR blue][B]Autoplay[/B][/COLOR]
-    - When enabled, the list of sources won't be displayed. Instead, the list will be sorted according to your prefrences and will be tried in order until playback is successful.
+    - When enabled, the list of sources won't be displayed. Instead, the list will be sorted according to your preferences and will be tried in order until playback is successful.
 
 [COLOR blue][B]Autowatch[/B][/COLOR]
     - Automatically mark a movie or episode as watched when playback reaches a specified percentage
