@@ -27,31 +27,21 @@ def get_days_string_from_days(days):
     if days is None:
         days=''
 
-    # build the default string (Monday = 0)
     days_string=''
-    for i, day_num in enumerate(DAY_NUMS):
-        if day_num in days:
-            days_string += DAY_CODES[i]
-
-    # adjust codes for selected first day of week
     fdow=int(_1CH.get_setting('first-dow'))
-    adj_day_codes = DAY_CODES[fdow:]+DAY_CODES[:fdow]
+    adj_day_nums=DAY_NUMS[fdow:]+DAY_NUMS[:fdow]
+    adj_day_codes=DAY_CODES[fdow:]+DAY_CODES[:fdow]
     all_days = ''.join(adj_day_codes)
-            
-    # if fdow isn't monday, then shuffle string
-    if fdow>0:
-        adj_days_string=''
-        for day_code in adj_day_codes:
-            if day_code in days_string:
-                adj_days_string += day_code
-        days_string = adj_days_string
-
+    for i, day_num in enumerate(adj_day_nums):
+        if day_num in days:
+            days_string += adj_day_codes[i]
+        
     if days_string==all_days:
         days_string='ALL'
         
     return days_string
 
-def get_days_from_day_string(days_string):
+def get_days_from_days_string(days_string):
     if days_string is None:
         days_string=''
         

@@ -1273,7 +1273,7 @@ def edit_days(url, days):
     keyboard.doModal()
     if keyboard.isConfirmed():
         days_string=keyboard.getText()
-        days=utils.get_days_from_day_string(days_string)
+        days=utils.get_days_from_days_string(days_string)
         db_connection.edit_days(url, days)
         xbmc.executebuiltin('Container.Refresh')
 
