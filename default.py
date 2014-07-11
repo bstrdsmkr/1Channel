@@ -989,7 +989,8 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
 
 def add_subscription(url, title, img, year, imdbnum):
     try:
-        db_connection.add_subscription(url, title, img, year, imdbnum, '0123456')
+        days=utils.get_default_days()
+        db_connection.add_subscription(url, title, img, year, imdbnum, days)
         add_to_library('tvshow', url, title, img, year, imdbnum)
         builtin = "XBMC.Notification(Subscribe,Subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)

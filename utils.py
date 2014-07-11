@@ -52,6 +52,14 @@ def get_days_from_day_string(days_string):
                 
     return days
 
+def get_default_days():
+    def_days= ['0123456', '']
+    dow=datetime.datetime.now().weekday()
+    def_days.append(str(dow))
+    def_days.append(str(dow)+str((dow+1)%7))
+    print def_days
+    return def_days[int(_1CH.get_setting('sub-days'))]        
+
 def format_label_tvshow(info):
     if 'premiered' in info:
         year = info['premiered'][:4]

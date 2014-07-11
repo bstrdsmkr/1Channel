@@ -74,6 +74,8 @@
                  default="special://userdata/addon_data/plugin.video.1channel/TVShows"/>
         <setting id="movie-folder" type="folder" label="30804"
                  default="special://userdata/addon_data/plugin.video.1channel/Movies"/>
+		<setting id="sub-days" type="enum" values="All Days|No Days|Today|Today & Tomorrow" label="Default Subscription Days" default="0"/> 
+		<setting type="sep"/>
         <setting id="auto-update_subscriptions" type="bool" label="30805" default="false"/>
         <setting id="update_subscriptions-interval" type="enum" values="2h|5h|10h|15h|24h" label="30806" default="3"
                  enable="eq(-1,true)"/>
