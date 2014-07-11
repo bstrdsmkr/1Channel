@@ -26,13 +26,27 @@ _1CH = Addon('plugin.video.1channel')
 def get_days_string_from_days(days):
     if days is None:
         days=''
-        
+
+    # build the default string (Monday = 0)
     days_string=''
     for i, day_num in enumerate(DAY_NUMS):
         if day_num in days:
             days_string += DAY_CODES[i]
+
+    # adjust codes for selected first day of week
+    fdow=int(_1CH.get_setting('first-dow'))
+    adj_day_codes = DAY_CODES[fdow:]+DAY_CODES[:fdow]
+    all_days = ''.join(adj_day_codes)
             
-    if days_string=='MTWHFSaSu':
+    # if fdow isn't monday, then shuffle string
+    if fdow>0:
+        adj_days_string=''
+        for day_code in adj_day_codes:
+            if day_code in days_string:
+                adj_days_string += day_code
+        days_string = adj_days_string
+
+    if days_string==all_days:
         days_string='ALL'
         
     return days_string
