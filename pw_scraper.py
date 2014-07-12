@@ -23,7 +23,6 @@ import re
 import HTMLParser
 import xbmc
 import xbmcgui
-import sys
 import os
 import math
 from operator import itemgetter
@@ -34,7 +33,7 @@ USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
               "AppleWebKit/537.17 (KHTML, like Gecko)"
               "Chrome/24.0.1312.56")
 
-_1CH = Addon('plugin.video.1channel', sys.argv)
+_1CH = Addon('plugin.video.1channel')
 ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 ITEMS_PER_PAGE = 24

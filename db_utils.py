@@ -385,7 +385,7 @@ class DB_Connection():
     
     # purpose is to save the current db with an export, drop the db, recreate it, then connect to it
     def __prep_for_reinit(self):
-        self.mig_path = xbmc.translatePath("special://database") + 'mig_export.csv'
+        self.mig_path = xbmc.translatePath("special://database") + 'mig_export_%s.csv' % (int(time.time()))
         _1CH.log('Backing up DB to %s' % (self.mig_path))
         self.export_from_db(self.mig_path)
         _1CH.log('Backup export of DB created at %s' % (self.mig_path))
