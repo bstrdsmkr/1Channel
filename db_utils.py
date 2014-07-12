@@ -96,20 +96,20 @@ class DB_Connection():
         sql = 'DELETE FROM new_bkmark WHERE url=?'
         self.__execute(sql, (url,))
 
-    def get_favorites(self, section=None):
+    def get_favorites(self, fav_type=None):
         sql = 'SELECT * FROM favorites'
-        if section:
+        if fav_type:
             sql = sql + self.__format(' WHERE type = ? ORDER BY NAME')
-            favs=self.__execute(sql, (section,))
+            favs=self.__execute(sql, (fav_type,))
         else:
             favs=self.__execute(sql)
         return favs
     
-    def get_favorites_count(self, section=None):
+    def get_favorites_count(self, fav_type=None):
         sql = 'SELECT count(*) FROM favorites'
-        if section:
+        if fav_type:
             sql = sql + self.__format(' WHERE type = ?')
-            rows=self.__execute(sql, (section,))
+            rows=self.__execute(sql, (fav_type,))
         else:
             rows=self.__execute(sql)
 
