@@ -184,6 +184,12 @@ class PW_Scraper():
         pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
         return self.__get_results_gen(html, pageurl, page, paginate, pattern, self.__set_filtered_result)
 
+    def get_genres(self):
+        html=self.__get_cached_url(self.base_url, cache_limit=24)
+        regex=re.compile('class="opener-menu-genre">(.*?)</ul>', re.DOTALL)
+        genre_frag=regex.search(html).group(1)
+        return re.findall('genre=(.*?)\"',genre_frag)
+    
     def __set_filtered_result(self, match):
         result = {}
         link, title, year, img = match

@@ -9,6 +9,7 @@ import xbmcgui
 import xbmcplugin
 from addon.common.addon import Addon
 from db_utils import DB_Connection
+from pw_scraper import PW_Scraper
 # from functools import wraps
 
 db_connection = DB_Connection()
@@ -22,6 +23,7 @@ DAY_NUMS = list('0123456')
 DAY_CODES = ['M', 'T', 'W', 'H', 'F', 'Sa', 'Su']
 
 _1CH = Addon('plugin.video.1channel')
+pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 
 def get_days_string_from_days(days):
     if days is None:
@@ -416,11 +418,7 @@ def get_adv_search_query(section):
     allowed_values['month'] = [''] + [str(month) for month in xrange(1,13)]
     allowed_values['year'] = [''] +  [str(year) for year in xrange(1900,now.year+1)]
     allowed_values['decade'] =[''] + [str(decade) for decade in xrange(1900, now.year+1, 10)]
-    allowed_values['genre'] = ['', 'Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
-              'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Game-Show',
-              'History', 'Horror', 'Japanese', 'Korean', 'Music', 'Musical',
-              'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport',
-              'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
+    allowed_values['genre'] = [''] + pw_scraper.get_genres()
     class AdvSearchDialog(xbmcgui.WindowXMLDialog):
         ypos=85
         gap=55

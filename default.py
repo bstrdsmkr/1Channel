@@ -56,13 +56,9 @@ ITEMS_PER_PAGE=24
 
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
 
-GENRES = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy',
-          'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Game-Show',
-          'History', 'Horror', 'Japanese', 'Korean', 'Music', 'Musical',
-          'Mystery', 'Reality-TV', 'Romance', 'Sci-Fi', 'Short', 'Sport',
-          'Talk-Show', 'Thriller', 'War', 'Western', 'Zombies']
 
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
+GENRES = pw_scraper.get_genres()
 
 db_connection = DB_Connection()
 
