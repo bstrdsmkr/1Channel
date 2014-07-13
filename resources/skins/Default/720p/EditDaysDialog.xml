@@ -1,0 +1,188 @@
+<window id="7777">
+	<defaultcontrol always="false">200</defaultcontrol>
+	<coordinates>
+		<system>1</system>
+		<posx>435</posx>
+		<posy>150</posy>
+	</coordinates>
+	<include>dialogeffect</include>
+	<controls>
+		<control type="group">
+			<include>VisibleFadeEffect</include>
+			<control type="image">
+				<description>Background Image</description>
+				<posx>0</posx>
+				<posy>0</posy>
+				<width>410</width>
+				<height>420</height>
+				<texture border="40">DialogBack2.png</texture>
+			</control>
+			<control type="image">
+				<description>Dialog Header image</description>
+				<left>40</left>
+				<top>16</top>
+				<width>330</width>
+				<height>40</height>
+				<texture>dialogheader.png</texture>
+			</control>
+			<control type="label" id="100">
+				<description>header label</description>
+				<left>40</left>
+				<top>20</top>
+				<width>330</width>
+				<height>30</height>
+				<font>font13_title</font>
+				<label>Select Subscription Days</label>
+				<align>center</align>
+				<aligny>center</aligny>
+				<textcolor>selected</textcolor>
+				<shadowcolor>black</shadowcolor>
+			</control>
+			<control type="button">
+				<description>Close Window button</description>
+				<left>320</left>
+				<top>15</top>
+				<width>64</width>
+				<height>32</height>
+				<label>-</label>
+				<font>-</font>
+				<onclick>PreviousMenu</onclick>
+				<texturefocus>DialogCloseButton-focus.png</texturefocus>
+				<texturenofocus>DialogCloseButton.png</texturenofocus>
+				<visible>system.getbool(input.enablemouse)</visible>
+			</control>
+		</control>
+		<control type="group">
+			<left>30</left>
+			<top>60</top>
+			<control type="radiobutton" id="77770">
+				<left>0</left>
+				<top>0</top>
+				<width>350</width>
+				<height>30</height>
+				<font>font12</font>
+				<label>Monday</label>
+				<onup>201</onup>
+				<onleft>201</onleft>
+				<ondown>77771</ondown>
+				<onright>77771</onright>
+			</control>
+			<control type="radiobutton" id="77771">
+				<left>0</left>
+				<top>35</top>
+				<width>350</width>
+				<height>30</height>
+				<font>font12</font>
+				<label>Tuesday</label>
+				<onup>77770</onup>
+				<onleft>77770</onleft>
+				<ondown>77772</ondown>
+				<onright>77772</onright>
+			</control>
+			<control type="radiobutton" id="77772">
+				<left>0</left>
+				<top>70</top>
+				<width>350</width>
+				<height>30</height>
+				<font>font12</font>
+				<label>Wednesday</label>
+				<onup>77771</onup>
+				<onleft>77771</onleft>
+				<ondown>77773</ondown>
+				<onright>77773</onright>
+			</control>
+			<control type="radiobutton" id="77773">
+				<left>0</left>
+				<top>105</top>
+				<width>350</width>
+				<height>30</height>
+				<font>font12</font>
+				<label>Thursday</label>
+				<onup>77772</onup>
+				<onleft>77772</onleft>
+				<ondown>77774</ondown>
+				<onright>77774</onright>
+			</control>
+			<control type="radiobutton" id="77774">
+				<left>0</left>
+				<top>140</top>
+				<width>350</width>
+				<height>30</height>
+				<font>font12</font>
+				<label>Friday</label>
+				<onup>77773</onup>
+				<onleft>77773</onleft>
+				<ondown>77775</ondown>
+				<onright>77775</onright>
+			</control>
+			<control type="radiobutton" id="77775">
+				<left>0</left>
+				<top>175</top>
+				<width>350</width>
+				<height>30</height>
+				<font>font12</font>
+				<label>Saturday</label>
+				<onup>77774</onup>
+				<onleft>77774</onleft>
+				<ondown>77776</ondown>
+				<onright>77776</onright>
+			</control>
+			<control type="radiobutton" id="77776">
+				<left>0</left>
+				<top>210</top>
+				<width>350</width>
+				<height>30</height>
+				<font>font12</font>
+				<label>Sunday</label>
+				<onup>77775</onup>
+				<onleft>77775</onleft>
+				<ondown>99</ondown>
+				<onright>99</onright>
+			</control>
+			<control type="radiobutton" id="99">
+				<left>0</left>
+				<top>245</top>
+				<width>350</width>
+				<height>30</height>
+				<font>font12</font>
+				<label>Select/Deselect All</label>
+				<onup>77776</onup>
+				<onleft>77776</onleft>
+				<ondown>200</ondown>
+				<onright>200</onright>
+			</control>
+		</control>
+		<control type="group" id="9001">
+			<control type="button" id="200">
+				<description>OK Button</description>
+				<left>50</left>
+				<top>350</top>
+				<width>155</width>
+				<height>40</height>
+				<align>center</align>
+				<aligny>center</aligny>
+				<label>OK</label>
+				<font>font13_title</font>
+				<onup>99</onup>
+				<onleft>99</onleft>
+				<ondown>201</ondown>
+				<onright>201</onright>
+			</control>
+			<control type="button" id="201">
+				<description>Cancel Button</description>
+				<left>210</left>
+				<top>350</top>
+				<width>150</width>
+				<height>40</height>
+				<align>center</align>
+				<aligny>center</aligny>
+				<label>Cancel</label>
+				<font>font13_title</font>
+				<onup>200</onup>
+				<onleft>200</onleft>
+				<ondown>77770</ondown>
+				<onright>77770</onright>
+			</control>
+		</control>
+	</controls>
+</window>
