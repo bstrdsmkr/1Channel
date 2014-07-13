@@ -37,7 +37,7 @@ _1CH = Addon('plugin.video.1channel')
 ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 ITEMS_PER_PAGE = 24
-FAVS_PER_PAGE = 40
+ITEMS_PER_PAGE2 = 40
 MAX_PAGES = 10
 
 class PW_Scraper():
@@ -90,7 +90,7 @@ class PW_Scraper():
             total = int(r.group(1).replace(',', ''))
         else:
             total = 0
-        self.res_pages = int(math.ceil(total / float(FAVS_PER_PAGE)))
+        self.res_pages = int(math.ceil(total / float(ITEMS_PER_PAGE2)))
         self.res_total = total
         pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
         return self.__get_results_gen(html, url, page, paginate, pattern, self.__set_fav_result)   
@@ -105,6 +105,34 @@ class PW_Scraper():
         fav['delete'] = delete
         return fav
     
+    def get_watched(self, section, page=None, paginate=False):
+        _1CH.log('Getting %s watched list from website' % (section))
+        url = '/profile.php?user=%s&watched&show=%s'
+        if page: url += '&page=%s' % (page)
+        url = self.base_url + url % (self.username, section)
+        html=self.__get_url(url)
+        r = re.search('strong>Watched \(\s+([0-9,]+)\s+\)', html)
+        if r:
+            total = int(r.group(1).replace(',', ''))
+        else:
+            total = 0
+        self.res_pages = int(math.ceil(total / float(ITEMS_PER_PAGE2)))
+        self.res_total = total
+        
+        pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_watched\'.+?<a href=\'(.+?)\' ref=\'add_watched\''''
+        return self.__get_results_gen(html, url, page, paginate, pattern, self.__set_watched_result)   
+
+    def __set_watched_result(self, match):
+            result = {}
+            link, img, year, title, delete, rewatch  = match
+            result['url']=link
+            result['img']=img
+            result['year']=year
+            result['title']=title
+            result['delete']=delete
+            result['rewatch']=rewatch
+            return result
+        
     # returns a generator of results of a title search each of which is a dictionary of url, title, img, and year
     def search(self, section, query, page=None, paginate=False):
         return self.__search(section, urllib.quote_plus(query), page, paginate)
@@ -468,3 +496,17 @@ class PW_Scraper():
                 return 0
     
         return sorted(items, cmp=comparer)
+        
+    def change_watched(self, primewire_url, watched):
+        if not utils.website_is_integrated(): return
+        
+        _1CH.log("Update Website Watched List")
+        id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', primewire_url)
+        if id_num:
+            action = 'add' if watched=='7' else 'delete'
+            change_url = '%s/addtowatched.php?id=%s&action=watched&whattodo=%s'            
+            change_url = change_url % (self.base_url, id_num.group(1), action)
+            _1CH.log('%s Watched URL: %s' %(action.capitalize(), change_url))
+            self.__get_url(change_url,login=True)       
+        else:
+            _1CH.log("pw.scraper.change_watched() couldn't scrape primewire ID")
