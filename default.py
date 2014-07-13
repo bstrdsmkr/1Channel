@@ -338,8 +338,35 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, prim
 
     return True
 
-def ChangeWatched(imdb_id, video_type, name, season, episode, year='', watched='', refresh=False):
+def ChangeWatched(imdb_id, video_type, name, season, episode, primewire_url , year='', watched='', dbid=None, refresh=False):
+
+    # meta['dbid'] only gets set for strms
+    if dbid and int(dbid) > 0:
+        if video_type == 'episode':
+            cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid": %s, "properties": ["playcount"]}, "id": 1}'
+            cmd = cmd %(dbid)
+            result = json.loads(xbmc.executeJSONRPC(cmd))
+            print result
+            cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "playcount": %s}, "id": 1}'
+            playcount = int(result['result']['episodedetails']['playcount']) + 1
+            cmd = cmd %(dbid, playcount)
+            result = xbmc.executeJSONRPC(cmd)
+            xbmc.log('PrimeWire: Marking episode .strm as watched: %s' %result)
+        if video_type == 'movie':
+            cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid": %s, "properties": ["playcount"]}, "id": 1}'
+            cmd = cmd %(dbid)
+            result = json.loads(xbmc.executeJSONRPC(cmd))
+            print result
+            cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "playcount": %s}, "id": 1}'
+            playcount = int(result['result']['moviedetails']['playcount']) + 1
+            cmd = cmd %(dbid, playcount)
+            result = xbmc.executeJSONRPC(cmd)
+            xbmc.log('PrimeWire: Marking movie .strm as watched: %s' %result)
+            
     __metaget__.change_watched(video_type, name, imdb_id, season=season, episode=episode, year=year, watched=watched)
+
+    if utils.website_is_integrated() : pw_scraper.change_watched(primewire_url, watched)
+
     if refresh:
         xbmc.executebuiltin("XBMC.Container.Refresh")
 
@@ -490,6 +517,8 @@ def BrowseListMenu(section):
     add_search_item({'mode': 'GetSearchQuery', 'section': section}, 'Search')
     if utils.website_is_integrated():
         _1CH.add_directory({'mode': 'browse_favorites_website', 'section': section}, {'title': 'Website Favourites'},
+                           img=art('favourites.png'), fanart=art('fanart.png'))                          
+        _1CH.add_directory({'mode': 'browse_watched_website', 'section': section}, {'title': 'Website Watched List'},
                            img=art('favourites.png'), fanart=art('fanart.png'))
     else:
         _1CH.add_directory({'mode': 'browse_favorites', 'section': section}, {'title': 'Favourites'},
@@ -881,6 +910,30 @@ def add_favs_to_library(section):
         
     builtin = 'XBMC.Notification(Primewire,%s,4000, %s)'
     xbmc.executebuiltin(builtin % (message,ICON_PATH))
+    
+def browse_watched_website(section):
+    if not section: section='movies'
+
+    # TODO: Extend fav2Library
+    # if section=='tv':
+        # label='Add Watched TV Shows to Library'
+    # else:
+        # label='Add Watched Movies to Library'
+
+    # liz = xbmcgui.ListItem(label=label)
+    # liz_url = _1CH.build_plugin_url({'mode': 'fav2Library', 'section': section})
+    # xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
+        
+
+    section_params = get_section_params(section)
+    
+    for video in pw_scraper.get_watched(section):
+        deletestring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'ChangeWatched', 'section': section, 'title': video['title'], 'primewire_url': video['url'], 'year': video['year'], 'watched':6})
+        #TODO: rewatchstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'add_watch', 'section': section, 'title': video['title'], 'primewire_url': video['url'], 'year': video['year']})
+        menu_items = [('Delete Watched', deletestring)]
+        create_item(section_params,video['title'],video['year'],video['img'],video['url'],menu_items=menu_items)
+        
+    _1CH.end_of_directory()
 
 def create_meta(video_type, title, year, thumb):
     try:
@@ -1169,7 +1222,7 @@ def build_listitem(video_type, title, year, img, resurl, imdbnum='', season='', 
             label = 'Mark as unwatched'
             new_status = 6
 
-        queries = {'mode': 'ChangeWatched', 'title': title, 'imdbnum': meta['imdb_id'], 'video_type': video_type, 'year': year, 'watched': new_status}
+        queries = {'mode': 'ChangeWatched', 'title': title, 'imdbnum': meta['imdb_id'], 'video_type': video_type, 'year': year, 'primewire_url': resurl, 'watched': new_status}
         if video_type in ('tv', 'tvshow', 'episode'):
             queries['season'] = season
             queries['episode'] = episode
@@ -1277,6 +1330,8 @@ dialog = _1CH.queries.get('dialog', '')
 day = _1CH.queries.get('day', '')
 resume = _1CH.queries.get('resume', False)
 primewire_url = _1CH.queries.get('primewire_url', '')
+dbid = _1CH.queries.get('dbid', '')
+watched = _1CH.queries.get('watched', '')
 
 _1CH.log(_1CH.queries)
 _1CH.log(sys.argv)
@@ -1337,8 +1392,10 @@ elif mode == 'SaveFav':
 elif mode == 'DeleteFav':
     delete_favorite(url)
     xbmc.executebuiltin('Container.Refresh')
+elif mode == 'browse_watched_website':
+    browse_watched_website(section)
 elif mode == 'ChangeWatched':
-    ChangeWatched(imdb_id=imdbnum, video_type=video_type, name=title, season=season, episode=episode, year=year)
+    ChangeWatched(imdb_id=imdbnum, video_type=video_type, name=title, season=season, episode=episode, year=year, primewire_url=primewire_url, dbid=dbid, watched=watched)
     xbmc.executebuiltin('Container.Refresh')
 elif mode == '9988':  # Metahandler Settings
     print "Metahandler Settings"
@@ -1393,4 +1450,3 @@ elif mode == 'Help':
     _1CH.log('Showing help popup')
     try: utils.TextBox()
     except: pass
-    
