@@ -62,10 +62,6 @@
 				<height>30</height>
 				<font>font12</font>
 				<label>Monday</label>
-				<onup>201</onup>
-				<onleft>201</onleft>
-				<ondown>77771</ondown>
-				<onright>77771</onright>
 			</control>
 			<control type="radiobutton" id="77771">
 				<left>0</left>
@@ -74,10 +70,6 @@
 				<height>30</height>
 				<font>font12</font>
 				<label>Tuesday</label>
-				<onup>77770</onup>
-				<onleft>77770</onleft>
-				<ondown>77772</ondown>
-				<onright>77772</onright>
 			</control>
 			<control type="radiobutton" id="77772">
 				<left>0</left>
@@ -86,10 +78,6 @@
 				<height>30</height>
 				<font>font12</font>
 				<label>Wednesday</label>
-				<onup>77771</onup>
-				<onleft>77771</onleft>
-				<ondown>77773</ondown>
-				<onright>77773</onright>
 			</control>
 			<control type="radiobutton" id="77773">
 				<left>0</left>
@@ -98,10 +86,6 @@
 				<height>30</height>
 				<font>font12</font>
 				<label>Thursday</label>
-				<onup>77772</onup>
-				<onleft>77772</onleft>
-				<ondown>77774</ondown>
-				<onright>77774</onright>
 			</control>
 			<control type="radiobutton" id="77774">
 				<left>0</left>
@@ -110,10 +94,6 @@
 				<height>30</height>
 				<font>font12</font>
 				<label>Friday</label>
-				<onup>77773</onup>
-				<onleft>77773</onleft>
-				<ondown>77775</ondown>
-				<onright>77775</onright>
 			</control>
 			<control type="radiobutton" id="77775">
 				<left>0</left>
@@ -122,10 +102,6 @@
 				<height>30</height>
 				<font>font12</font>
 				<label>Saturday</label>
-				<onup>77774</onup>
-				<onleft>77774</onleft>
-				<ondown>77776</ondown>
-				<onright>77776</onright>
 			</control>
 			<control type="radiobutton" id="77776">
 				<left>0</left>
@@ -134,10 +110,6 @@
 				<height>30</height>
 				<font>font12</font>
 				<label>Sunday</label>
-				<onup>77775</onup>
-				<onleft>77775</onleft>
-				<ondown>99</ondown>
-				<onright>99</onright>
 			</control>
 			<control type="radiobutton" id="99">
 				<left>0</left>
@@ -146,8 +118,6 @@
 				<height>30</height>
 				<font>font12</font>
 				<label>Select/Deselect All</label>
-				<onup>77776</onup>
-				<onleft>77776</onleft>
 				<ondown>200</ondown>
 				<onright>200</onright>
 			</control>
@@ -180,8 +150,6 @@
 				<font>font13_title</font>
 				<onup>200</onup>
 				<onleft>200</onleft>
-				<ondown>77770</ondown>
-				<onright>77770</onright>
 			</control>
 		</control>
 	</controls>

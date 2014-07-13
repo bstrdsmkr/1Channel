@@ -553,11 +553,37 @@ def days_select(days):
     ACTION_PREVIOUS_MENU = 10
     ACTION_BACK = 92
     class EditDaysDialog(xbmcgui.WindowXMLDialog):
+        ystart=0
+        ygap=35
         def onInit(self):
-            for i in xrange(0,7):
+            fdow=int(_1CH.get_setting('first-dow'))
+            adj_day_range=range(fdow,7) + range(0,fdow)
+            ypos=self.ystart
+            last_control=self.getControl(CANCEL_BUTTON)
+            for i in adj_day_range:
+                control=self.getControl(MONDAY_BUTTON+i)
+
+                # move the day control to it's position based on fdow
+                control.setPosition(0,ypos)
                 if str(i) in days:
-                    control_id=MONDAY_BUTTON+i
-                    self.getControl(control_id).setSelected(True)
+                    control.setSelected(True)
+                
+                # set up, down, left, right for each control
+                control.controlUp(last_control)
+                control.controlLeft(last_control)
+                last_control.controlDown(control)
+                last_control.controlRight(control)
+
+                ypos = ypos + self.ygap
+                last_control=control
+                
+            # select_all goes up to last control and last control goes down to select_all
+            select_all=self.getControl(SEL_ALL_BUTTON)
+            select_all.controlUp(control)
+            select_all.controlLeft(control)
+            control.controlDown(select_all)
+            control.controlRight(select_all)
+            
             if days=='0123456':
                 self.getControl(SEL_ALL_BUTTON).setSelected(True)
         
