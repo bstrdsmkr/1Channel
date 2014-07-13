@@ -544,3 +544,69 @@ def get_adv_search_query(section):
     else:
         del dialog
         raise
+
+def days_select(days):
+    OK_BUTTON = 200
+    CANCEL_BUTTON = 201
+    SEL_ALL_BUTTON = 99
+    MONDAY_BUTTON=77770
+    ACTION_PREVIOUS_MENU = 10
+    ACTION_BACK = 92
+    class EditDaysDialog(xbmcgui.WindowXMLDialog):
+        def onInit(self):
+            for i in xrange(0,7):
+                if str(i) in days:
+                    control_id=MONDAY_BUTTON+i
+                    self.getControl(control_id).setSelected(True)
+            if days=='0123456':
+                self.getControl(SEL_ALL_BUTTON).setSelected(True)
+        
+        def onAction(self,action):
+            #print 'Action: %s' %(action.getId())
+            if action==ACTION_PREVIOUS_MENU or action==ACTION_BACK:
+                self.close()
+
+        def onControl(self,control):
+            #print 'onControl: %s' % (control)
+            pass
+            
+        def onFocus(self,control):
+            #print 'onFocus: %s' % (control)
+            pass
+            
+        def onClick(self, control):
+            #print 'onClick: %s' %(control)
+            if control==SEL_ALL_BUTTON:
+                all_status=self.getControl(control).isSelected()
+                for control_id in xrange(MONDAY_BUTTON,MONDAY_BUTTON+7):
+                    self.getControl(control_id).setSelected(all_status)
+                return
+            
+            if control==OK_BUTTON:
+                self.OK=True
+            if control==CANCEL_BUTTON:
+                self.OK=False
+                
+            if control==OK_BUTTON or control==CANCEL_BUTTON:
+                self.close()
+        
+        def clicked_OK(self):
+            return self.OK
+        
+        def get_days(self):
+            days=''
+            for i in xrange(0,7):
+                if self.getControl(MONDAY_BUTTON+i).isSelected():
+                    days += str(i)
+            return days
+                
+    dialog=EditDaysDialog('EditDaysDialog.xml', _1CH.get_path())
+    dialog.doModal()
+    if dialog.clicked_OK():
+        days=dialog.get_days()
+        _1CH.log('Returning days: %s' % (days))
+        del dialog
+        return days
+    else:
+        del dialog
+        raise

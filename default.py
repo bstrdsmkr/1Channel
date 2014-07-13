@@ -1343,13 +1343,11 @@ def backup_db():
     db_connection.export_from_db(full_path)
 
 def edit_days(url, days):
-    keyboard = xbmc.Keyboard(utils.get_days_string_from_days(days), 'Days to update Subscription (e.g. MTWHFSaSu)')
-    keyboard.doModal()
-    if keyboard.isConfirmed():
-        days_string=keyboard.getText()
-        days=utils.get_days_from_days_string(days_string)
-        db_connection.edit_days(url, days)
+    try:
+        new_days=utils.days_select(days)
+        db_connection.edit_days(url, new_days)
         xbmc.executebuiltin('Container.Refresh')
+    except: pass # if clicked cancel just abort
 
 def main(argv=None):
     if sys.argv: argv=sys.argv
