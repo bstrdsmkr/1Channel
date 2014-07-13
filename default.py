@@ -95,7 +95,7 @@ def delete_favorite(url):
     else:
         db_connection.delete_favorite(url)
 
-def get_sources(url, title, img, year, imdbnum, dialog):
+def get_sources(url, title, img, year, imdbnum, dialog, respect_auto=True):
     url = urllib.unquote(url)
     _1CH.log('Getting sources from: %s' % url)
     primewire_url = url
@@ -131,10 +131,10 @@ def get_sources(url, title, img, year, imdbnum, dialog):
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
 
     # auto play is on
-    if _1CH.get_setting('auto-play')=='true':
+    if respect_auto and _1CH.get_setting('auto-play')=='true':
         auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
         
-    else: # autoplay is off
+    else: # autoplay is off, or respect_auto is False
         if dialog or _1CH.get_setting('source-win') == 'Dialog': #dialog is needed (playing from strm or dialogs are turned on)
             if _1CH.get_setting('filter-source') == 'true':
                 play_filtered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
@@ -187,7 +187,8 @@ def play_unfiltered_dialog(hosters, title, img, year, imdbnum, video_type, seaso
     else:
         return 
 
-def play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume):        
+def play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume):
+    hosters_len = len(hosters)        
     for item in hosters:
         #_1CH.log(item)
         hosted_media = urlresolver.HostedMediaFile(url=item['url'])
@@ -196,7 +197,7 @@ def play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, ep
             _1CH.add_directory({'mode': 'PlaySource', 'url': item['url'], 'title': title,
                                 'img': img, 'year': year, 'imdbnum': imdbnum,
                                 'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
-                               infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img, fanart=art('fanart.png'))
+                               infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img, fanart=art('fanart.png'), total_items=hosters_len)
             if item['multi-part']:
                 partnum = 2
                 for part in item['parts']:
@@ -206,20 +207,21 @@ def play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, ep
                                         'img': img, 'year': year, 'imdbnum': imdbnum,
                                         'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
                                        infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img,
-                                       fanart=art('fanart.png'))
+                                       fanart=art('fanart.png'), total_items=hosters_len)
         else:
             _1CH.log('Skipping unresolvable source: %s' % (item['url']))
      
     _1CH.end_of_directory()
 
 def play_unfiltered_dir(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume):
+    hosters_len=len(hosters)
     for item in hosters:
         #_1CH.log(item)
         label = utils.format_label_source(item)
         _1CH.add_directory({'mode': 'PlaySource', 'url': item['url'], 'title': title,
                             'img': img, 'year': year, 'imdbnum': imdbnum,
                             'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
-                           infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img, fanart=art('fanart.png'))
+                           infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img, fanart=art('fanart.png'), total_items=hosters_len)
         if item['multi-part']:
             partnum = 2
             for part in item['parts']:
@@ -229,7 +231,7 @@ def play_unfiltered_dir(hosters, title, img, year, imdbnum, video_type, season, 
                                     'img': img, 'year': year, 'imdbnum': imdbnum,
                                     'video_type': video_type, 'season': season, 'episode': episode, 'primewire_url': primewire_url, 'resume': resume},
                                    infolabels={'title': label}, properties={'resumeTime': str(0), 'totalTime': str(1)}, is_folder=False, img=img,
-                                   fanart=art('fanart.png'))
+                                   fanart=art('fanart.png'), total_items=hosters_len)
     
     _1CH.end_of_directory()
 
@@ -601,6 +603,16 @@ def add_contextsearchmenu(title, video_type, resurl=''):
 
 def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
     #_1CH.log('Create Item: %s, %s, %s, %s, %s, %s, %s, %s, %s' % (section_params, title, year, img, url, imdbnum, season, episode, totalItems))
+    if menu_items is None: menu_items=[]
+    if section_params['nextmode']=='GetSources' and _1CH.get_setting('auto-play')=='true':
+        queries = {'mode': 'SelectSources', 'title': title, 'url': url, 'img': img, 'imdbnum': imdbnum, 'video_type': section_params['video_type']}
+        if _1CH.get_setting('source-win')=='Dialog':
+            runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
+        else:
+            runstring = 'Container.Update(%s)' % _1CH.build_plugin_url(queries)
+            
+        menu_items.insert(0,('Select Source', runstring),)
+
     # fix episode url being added to subs
     if section_params['video_type']=='episode':
         temp_url=re.match('(/.*/).*',url).groups()[0]
@@ -1381,6 +1393,9 @@ def main(argv=None):
     elif mode == 'GetSources':
         import urlresolver
         get_sources(url, title, img, year, imdbnum, dialog)
+    elif mode == 'SelectSources':
+        import urlresolver
+        get_sources(url, title, img, year, imdbnum, dialog, False)
     elif mode == 'PlaySource':
         import urlresolver
         PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume)

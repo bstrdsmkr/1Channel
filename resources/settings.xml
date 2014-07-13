@@ -27,7 +27,7 @@
 
     <category label="Video Playback">
         <setting id="auto-play" type="bool" label="30905" default="false"/>
-		<setting id="source-win" type="labelenum" label="     Source Selection Method" values="Directory|Dialog" default="Dialog" enable="eq(-1,false)"/>
+		<setting id="source-win" type="labelenum" label="     Source Selection Method" values="Directory|Dialog" default="Dialog"/>
         <setting id="auto-watch" type="bool" label="30801" default="true"/>
         <setting label="30802" type="slider" id="watched-percent" range="70,1,100" option="int"  default="85" enable="!eq(-1,false)"/>
         <setting id="sorting-enabled" type="bool" label="30900" default="false"/>
