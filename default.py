@@ -1344,7 +1344,18 @@ def backup_db():
 
 def edit_days(url, days):
     try:
-        new_days=utils.days_select(days)
+        # use a keyboard if the hidden setting is true
+        if _1CH.get_setting('use-days-keyboard')=='true':
+            keyboard = xbmc.Keyboard(utils.get_days_string_from_days(days), 'Days to update Subscription (e.g. MTWHFSaSu)')
+            keyboard.doModal()
+            if keyboard.isConfirmed():
+                days_string=keyboard.getText()
+                new_days=utils.get_days_from_days_string(days_string)
+            else:
+                raise # jump back
+        else:
+            new_days=utils.days_select(days)
+            
         db_connection.edit_days(url, new_days)
         xbmc.executebuiltin('Container.Refresh')
     except: pass # if clicked cancel just abort
