@@ -134,13 +134,14 @@ class DB_Connection():
 
     def get_subscriptions(self, day=None, order_matters=False):
         sql = 'SELECT * FROM subscriptions'
-        if day: sql += ' WHERE days like ?'
+        if day is not None: sql += ' WHERE days like ?'
+
         # order subscription by their days values, forcing ALLs to the top, forcing disabled (i.e. nulls and blank) to the end, with the rest sorted lexicographically, then by alphabetically by title
         if order_matters: sql += ' ORDER BY CASE WHEN days="0123456" THEN 0 WHEN days IS NULL THEN 2 WHEN days="" THEN 2 ELSE 1 END, days,title'
-        if day:
-            rows=self.__execute(sql,('%{}%'.format(day),))
-        else:
+        if day is None:
             rows=self.__execute(sql)
+        else:
+            rows=self.__execute(sql,('%{}%'.format(day),))
         return rows
     
     def add_subscription(self, url, title, img, year, imdbnum, days):
@@ -252,8 +253,8 @@ class DB_Connection():
             self.__execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
             self.__execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS new_bkmark (url TEXT PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')
-            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (name, url)')
-            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url, title, year)')
+            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (url)')
+            self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url)')
             self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')
             self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)') 
         
@@ -363,6 +364,7 @@ class DB_Connection():
         rows=None
         sql=self.__format(sql)
         cur = self.db.cursor()
+        _1CH.log('Running: %s with %s' % (sql, params))
         cur.execute(sql, params)
         if sql[:6].upper() == 'SELECT':
             rows=cur.fetchall()
