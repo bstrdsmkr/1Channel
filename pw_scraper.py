@@ -316,7 +316,7 @@ class PW_Scraper():
         return hosters
                     
     def get_season_list(self, url, cached=True):
-        _1CH.log('Getting season list (%s): %s' % (cached, url))
+        _1CH.log_debug('Getting season list (%s): %s' % (cached, url))
         if cached:
             html = self.__get_cached_url(self.base_url + url)
         else:
@@ -349,7 +349,7 @@ class PW_Scraper():
                 yield (season_label, season_html)
     
     def __get_url(self, url, headers={}, login=False):
-        _1CH.log('Fetching URL: %s' % url)
+        _1CH.log_debug('Fetching URL: %s' % url)
         before = time.time()
         cookiejar = _1CH.get_profile()
         cookiejar = os.path.join(cookiejar, 'cookies')
@@ -365,19 +365,19 @@ class PW_Scraper():
 
         # html = html.decode('iso-8859-1').encode('utf-8')
         after = time.time()
-        _1CH.log('Url Fetch took: %.2f secs' % (after - before))
+        _1CH.log_debug('Url Fetch took: %.2f secs' % (after - before))
         return html
     
     def __get_cached_url(self, url, cache_limit=8):
-        _1CH.log('Fetching Cached URL: %s' % url)
+        _1CH.log_debug('Fetching Cached URL: %s' % url)
         before = time.time()
         
         html = utils.get_cached_url(url, cache_limit)
         if html:
-            _1CH.log('Returning cached result for: %s' % (url))
+            _1CH.log_debug('Returning cached result for: %s' % (url))
             return html
         
-        _1CH.log('No cached url found for: %s' % url)
+        _1CH.log_debug('No cached url found for: %s' % url)
         req = urllib2.Request(url)
     
         host = re.sub('http://', '', self.base_url)
@@ -449,11 +449,11 @@ class PW_Scraper():
         
         utils.cache_url(url, body)
         after = time.time()
-        _1CH.log('Cached Url Fetch took: %.2f secs' % (after - before))
+        _1CH.log_debug('Cached Url Fetch took: %.2f secs' % (after - before))
         return body
     
     def __login(self, redirect):
-        _1CH.log('Logging in for url %s' % redirect)
+        _1CH.log_debug('Logging in for url %s' % redirect)
         url = self.base_url + '/login.php'
         net = Net()
         cookiejar = _1CH.get_profile()
