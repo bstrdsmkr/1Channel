@@ -364,7 +364,7 @@ class DB_Connection():
         rows=None
         sql=self.__format(sql)
         cur = self.db.cursor()
-        _1CH.log('Running: %s with %s' % (sql, params))
+        _1CH.log_debug('Running: %s with %s' % (sql, params))
         cur.execute(sql, params)
         if sql[:6].upper() == 'SELECT':
             rows=cur.fetchall()
