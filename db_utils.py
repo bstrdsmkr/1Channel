@@ -132,11 +132,11 @@ class DB_Connection():
     def delete_favorite(self, url):
         self.delete_favorites([url])
 
-    def get_subscriptions(self, day=None):
-        # order subscription by their days values, forcing ALLs to the top, forcing disabled (i.e. nulls and blank) to the end, with the rest sorted lexicographically, then by alphabetically by title
+    def get_subscriptions(self, day=None, order_matters=False):
         sql = 'SELECT * FROM subscriptions'
         if day: sql += ' WHERE days like ?'
-        sql += ' ORDER BY CASE WHEN days="0123456" THEN 0 WHEN days IS NULL THEN 2 WHEN days="" THEN 2 ELSE 1 END, days,title'
+        # order subscription by their days values, forcing ALLs to the top, forcing disabled (i.e. nulls and blank) to the end, with the rest sorted lexicographically, then by alphabetically by title
+        if order_matters: sql += ' ORDER BY CASE WHEN days="0123456" THEN 0 WHEN days IS NULL THEN 2 WHEN days="" THEN 2 ELSE 1 END, days,title'
         if day:
             rows=self.__execute(sql,('%{}%'.format(day),))
         else:

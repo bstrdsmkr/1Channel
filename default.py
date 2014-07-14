@@ -1107,7 +1107,7 @@ def manage_subscriptions():
     liz_url = _1CH.build_plugin_url({'mode': 'clean_up_subscriptions'})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
-    subs=db_connection.get_subscriptions()
+    subs=db_connection.get_subscriptions(order_matters=True)
     subs_len=len(subs)
     for sub in subs:
         days=sub[5]
