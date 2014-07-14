@@ -512,7 +512,6 @@ def get_adv_search_query(section):
                 for field in valid_fields:
                     field_value=self.query_controls[field_names.index(field)].getText()
                     if field_value != '':
-                        print field_value
                         if field_value not in allowed_values[field]:
                             error_string = '%s must be one of: %s' % (field.capitalize(), str(allowed_values[field][1:]).replace("'",""))
                             # override error string on year
