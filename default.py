@@ -50,18 +50,17 @@ POSTERS_FALLBACK = _1CH.get_setting('posters-fallback') == 'true'
 THEME_LIST = ['Classic', 'Glossy_Black', 'PrimeWire']
 THEME = THEME_LIST[int(_1CH.get_setting('theme'))]
 THEME_PATH = os.path.join(_1CH.get_path(), 'art', 'themes', THEME)
-AUTO_WATCH = _1CH.get_setting('auto-watch') == 'true'
-ADDON_PATH = _1CH.get_path()
-ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
-ITEMS_PER_PAGE=24
-
+ICON_PATH = os.path.join(_1CH.get_path(), 'icon.png')
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
+ITEMS_PER_PAGE=24
 
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 GENRES = pw_scraper.get_genres()
 
 db_connection = DB_Connection()
 pw_dispatcher = PW_Dispatcher()
+
+SMODES = utils.enum(SEARCH='Search', SEARCH_DESC='SearchDesc', SEARCH_ADV='SearchAdvanced')
 
 PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
@@ -429,26 +428,26 @@ def GetSearchQueryAdvanced(section):
     try:
         query=utils.get_adv_search_query(section)
         js_query=json.dumps(query)
-        queries = {'mode': 'SearchAdvanced', 'section': section, 'query': js_query}
+        queries = {'mode': SMODES.SEARCH_ADV, 'section': section, 'query': js_query}
         pluginurl = _1CH.build_plugin_url(queries)
         builtin = 'Container.Update(%s)' %(pluginurl)
         xbmc.executebuiltin(builtin)
     except:
         BrowseListMenu(section)
 
-@pw_dispatcher.register('Search: (mode, section, query) {page}')
-@pw_dispatcher.register('SearchDesc: (mode, section, query) {page}')
-@pw_dispatcher.register('SearchAdvanced: (mode, section, query) {page}')
+@pw_dispatcher.register(SMODES.SEARCH+': (mode, section, query) {page}')
+@pw_dispatcher.register(SMODES.SEARCH_DESC+': (mode, section, query) {page}')
+@pw_dispatcher.register(SMODES.SEARCH_ADV+': (mode, section, query) {page}')
 @pw_dispatcher.register('7000: (section, query)')
 def Search(mode, section, query, page=None):
     section_params = get_section_params(section)
     paginate=(_1CH.get_setting('paginate-search')=='true' and _1CH.get_setting('paginate')=='true')
     
-    if mode=='Search':
+    if mode==SMODES.SEARCH:
         results=pw_scraper.search(section,query, page, paginate)
-    elif mode=='SearchDesc':
+    elif mode==SMODES.SEARCH_DESC:
         results=pw_scraper.search_desc(section,query, page, paginate)
-    elif mode=='SearchAdvanced':
+    elif mode==SMODES.SEARCH_ADV:
         criteria = utils.unpack_query(query)
         results=pw_scraper.search_advanced(section, criteria['title'], criteria['tag'], False, criteria['country'], criteria['genre'],
                                            criteria['actor'], criteria['director'], criteria['year'], criteria['month'], criteria['decade'], page=page, paginate=paginate)
@@ -508,7 +507,7 @@ def BrowseListMenu(section):
     _1CH.log('Browse Options')
     _1CH.add_directory({'mode': 'BrowseAlphabetMenu', 'section': section}, {'title': 'A-Z'}, img=art('atoz.png'),
                        fanart=art('fanart.png'))
-    add_search_item({'mode': 'GetSearchQuery', 'section': section, 'next_mode': 'Search'}, 'Search')
+    add_search_item({'mode': 'GetSearchQuery', 'section': section, 'next_mode': SMODES.SEARCH}, 'Search')
     if utils.website_is_integrated():
         _1CH.add_directory({'mode': 'browse_favorites_website', 'section': section}, {'title': 'Website Favourites'},
                            img=art('favourites.png'), fanart=art('fanart.png'))                          
@@ -534,7 +533,7 @@ def BrowseListMenu(section):
     _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'date'}, {'title': 'Date added'},
                        img=art('date_added.png'), fanart=art('fanart.png'))
     
-    add_search_item({'mode': 'GetSearchQueryDesc', 'section': section, 'next_mode': 'SearchDesc'}, 'Search (+Description)')
+    add_search_item({'mode': 'GetSearchQueryDesc', 'section': section, 'next_mode': SMODES.SEARCH_DESC}, 'Search (+Description)')
     add_search_item({'mode': 'GetSearchQueryAdvanced', 'section': section}, 'Search (Advanced Search)')
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))

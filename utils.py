@@ -26,6 +26,9 @@ DAY_CODES = ['M', 'T', 'W', 'H', 'F', 'Sa', 'Su']
 _1CH = Addon('plugin.video.1channel')
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 
+def enum(**enums):
+    return type('Enum', (), enums)
+
 def get_days_string_from_days(days):
     if days is None:
         days=''
