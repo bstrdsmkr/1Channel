@@ -3,6 +3,7 @@ import re
 import sys
 import time
 import datetime
+import json
 import _strptime # fix bug in python import
 import xbmc
 import xbmcgui
@@ -365,6 +366,23 @@ def format_time(seconds):
         return "%02d:%02d:%02d" % (hours, minutes, seconds)
     else:
         return "%02d:%02d" % (minutes, seconds)
+
+def filename_filter_out_year(name=''):
+    try:
+        years=re.compile(' \((\d+)\)').findall('__'+name+'__')
+        for year in years: name=name.replace(' ('+year+')','')
+        name=name.replace('[B]','').replace('[/B]','').replace('[/COLOR]','').replace('[COLOR green]','')
+        name=name.strip()
+        return name
+    except: name.strip(); return name
+
+def unpack_query(query):
+    expected_keys = ('title','tag','country','genre','actor','director','year','month','decade')
+    criteria=json.loads(query)
+    for key in expected_keys:
+        if key not in criteria: criteria[key]= ''
+
+    return criteria
 
 # Run a task on startup. Settings and mode values must match task name
 def do_startup_task(task):
