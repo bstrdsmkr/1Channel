@@ -1301,7 +1301,7 @@ def update_movie_cat():
 @pw_dispatcher.register('FavPageSelect: (mode, section)')
 @pw_dispatcher.register('WatchedPageSelect: (mode, section)')
 @pw_dispatcher.register('SearchPageSelect: (mode, section) {search, query}')
-def jump_to_page(mode, section='', genre='', letter='', sort='', search='', query=''):
+def jump_to_page(mode, section, genre='', letter='', sort='', search='', query=''):
     if mode == 'PageSelect':
         queries={'mode': 'GetFilteredResults', 'section': section, 'genre': genre, 'letter': letter, 'sort': sort}
     elif mode=='FavPageSelect':
