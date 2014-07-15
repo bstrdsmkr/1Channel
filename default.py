@@ -68,7 +68,7 @@ if not xbmcvfs.exists(_1CH.get_profile()):
 def art(name): 
     return os.path.join(THEME_PATH, name)
 
-@pw_dispatcher.register('SaveFav:  (fav_type, title, url, year)')
+@pw_dispatcher.register('SaveFav', ['fav_type', 'title', 'url', 'year'])
 def save_favorite(fav_type, title, url, year):
     if fav_type != 'tv': fav_type = 'movie'
     _1CH.log('Saving Favorite type: %s name: %s url: %s year: %s' % (fav_type, title, url, year))
@@ -84,7 +84,7 @@ def save_favorite(fav_type, title, url, year):
             builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
             xbmc.executebuiltin(builtin % ICON_PATH)
 
-@pw_dispatcher.register('DeleteFav: (url)')
+@pw_dispatcher.register('DeleteFav', ['url'])
 def delete_favorite(url):
     _1CH.log('Deleting Favorite: %s' % (url))
     
@@ -94,7 +94,7 @@ def delete_favorite(url):
         db_connection.delete_favorite(url)
     xbmc.executebuiltin('Container.Refresh')
 
-@pw_dispatcher.register('GetSources: (url, title) {year, img, imdbnum, dialog}')
+@pw_dispatcher.register('GetSources', ['url', 'title'], ['year', 'img', 'imdbnum', 'dialog'])
 def get_sources(url, title, year='', img='', imdbnum='', dialog=False, respect_auto=True):
     url = urllib.unquote(url)
     _1CH.log('Getting sources from: %s' % url)
@@ -262,7 +262,7 @@ def auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, epi
             _1CH.show_ok_dialog(['All Sources Failed to Play'], title='PrimeWire')
             break
 
-@pw_dispatcher.register('PlaySource: (url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume)')    
+@pw_dispatcher.register('PlaySource',  ['url', ' title', ' img', ' year', ' imdbnum', ' video_type', ' season', ' episode', ' primewire_url', ' resume'])    
 def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid=None, strm=False):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
@@ -340,7 +340,7 @@ def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, prim
 
     return True
 
-@pw_dispatcher.register('ChangeWatched: (imdbnum, video_type, title, season, epsiode, primewire_url) {year, watched, dbid}')
+@pw_dispatcher.register('ChangeWatched', ['imdbnum', 'video_type', 'title', 'season, epsiode', 'primewire_url'], ['year', 'watched', 'dbid'])
 def ChangeWatched(imdbnum, video_type, title, season, episode, primewire_url , year='', watched='', dbid=None):
 
     # meta['dbid'] only gets set for strms
@@ -371,7 +371,7 @@ def ChangeWatched(imdbnum, video_type, title, season, episode, primewire_url , y
     if utils.website_is_integrated() : pw_scraper.change_watched(primewire_url, watched)
     xbmc.executebuiltin("XBMC.Container.Refresh")
 
-@pw_dispatcher.register('PlayTrailer: (url)')
+@pw_dispatcher.register('PlayTrailer', ['url'])
 def PlayTrailer(url):
     url = url.decode('base-64')
     _1CH.log('Attempting to resolve and play trailer at %s' % url)
@@ -382,8 +382,8 @@ def PlayTrailer(url):
     stream_url = source.resolve() if source else ''
     xbmc.Player().play(stream_url)
 
-@pw_dispatcher.register('GetSearchQuery: (section, next_mode)')
-@pw_dispatcher.register('GetSearchQueryDesc: (section, next_mode)')
+@pw_dispatcher.register('GetSearchQuery', ['section', 'next_mode'])
+@pw_dispatcher.register('GetSearchQueryDesc', ['section', 'next_mode'])
 def GetSearchQuery(section, next_mode):
     paginate=(_1CH.get_setting('paginate-search')=='true' and _1CH.get_setting('paginate')=='true')
     keyboard = xbmc.Keyboard()
@@ -419,7 +419,7 @@ def GetSearchQuery(section, next_mode):
     else:
         BrowseListMenu(section)
 
-@pw_dispatcher.register('GetSearchQueryAdvanced: (section)')
+@pw_dispatcher.register('GetSearchQueryAdvanced', ['section'])
 def GetSearchQueryAdvanced(section):
     try:
         query=utils.get_adv_search_query(section)
@@ -431,10 +431,10 @@ def GetSearchQueryAdvanced(section):
     except:
         BrowseListMenu(section)
 
-@pw_dispatcher.register(SMODES.SEARCH+': (mode, section, query) {page}')
-@pw_dispatcher.register(SMODES.SEARCH_DESC+': (mode, section, query) {page}')
-@pw_dispatcher.register(SMODES.SEARCH_ADV+': (mode, section, query) {page}')
-@pw_dispatcher.register('7000: (section, query)')
+@pw_dispatcher.register(SMODES.SEARCH, ['mode', 'section', 'query'], ['page'])
+@pw_dispatcher.register(SMODES.SEARCH_DESC, ['mode', 'section', 'query'], ['page'])
+@pw_dispatcher.register(SMODES.SEARCH_ADV, ['mode', 'section', 'query'], ['page'])
+@pw_dispatcher.register('7000', ['section', 'query'])
 def Search(mode, section, query, page=None):
     section_params = get_section_params(section)
     paginate=(_1CH.get_setting('paginate-search')=='true' and _1CH.get_setting('paginate')=='true')
@@ -498,7 +498,7 @@ def AddonMenu():  # homescreen
     # _1CH.add_directory({'mode': 'test'},   {'title':  'Test'}, img=art('settings.png'), fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-@pw_dispatcher.register('BrowseListMenu: (section)')
+@pw_dispatcher.register('BrowseListMenu', ['section'])
 def BrowseListMenu(section):
     _1CH.log('Browse Options')
     _1CH.add_directory({'mode': 'BrowseAlphabetMenu', 'section': section}, {'title': 'A-Z'}, img=art('atoz.png'),
@@ -542,7 +542,7 @@ def add_search_item(queries, label):
     liz_url = _1CH.build_plugin_url(queries)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
-@pw_dispatcher.register('BrowseAlphabetMenu: (section)')
+@pw_dispatcher.register('BrowseAlphabetMenu', ['section'])
 def BrowseAlphabetMenu(section=None):
     _1CH.log('Browse by alphabet screen')
     _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'alphabet', 'letter': '123'},
@@ -553,7 +553,7 @@ def BrowseAlphabetMenu(section=None):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
-@pw_dispatcher.register('BrowseByGenreMenu: (section)')
+@pw_dispatcher.register('BrowseByGenreMenu', ['section'])
 def BrowseByGenreMenu(section=None, letter=None): #2000
     print 'Browse by genres screen'
     for genre in pw_scraper.get_genres():
@@ -628,7 +628,7 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
     liz_url = _1CH.build_plugin_url(queries)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,section_params['folder'],totalItems)
 
-@pw_dispatcher.register('GetFilteredResults: (section) {genre, letter, sort, page}')
+@pw_dispatcher.register('GetFilteredResults', ['section'], ['genre', 'letter', 'sort', 'page'])
 def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None, paginate=None):
     _1CH.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s Paginate: %s' % (section, genre, letter, sort, page, paginate))
     if paginate is None: paginate=(_1CH.get_setting('paginate-lists')=='true' and _1CH.get_setting('paginate')=='true')
@@ -680,7 +680,7 @@ def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', p
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
-@pw_dispatcher.register('TVShowSeasonList: (url, title, year) {tvdbnum}')
+@pw_dispatcher.register('TVShowSeasonList', ['url', 'title', 'year'], ['tvdbnum'])
 def TVShowSeasonList(url, title, year, old_imdb='', tvdbnum=''):
     _1CH.log('Seasons for TV Show %s' % url)
     season_gen=pw_scraper.get_season_list(url)
@@ -743,7 +743,7 @@ def TVShowSeasonList(url, title, year, old_imdb='', tvdbnum=''):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     utils.set_view('seasons', 'seasons-view')
     
-@pw_dispatcher.register('TVShowEpisodeList: (title, season, imdbnum)') # TVShowEpisodeList(title, season, imdbnum, tvdbnum)
+@pw_dispatcher.register('TVShowEpisodeList', ['title', 'season', 'imdbnum']) # TVShowEpisodeList(title, season, imdbnum, tvdbnum)
 def TVShowEpisodeList(title, season, imdbnum):
     season_html = db_connection.get_cached_season(season)
     r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
@@ -787,7 +787,7 @@ def get_section_params(section):
         section_params['subs'] = []
     return section_params
 
-@pw_dispatcher.register('browse_favorites: (section)')
+@pw_dispatcher.register('browse_favorites', ['section'])
 def browse_favorites(section):
     if not section: section='movie'
     favs=db_connection.get_favorites(section)
@@ -811,7 +811,7 @@ def browse_favorites(section):
         create_item(section_params,title,year,'',favurl,menu_items=menu_items)
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
-@pw_dispatcher.register('browse_favorites_website: (section) {page}')
+@pw_dispatcher.register('browse_favorites_website', ['section'], ['page'])
 def browse_favorites_website(section, page=None):
     if section=='movie': section='movies'
     local_favs=db_connection.get_favorites_count()
@@ -888,7 +888,7 @@ def migrate_favs_to_web():
         db_connection.delete_favorites([fav[1] for fav in successes])
     xbmc.executebuiltin("XBMC.Container.Refresh")
 
-@pw_dispatcher.register('fav2Library: (section)')
+@pw_dispatcher.register('fav2Library', ['section'])
 def add_favs_to_library(section):    
     if not section: section='movie'
     section_params=get_section_params(section)
@@ -910,7 +910,7 @@ def add_favs_to_library(section):
     builtin = 'XBMC.Notification(Primewire,%s,4000, %s)'
     xbmc.executebuiltin(builtin % (message,ICON_PATH))
 
-@pw_dispatcher.register('browse_watched_website: (section) {page}')    
+@pw_dispatcher.register('browse_watched_website', ['section'], ['page'])    
 def browse_watched_website(section, page=None):
     if section=='movie': section='movies'
 
@@ -979,7 +979,7 @@ def repair_missing_images():
     _1CH.log("Repairing Metadata Images")
     db_connection.repair_meta_images()
 
-@pw_dispatcher.register('add_to_library: (video_type, url, title, img, year, imdbnum)')
+@pw_dispatcher.register('add_to_library', ['video_type', 'url', 'title', 'img', 'year', 'imdbnum'])
 def add_to_library(video_type, url, title, img, year, imdbnum):
     try: _1CH.log('Creating .strm for %s %s %s %s %s %s' % (video_type, title, imdbnum, url, img, year))
     except: pass
@@ -1071,7 +1071,7 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
     builtin = "XBMC.Notification(Add to Library,Added '%s' to library,2000, %s)" % (title, ICON_PATH)
     xbmc.executebuiltin(builtin)
 
-@pw_dispatcher.register('add_subscription: (url, title, img, year, imdbnum)')
+@pw_dispatcher.register('add_subscription', ['url', 'title', 'img', 'year', 'imdbnum'])
 def add_subscription(url, title, img, year, imdbnum):
     try:
         days=utils.get_default_days()
@@ -1085,7 +1085,7 @@ def add_subscription(url, title, img, year, imdbnum):
     xbmc.executebuiltin('Container.Update')
 
 
-@pw_dispatcher.register('cancel_subscription: (url, title, img, year, imdbnum)')
+@pw_dispatcher.register('cancel_subscription', ['url', 'title', 'img', 'year', 'imdbnum'])
 def cancel_subscription(url, title, img, year, imdbnum):
     db_connection.delete_subscription(url)
     xbmc.executebuiltin('Container.Refresh')
@@ -1297,10 +1297,10 @@ def update_movie_cat():
 
     return str("featured") # default
 
-@pw_dispatcher.register('PageSelect: (mode, section) {genre, letter, sort}')
-@pw_dispatcher.register('FavPageSelect: (mode, section)')
-@pw_dispatcher.register('WatchedPageSelect: (mode, section)')
-@pw_dispatcher.register('SearchPageSelect: (mode, section) {search, query}')
+@pw_dispatcher.register('PageSelect', ['mode', 'section'], ['genre', 'letter', 'sort'])
+@pw_dispatcher.register('FavPageSelect', ['mode', 'section'])
+@pw_dispatcher.register('WatchedPageSelect', ['mode', 'section'])
+@pw_dispatcher.register('SearchPageSelect', ['mode', 'section'], ['search', 'query'])
 def jump_to_page(mode, section, genre='', letter='', sort='', search='', query=''):
     if mode == 'PageSelect':
         queries={'mode': 'GetFilteredResults', 'section': section, 'genre': genre, 'letter': letter, 'sort': sort}
@@ -1365,7 +1365,7 @@ def backup_db():
     full_path = path + 'db_backup_' + now_str +'.csv'
     db_connection.export_from_db(full_path)
 
-@pw_dispatcher.register('edit_days: (url, days)')
+@pw_dispatcher.register('edit_days', ['url', 'days'])
 def edit_days(url, days):
     try:
         # use a keyboard if the hidden setting is true
@@ -1394,7 +1394,7 @@ def show_help():
 def flush_cache():
         return utils.flush_cache()
 
-@pw_dispatcher.register('install_metapack: (title)')
+@pw_dispatcher.register('install_metapack', ['title'])
 def install_metapack(title):
     metapacks.install_metapack(title)
 
@@ -1404,7 +1404,7 @@ def install_local_metapack():
     source = dialog.browse(1, 'Metapack', 'files', '.zip', False, False)
     metapacks.install_local_zip(source)
         
-@pw_dispatcher.register('movie_update: (section, genre, letter, sort, page)')
+@pw_dispatcher.register('movie_update', ['section', 'genre', 'letter', 'sort', 'page'])
 def movie_update(section, genre, letter, sort, page):
     builtin = "XBMC.Notification(Updating,Please wait...,5000,%s)" % xbmcaddon.Addon().getAddonInfo('icon')
     xbmc.executebuiltin(builtin)
@@ -1412,11 +1412,11 @@ def movie_update(section, genre, letter, sort, page):
     section = 'movies'
     GetFilteredResults(section, genre, letter, sort, page, paginate=True)
 
-@pw_dispatcher.register('SelectSources: (url, title, img, year, imdbnum, dialog)')
+@pw_dispatcher.register('SelectSources', ['url', 'title', 'img', 'year', 'imdbnum', 'dialog'])
 def select_sources(url, title, img, year, imdbnum, dialog):
     get_sources(url, title, img, year, imdbnum, dialog, False)
 
-@pw_dispatcher.register('refresh_meta: (video_type, title, imdbnum, alt_id, year)')
+@pw_dispatcher.register('refresh_meta', ['video_type', 'title', 'imdbnum', 'alt_id', 'year'])
 def refresh_meta(video_type, title, imdbnum, alt_id, year):
     utils.refresh_meta(video_type, title, imdbnum, alt_id, year)
 
