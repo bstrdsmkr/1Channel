@@ -99,8 +99,8 @@ def delete_favorite(url):
         db_connection.delete_favorite(url)
     xbmc.executebuiltin('Container.Refresh')
 
-@pw_dispatcher.register('GetSources: (url, title, img, year, imdbnum) {dialog}')
-def get_sources(url, title, img, year, imdbnum, dialog=False, respect_auto=True):
+@pw_dispatcher.register('GetSources: (url, title) {year, img, imdbnum, dialog}')
+def get_sources(url, title, year='', img='', imdbnum='', dialog=False, respect_auto=True):
     url = urllib.unquote(url)
     _1CH.log('Getting sources from: %s' % url)
     primewire_url = url
