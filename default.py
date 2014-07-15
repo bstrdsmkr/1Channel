@@ -629,7 +629,7 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
     imdbnum = liz.getProperty('imdb')
     if not section_params['folder']: # should only be when it's a movie and dialog are off and autoplay is off
         liz.setProperty('isPlayable','true')
-    queries = {'mode': section_params['nextmode'], 'title': title, 'url': url, 'img': img, 'imdbnum': imdbnum, 'video_type': section_params['video_type']}
+    queries = {'mode': section_params['nextmode'], 'title': title, 'url': url, 'img': img, 'imdbnum': imdbnum, 'video_type': section_params['video_type'], 'year': year}
     liz_url = _1CH.build_plugin_url(queries)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,section_params['folder'],totalItems)
 
@@ -748,8 +748,8 @@ def TVShowSeasonList(url, title, year, old_imdb='', tvdbnum=''):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     utils.set_view('seasons', 'seasons-view')
     
-@pw_dispatcher.register('TVShowEpisodeList: (title, season, imdbnum, tvdbnum)') # TVShowEpisodeList(title, season, imdbnum, tvdbnum)
-def TVShowEpisodeList(title, season, imdbnum, tvdbnum):
+@pw_dispatcher.register('TVShowEpisodeList: (title, season, imdbnum)') # TVShowEpisodeList(title, season, imdbnum, tvdbnum)
+def TVShowEpisodeList(title, season, imdbnum):
     season_html = db_connection.get_cached_season(season)
     r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
     episodes = re.finditer(r, season_html, re.DOTALL)
