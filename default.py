@@ -55,7 +55,6 @@ AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
 ITEMS_PER_PAGE=24
 
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
-GENRES = pw_scraper.get_genres()
 
 db_connection = DB_Connection()
 pw_dispatcher = PW_Dispatcher()
@@ -560,7 +559,7 @@ def BrowseAlphabetMenu(section=None):
 @pw_dispatcher.register('BrowseByGenreMenu: (section)')
 def BrowseByGenreMenu(section=None, letter=None): #2000
     print 'Browse by genres screen'
-    for genre in GENRES:
+    for genre in pw_scraper.get_genres():
         _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': '', 'genre': genre},
                            {'title': genre}, img=art(genre.lower() + '.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
