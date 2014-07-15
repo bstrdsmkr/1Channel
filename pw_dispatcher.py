@@ -41,6 +41,12 @@ class PW_Dispatcher:
         return decorator
 
     def dispatch(self, mode, queries):
+        """
+        Dispatch function to execute function registered for the provided mode
+        
+        mode: the string that the function was associated with
+        queries: a dictionary of the parameters to be passed to the called function
+        """
         if mode not in self.func_registry:
             message='Error: Attempt to invoke unregistered mode |%s|' % (mode)
             _1CH.log_error(message)

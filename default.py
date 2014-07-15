@@ -1392,7 +1392,7 @@ def show_help():
 
 @pw_dispatcher.register('flush_cache')
 def flush_cache():
-        return utils.flush_cache()
+    return utils.flush_cache()
 
 @pw_dispatcher.register('install_metapack', ['title'])
 def install_metapack(title):
