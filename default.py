@@ -51,10 +51,8 @@ THEME_LIST = ['Classic', 'Glossy_Black', 'PrimeWire']
 THEME = THEME_LIST[int(_1CH.get_setting('theme'))]
 THEME_PATH = os.path.join(_1CH.get_path(), 'art', 'themes', THEME)
 ICON_PATH = os.path.join(_1CH.get_path(), 'icon.png')
-AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
 
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
-
 db_connection = DB_Connection()
 pw_dispatcher = PW_Dispatcher()
 
@@ -549,7 +547,7 @@ def BrowseAlphabetMenu(section=None):
     _1CH.log('Browse by alphabet screen')
     _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'alphabet', 'letter': '123'},
                        {'title': '#123'}, img=art('123.png'), fanart=art('fanart.png'))
-    for character in AZ_DIRECTORIES:
+    for character in (ltr for ltr in string.ascii_uppercase):
         _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': 'alphabet', 'letter': character},
                            {'title': character}, img=art(character.lower() + '.png'), fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
