@@ -979,7 +979,12 @@ def repair_missing_images():
     _1CH.log("Repairing Metadata Images")
     db_connection.repair_meta_images()
 
-@pw_dispatcher.register('add_to_library', ['video_type', 'url', 'title', 'img', 'year', 'imdbnum'])
+@pw_dispatcher.register('add_to_library', ['video_type', 'url', 'title', 'img', 'year'], ['imdbnum'])
+def manual_add_to_library(video_type, url, title, img, year, imdbnum=''):
+    add_to_library(video_type, url, title, img, year, imdbnum)
+    builtin = "XBMC.Notification(Add to Library,Added '%s' to library,2000, %s)" % (title, ICON_PATH)
+    xbmc.executebuiltin(builtin)
+
 def add_to_library(video_type, url, title, img, year, imdbnum):
     try: _1CH.log('Creating .strm for %s %s %s %s %s %s' % (video_type, title, imdbnum, url, img, year))
     except: pass
@@ -1068,11 +1073,8 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
         except Exception, e:
             _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
 
-    builtin = "XBMC.Notification(Add to Library,Added '%s' to library,2000, %s)" % (title, ICON_PATH)
-    xbmc.executebuiltin(builtin)
-
-@pw_dispatcher.register('add_subscription', ['url', 'title', 'img', 'year', 'imdbnum'])
-def add_subscription(url, title, img, year, imdbnum):
+@pw_dispatcher.register('add_subscription', ['url', 'title', 'img', 'year'], ['imdbnum'])
+def add_subscription(url, title, img, year, imdbnum=''):
     try:
         days=utils.get_default_days()
         db_connection.add_subscription(url, title, img, year, imdbnum, days)
@@ -1085,8 +1087,8 @@ def add_subscription(url, title, img, year, imdbnum):
     xbmc.executebuiltin('Container.Update')
 
 
-@pw_dispatcher.register('cancel_subscription', ['url', 'title', 'img', 'year', 'imdbnum'])
-def cancel_subscription(url, title, img, year, imdbnum):
+@pw_dispatcher.register('cancel_subscription', ['url'])
+def cancel_subscription(url):
     db_connection.delete_subscription(url)
     xbmc.executebuiltin('Container.Refresh')
 
@@ -1144,7 +1146,7 @@ def manage_subscriptions():
             {'mode': 'edit_days', 'url': sub[0], 'days': days})
         menu_items.append(('Edit days', runstring,))
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-            {'mode': 'cancel_subscription', 'url': sub[0], 'title': sub[1], 'img': sub[2], 'year': sub[3], 'imdbnum': sub[4]})
+            {'mode': 'cancel_subscription', 'url': sub[0]})
         menu_items.append(('Cancel subscription', runstring,))
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
             {'mode': 'SaveFav', 'fav_type': 'tv', 'title': sub[1], 'url': sub[0], 'year': sub[3]})

@@ -141,7 +141,7 @@ class DB_Connection():
         if day is None:
             rows=self.__execute(sql)
         else:
-            rows=self.__execute(sql,('%{}%'.format(day),))
+            rows=self.__execute(sql,('%{0}%'.format(day),))
         return rows
     
     def add_subscription(self, url, title, img, year, imdbnum, days):
