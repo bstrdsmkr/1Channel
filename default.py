@@ -172,7 +172,7 @@ def play_filtered_dialog(hosters, title, img, year, imdbnum, video_type, season,
     else:
         return
     
-    PlaySource(source, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid, strm=True)
+    PlaySource(source, title, img, imdbnum, video_type, primewire_url, resume, year, season, episode, dbid, strm=True)
 
 def play_unfiltered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid):
     sources=[]
@@ -183,7 +183,7 @@ def play_unfiltered_dialog(hosters, title, img, year, imdbnum, video_type, seaso
     dialog = xbmcgui.Dialog()       
     index = dialog.select('Choose your stream', sources)
     if index > -1:
-        PlaySource(hosters[index]['url'], title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid, strm=True)
+        PlaySource(hosters[index]['url'], title, img, imdbnum, video_type, primewire_url, resume, year, season, episode, dbid, strm=True)
     else:
         return 
 
@@ -249,7 +249,7 @@ def auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, epi
             label = utils.format_label_source(source)
             dlg.update(percent, '', line1 + label)
             _1CH.log('Trying Source: %s' % (source['host']))
-            if not PlaySource(source['url'], title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid): 
+            if not PlaySource(source['url'], title, img, imdbnum, video_type, primewire_url, resume, year, season, episode, dbid): 
                 dlg.update(percent, 'Playback Failed: %s' % (label), line1 + label)
                 _1CH.log('Source Failed: %s' % (source['host']))
                 count += 1
@@ -262,8 +262,8 @@ def auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, epi
             _1CH.show_ok_dialog(['All Sources Failed to Play'], title='PrimeWire')
             break
 
-@pw_dispatcher.register('PlaySource',  ['url', ' title', ' img', ' year', ' imdbnum', ' video_type', ' season', ' episode', ' primewire_url', ' resume'])    
-def PlaySource(url, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid=None, strm=False):
+@pw_dispatcher.register('PlaySource',  ['url', ' title', 'img', 'imdbnum', 'video_type', 'primewire_url', 'resume'], ['year', 'season', 'episode'])    
+def PlaySource(url, title, img, imdbnum, video_type, primewire_url, resume, year='', season='', episode='', dbid=None, strm=False):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
 
@@ -629,7 +629,7 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,section_params['folder'],totalItems)
 
 @pw_dispatcher.register('GetFilteredResults', ['section'], ['genre', 'letter', 'sort', 'page'])
-def GetFilteredResults(section=None, genre=None, letter=None, sort='alphabet', page=None, paginate=None):
+def GetFilteredResults(section, genre='', letter='', sort='alphabet', page=None, paginate=None):
     _1CH.log('Filtered results for Section: %s Genre: %s Letter: %s Sort: %s Page: %s Paginate: %s' % (section, genre, letter, sort, page, paginate))
     if paginate is None: paginate=(_1CH.get_setting('paginate-lists')=='true' and _1CH.get_setting('paginate')=='true')
     section_params = get_section_params(section)

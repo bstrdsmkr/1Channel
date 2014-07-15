@@ -9,12 +9,16 @@ class PW_Dispatcher:
 
     def register(self, mode, args=None, kwargs=None):
         """
-        decorator function to register a function as a plugin:// url endpoint
+        Decorator function to register a function as a plugin:// url endpoint
+        
         mode: the mode value passed in the plugin:// url
-        args: list of the names as strings of positional arguments to expect
-        kwargs: list of the names as strings of the keyword arguments to expect 
-        Positional argument must be in the order the function expects, kw_arg can be in any order
-        If there are no arguments, just "mode" is sufficient
+        args: a list  of strings that are the positional arguments to expect
+        kwargs: a list of strings that are the keyword arguments to expect 
+        
+        * Positional argument must be in the order the function expect
+        * kwargs can be in any order
+        * kwargs without positional arguments are supported by passing in a kwargs but no args
+        * If there are no arguments at all, just "mode" can be specified
         """
         if args is None:
             args=[]
