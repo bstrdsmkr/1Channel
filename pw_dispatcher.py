@@ -25,10 +25,10 @@ class PW_Dispatcher:
 
             _1CH.log_debug('registering function: |%s|->|%s|' % (mode,str(f)))
             self.func_registry[mode]=f
-            _1CH.log_debug('registering args: |%s|-->|%s|' % (mode,args)) 
             pos_args, kw_args = self.__split_arg_string(args, mode)
             self.pos_args_registry[mode]=self.__get_args(pos_args)
             self.kw_args_registry[mode]=self.__get_args(kw_args)
+            _1CH.log_debug('registering args: |%s|-->(%s) and {%s}' % (mode, pos_args, kw_args)) 
             
             return f
         return decorator
