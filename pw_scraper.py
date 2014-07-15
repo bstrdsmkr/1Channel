@@ -36,11 +36,11 @@ USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
 _1CH = Addon('plugin.video.1channel')
 ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
-ITEMS_PER_PAGE = 24
-ITEMS_PER_PAGE2 = 40
-MAX_PAGES = 10
 
 class PW_Scraper():
+    ITEMS_PER_PAGE = 24
+    ITEMS_PER_PAGE2 = 40
+    MAX_PAGES = 10
     def __init__(self, username, password):
         self.base_url = _1CH.get_setting('domain')
         if (_1CH.get_setting("enableDomain") == 'true') and (len(_1CH.get_setting("customDomain")) > 10):
@@ -90,7 +90,7 @@ class PW_Scraper():
             total = int(r.group(1).replace(',', ''))
         else:
             total = 0
-        self.res_pages = int(math.ceil(total / float(ITEMS_PER_PAGE2)))
+        self.res_pages = int(math.ceil(total / float(PW_Scraper.ITEMS_PER_PAGE2)))
         self.res_total = total
         pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
         return self.__get_results_gen(html, url, page, paginate, pattern, self.__set_fav_result)   
@@ -116,7 +116,7 @@ class PW_Scraper():
             total = int(r.group(1).replace(',', ''))
         else:
             total = 0
-        self.res_pages = int(math.ceil(total / float(ITEMS_PER_PAGE2)))
+        self.res_pages = int(math.ceil(total / float(PW_Scraper.ITEMS_PER_PAGE2)))
         self.res_total = total
         
         pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_watched\'.+?<a href=\'(.+?)\' ref=\'add_watched\''''
@@ -177,7 +177,7 @@ class PW_Scraper():
             total = int(r.group(1).replace(',', ''))
         else:
             total = 0
-        self.res_pages = int(math.ceil(total / float(ITEMS_PER_PAGE)))
+        self.res_pages = int(math.ceil(total / float(PW_Scraper.ITEMS_PER_PAGE)))
         self.res_total = total
         pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
         return self.__get_results_gen(html, search_url, page, paginate, pattern, self.__set_search_result)
@@ -207,7 +207,7 @@ class PW_Scraper():
             total = int(r.group(1).replace(',', ''))
         else:
             total = 0
-        self.res_pages = int(math.ceil(total / float(ITEMS_PER_PAGE)))
+        self.res_pages = int(math.ceil(total / float(PW_Scraper.ITEMS_PER_PAGE)))
         pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
         return self.__get_results_gen(html, pageurl, page, paginate, pattern, self.__set_filtered_result)
 
@@ -241,7 +241,7 @@ class PW_Scraper():
             
             # if we're not paginating, then keep yielding until we run out of pages or hit the max
             if not paginate:
-                if html.find('> >> <') == -1 or int(page) > MAX_PAGES:
+                if html.find('> >> <') == -1 or int(page) > PW_Scraper.MAX_PAGES:
                     break
                 
                 page += 1

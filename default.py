@@ -52,7 +52,6 @@ THEME = THEME_LIST[int(_1CH.get_setting('theme'))]
 THEME_PATH = os.path.join(_1CH.get_path(), 'art', 'themes', THEME)
 ICON_PATH = os.path.join(_1CH.get_path(), 'icon.png')
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
-ITEMS_PER_PAGE=24
 
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 
@@ -455,9 +454,9 @@ def Search(mode, section, query, page=None):
     total=pw_scraper.get_last_res_total()
     if paginate:
         if page != total_pages:
-            total=ITEMS_PER_PAGE
+            total=PW_Scraper.ITEMS_PER_PAGE
         else:
-            total=total % ITEMS_PER_PAGE
+            total=total % PW_Scraper.ITEMS_PER_PAGE
     
     resurls = []
     for result in results:
