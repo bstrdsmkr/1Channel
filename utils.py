@@ -362,6 +362,16 @@ def get_cached_url(url, cache_limit):
 def cache_url(url, body):
     return db_connection.cache_url(url,body)
     
+def get_fav_urls(fav_type):
+    if website_is_integrated():
+        favs=pw_scraper.get_favorites(fav_type)
+        fav_urls=[fav['url'] for fav in favs]
+    else:
+        favs=db_connection.get_favorites(fav_type)
+        fav_urls=[fav[2] for fav in favs]
+    return fav_urls
+    
+
 def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)
     if minutes > 60:

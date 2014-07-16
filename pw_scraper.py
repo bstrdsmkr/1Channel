@@ -79,7 +79,8 @@ class PW_Scraper():
             _1CH.log('Delete URL: %s' % (del_url))
             self.__get_url(del_url, login=True)
     
-    def get_favorities(self, section, page=None, paginate=False):
+    def get_favorites(self, section, page=None, paginate=False):
+        if section!='tv': section='movies' # force section to be movies if it's not TV
         _1CH.log('Getting %s favorite from website' % (section))
         fav_url = '/profile.php?user=%s&fav&show=%s'
         if page: fav_url += '&page=%s' % (page)
@@ -98,7 +99,7 @@ class PW_Scraper():
     def __set_fav_result(self, match):
         fav = {}
         link, img, year, title, delete = match
-        fav['url'] = link
+        fav['url'] = link.replace('/tv-', '/watch-', 1) # hack the returned favorite url so that it matches all the other pages
         fav['img'] = img
         fav['year'] = year
         fav['title'] = title
@@ -125,7 +126,7 @@ class PW_Scraper():
     def __set_watched_result(self, match):
             result = {}
             link, img, year, title, delete, rewatch  = match
-            result['url']=link
+            result['url']=link.replace('/tv-', '/watch-', 1) # hack the returned watched url so that it matches all the other pages
             result['img']=img
             result['year']=year
             result['title']=title

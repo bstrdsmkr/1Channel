@@ -78,11 +78,12 @@ def save_favorite(fav_type, title, url, year):
             pw_scraper.add_favorite(url)
         else:
             db_connection.save_favorite(fav_type, title, url, year)
-        builtin = 'XBMC.Notification(Save Favorite,Added to Favorites,2000, %s)'
-        xbmc.executebuiltin(builtin % ICON_PATH)
+        builtin = 'XBMC.Notification(PrimeWire, %s added to Favorites, 5000, %s)'
     except:
-            builtin = 'XBMC.Notification(Save Favorite,Item already in Favorites,2000, %s)'
-            xbmc.executebuiltin(builtin % ICON_PATH)
+        builtin = 'XBMC.Notification(PrimeWire,%s already in Favorites, 5000, %s)'
+
+    xbmc.executebuiltin(builtin % (title, ICON_PATH))
+    xbmc.executebuiltin('Container.Refresh')
 
 @pw_dispatcher.register('DeleteFav', ['url'])
 def delete_favorite(url):
@@ -92,6 +93,8 @@ def delete_favorite(url):
         pw_scraper.delete_favorite(url)
     else:
         db_connection.delete_favorite(url)
+    builtin = 'XBMC.Notification(PrimeWire, Favorite Removed, 3000, %s)'
+    xbmc.executebuiltin(builtin % ICON_PATH)
     xbmc.executebuiltin('Container.Refresh')
 
 @pw_dispatcher.register('GetSources', ['url', 'title'], ['year', 'img', 'imdbnum', 'dialog'])
@@ -538,6 +541,7 @@ def BrowseListMenu(section):
 # _1CH.add_item doesn't work because it insists on adding non-folder items as playable
 def add_search_item(queries, label):
     liz = xbmcgui.ListItem(label=label, iconImage=art('search.png'), thumbnailImage=art('search.png'))
+    liz.setProperty('IsPlayable', 'false')
     liz.setProperty('fanart_image', art('fanart.png'))
     liz_url = _1CH.build_plugin_url(queries)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
@@ -565,22 +569,19 @@ def BrowseByGenreMenu(section=None, letter=None): #2000
 def add_contextsearchmenu(title, video_type, resurl=''):
     contextmenuitems = []
     nameonly=utils.filename_filter_out_year(title); #print 'nameonly:  '+nameonly
+    
     if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.solarmovie.so'):
         if video_type == 'tv':
             section = 'tv'
             contextmenuitems.append(('Find AirDates', 'XBMC.Container.Update(%s?mode=%s&title=%s)' % ('plugin://plugin.video.solarmovie.so/','SearchForAirDates',nameonly)))
         else: section = 'movies'
         contextmenuitems.append(('Search Solarmovie.so', 'XBMC.Container.Update(%s?mode=%s&section=%s&title=%s)' % ('plugin://plugin.video.solarmovie.so/','ApiSearch',section,nameonly)))
-    #if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.kissanime'):
-    #    contextmenuitems.append(('Search KissAnime', 'XBMC.Container.Update(%s?mode=%s&pageno=1&pagecount=1&title=%s)' % ('plugin://plugin.video.kissanime/','Search',nameonly)))
-    #if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.merdb'):
-    #    if video_type == 'tv': section = 'tvshows'; surl='http://merdb.ru/tvshow/'
-    #    else: section = 'movies'; surl='http://merdb.ru/'
-    #    contextmenuitems.append(('Search MerDB', 'XBMC.Container.Update(%s?mode=%s&section=%s&url=%s&title=%s)' % ('plugin://plugin.video.merdb/','Search',section,urllib.quote_plus(surl),nameonly)))
+
     if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.icefilms'):
         contextmenuitems.append(('Search Icefilms',
                                  'XBMC.Container.Update(%s?mode=555&url=%s&search=%s&nextPage=%s)' % (
                                      'plugin://plugin.video.icefilms/', 'http://www.icefilms.info/', nameonly, '1')))
+    
     if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.tubeplus'):
         if video_type == 'tv':
             section = 'tv-shows'
@@ -588,19 +589,39 @@ def add_contextsearchmenu(title, video_type, resurl=''):
             section = 'movies'
         contextmenuitems.append(('Search tubeplus', 'XBMC.Container.Update(%s?mode=Search&section=%s&query=%s)' % (
             'plugin://plugin.video.tubeplus/', section, nameonly)))
+    
     if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.tvlinks'):
         if video_type == 'tv':
             contextmenuitems.append(('Search tvlinks', 'XBMC.Container.Update(%s?mode=Search&query=%s)' % (
                 'plugin://plugin.video.tvlinks/', nameonly)))
-    #if os.path.exists(xbmc.translatePath("special://home/addons/") + 'plugin.video.solarmovie'):
-    #    if video_type == 'tv':
-    #        section = 'tv-shows'
-    #    else:
-    #        section = 'movies'
-    #    contextmenuitems.append(('Search solarmovie', 'XBMC.Container.Update(%s?mode=Search&section=%s&query=%s)' % (
-    #        'plugin://plugin.video.solarmovie/', section, title)))
 
     return contextmenuitems
+
+def get_section_params(section):
+    section_params={}
+    section_params['section']=section
+    if section == 'tv':
+        utils.set_view('tvshows', 'tvshows-view')
+        section_params['nextmode'] = 'TVShowSeasonList'
+        section_params['video_type'] = 'tvshow'
+        section_params['folder'] = True
+        subscriptions = db_connection.get_subscriptions()
+        section_params['subs'] = [row[0] for row in subscriptions]
+    elif section=='episode':
+        section_params['nextmode'] = 'GetSources'
+        section_params['video_type']='episode'
+        utils.set_view('episodes', 'episodes-view')
+        section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
+        section_params['subs'] = []
+    else:
+        utils.set_view('movies', 'movies-view')
+        section_params['nextmode'] = 'GetSources'
+        section_params['video_type'] = 'movie'
+        section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
+        section_params['subs'] = []
+    
+    section_params['fav_urls']=utils.get_fav_urls(section)
+    return section_params
 
 def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
     #_1CH.log('Create Item: %s, %s, %s, %s, %s, %s, %s, %s, %s' % (section_params, title, year, img, url, imdbnum, season, episode, totalItems))
@@ -619,7 +640,7 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
         temp_url=re.match('(/.*/).*',url).groups()[0]
     else:
         temp_url=url
-    liz = build_listitem(section_params['section'], section_params['video_type'], title, year, img, temp_url, imdbnum, season, episode, extra_cms=menu_items, subs=section_params['subs'])
+    liz = build_listitem(section_params, title, year, img, temp_url, imdbnum, season, episode, extra_cms=menu_items)
     img = liz.getProperty('img')
     imdbnum = liz.getProperty('imdb')
     if not section_params['folder']: # should only be when it's a movie and dialog are off and autoplay is off
@@ -627,6 +648,119 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
     queries = {'mode': section_params['nextmode'], 'title': title, 'url': url, 'img': img, 'imdbnum': imdbnum, 'video_type': section_params['video_type'], 'year': year}
     liz_url = _1CH.build_plugin_url(queries)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,section_params['folder'],totalItems)
+
+def build_listitem(section_params, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=None):
+    if not extra_cms: extra_cms = []
+    menu_items = add_contextsearchmenu(title, section_params['section'], resurl)
+    menu_items = menu_items + extra_cms
+
+    if resurl in section_params['fav_urls']:
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section_params['section'], 'title': title, 'url': resurl, 'year': year})
+        menu_items = [('Remove from Favorites', runstring)]
+    else:
+        queries = {'mode': 'SaveFav', 'fav_type': section_params['section'], 'title': title, 'url': resurl, 'year': year}
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
+        menu_items.append(('Add to Favorites', runstring), )
+
+    queries = {'mode': 'add_to_library', 'video_type': section_params['video_type'], 'title': title, 'img': img, 'year': year,
+               'url': resurl}
+    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
+    menu_items.append(('Add to Library', runstring), )
+    
+    if section_params['video_type'] in ('tv', 'tvshow', 'episode'):
+        if resurl not in section_params['subs']:
+            queries = {'mode': 'add_subscription', 'video_type': section_params['video_type'], 'url': resurl, 'title': title,
+                       'img': img, 'year': year}
+            runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
+            menu_items.append(('Subscribe', runstring), )
+    else:
+        plugin_str = 'plugin://plugin.video.couchpotato_manager'
+        plugin_str += '/movies/add?title=%s' % title
+        runstring = 'XBMC.RunPlugin(%s)' % plugin_str
+        menu_items.append(('Add to CouchPotato', runstring), )
+
+    if META_ON:
+        if section_params['video_type'] == 'episode':
+            meta = __metaget__.get_episode_meta(title, imdbnum, season, episode)
+            meta['TVShowTitle'] = title
+        else:
+            meta = create_meta(section_params['video_type'], title, year, img)
+
+        if 'cover_url' in meta:
+            img = meta['cover_url']
+
+        menu_items.append(('Show Information', 'XBMC.Action(Info)'), )
+
+        queries = {'mode': 'refresh_meta', 'video_type': section_params['video_type'], 'title': meta['title'], 'imdb': meta['imdb_id'],
+                   'alt_id': 'imdbnum', 'year': year}
+        runstring = _1CH.build_plugin_url(queries)
+        runstring = 'RunPlugin(%s)' % runstring
+        menu_items.append(('Refresh Metadata', runstring,))
+
+        if 'trailer_url' in meta:
+            try:
+                url = meta['trailer_url']
+                url = url.encode('base-64').strip()
+                runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'PlayTrailer', 'url': url})
+                menu_items.append(('Watch Trailer', runstring,))
+            except: pass
+
+        if meta['overlay'] == 6:
+            label = 'Mark as watched'
+            new_status = 7
+        else:
+            label = 'Mark as unwatched'
+            new_status = 6
+
+        queries = {'mode': 'ChangeWatched', 'title': title, 'imdbnum': meta['imdb_id'], 'video_type': section_params['video_type'], 'year': year, 'primewire_url': resurl, 'watched': new_status}
+        if section_params['video_type'] in ('tv', 'tvshow', 'episode'):
+            queries['season'] = season
+            queries['episode'] = episode
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
+        menu_items.append((label, runstring,))
+
+        fanart = ''
+        if FANART_ON:
+            try:
+                fanart = meta['backdrop_url']
+            except:
+                fanart = ''
+
+        if section_params['video_type'] == 'tvshow':
+            if resurl in section_params['subs']:
+                meta['title'] = utils.format_label_sub(meta)
+            else:
+                meta['title'] = utils.format_label_tvshow(meta)
+        elif section_params['video_type'] == 'episode':
+            meta['title'] = utils.format_tvshow_episode(meta)
+        else:
+            meta['title'] = utils.format_label_movie(meta)
+
+        listitem = xbmcgui.ListItem(meta['title'], iconImage=img,
+                                    thumbnailImage=img)
+        listitem.setInfo('video', meta)
+        listitem.setProperty('fanart_image', fanart)
+        listitem.setProperty('imdb', meta['imdb_id'])
+        listitem.setProperty('img', img)
+        listitem.addContextMenuItems(menu_items, replaceItems=True)
+    else:  # Metadata off
+        if section_params['video_type'] == 'episode':
+            disp_title = '%sx%s' % (season, episode)
+            listitem = xbmcgui.ListItem(disp_title, iconImage=img,
+                                        thumbnailImage=img)
+        else:
+            if year:
+                disp_title = '%s (%s)' % (title, year)
+            else:
+                disp_title = title
+            listitem = xbmcgui.ListItem(disp_title, iconImage=img,
+                                        thumbnailImage=img)
+            listitem.addContextMenuItems(menu_items, replaceItems=True)
+
+    # Hack resumetime & totaltime to prevent XBMC from popping up a resume dialog if a native bookmark is set. UGH! 
+    listitem.setProperty('resumetime',str(0))
+    listitem.setProperty('totaltime',str(1))
+    return listitem
 
 @pw_dispatcher.register('GetFilteredResults', ['section'], ['genre', 'letter', 'sort', 'page'])
 def GetFilteredResults(section, genre='', letter='', sort='alphabet', page=None, paginate=None):
@@ -763,30 +897,6 @@ def TVShowEpisodeList(title, season, imdbnum):
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
-def get_section_params(section):
-    section_params={}
-    section_params['section']=section
-    if section == 'tv':
-        utils.set_view('tvshows', 'tvshows-view')
-        section_params['nextmode'] = 'TVShowSeasonList'
-        section_params['video_type'] = 'tvshow'
-        section_params['folder'] = True
-        subscriptions = db_connection.get_subscriptions()
-        section_params['subs'] = [row[0] for row in subscriptions]
-    elif section=='episode':
-        section_params['nextmode'] = 'GetSources'
-        section_params['video_type']='episode'
-        utils.set_view('episodes', 'episodes-view')
-        section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
-        section_params['subs'] = []
-    else:
-        utils.set_view('movies', 'movies-view')
-        section_params['nextmode'] = 'GetSources'
-        section_params['video_type'] = 'movie'
-        section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
-        section_params['subs'] = []
-    return section_params
-
 @pw_dispatcher.register('browse_favorites', ['section'])
 def browse_favorites(section):
     if not section: section='movie'
@@ -805,10 +915,7 @@ def browse_favorites(section):
     for row in favs:
         _, title,favurl,year = row
         
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': title, 'url': favurl, 'year': year})
-        menu_items = [('Remove from Favorites', runstring)]
-
-        create_item(section_params,title,year,'',favurl,menu_items=menu_items)
+        create_item(section_params,title,year,'',favurl)
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 @pw_dispatcher.register('browse_favorites_website', ['section'], ['page'])
@@ -833,10 +940,8 @@ def browse_favorites_website(section, page=None):
     section_params = get_section_params(section)
     paginate=(_1CH.get_setting('paginate-favs')=='true' and _1CH.get_setting('paginate')=='true')
     
-    for fav in pw_scraper.get_favorities(section, page, paginate):
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section, 'title': fav['title'], 'url': fav['url'], 'year': fav['year']})
-        menu_items = [('Delete Favorite', runstring)]
-        create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'],menu_items=menu_items)
+    for fav in pw_scraper.get_favorites(section, page, paginate):
+        create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'])
     
     total_pages=pw_scraper.get_last_res_pages()
     if not page: page = 1
@@ -893,7 +998,7 @@ def add_favs_to_library(section):
     if not section: section='movie'
     section_params=get_section_params(section)
     if utils.website_is_integrated():
-        for fav in pw_scraper.get_favorities(section, paginate=False):
+        for fav in pw_scraper.get_favorites(section, paginate=False):
             add_to_library(section_params['video_type'], fav['url'], fav['title'], fav['img'], fav['year'], '')
     else:
         favs=db_connection.get_favorites(section)
@@ -1084,8 +1189,7 @@ def add_subscription(url, title, img, year, imdbnum=''):
     except:
         builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)
-    xbmc.executebuiltin('Container.Update')
-
+    xbmc.executebuiltin('Container.Refresh')
 
 @pw_dispatcher.register('cancel_subscription', ['url'])
 def cancel_subscription(url):
@@ -1124,11 +1228,13 @@ def manage_subscriptions():
     liz = xbmcgui.ListItem(label='Clean Up Subscriptions')
     liz_url = _1CH.build_plugin_url({'mode': 'clean_up_subscriptions'})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
+    
+    fav_urls=utils.get_fav_urls('tv')
 
     subs=db_connection.get_subscriptions(order_matters=True)
     subs_len=len(subs)
     for sub in subs:
-        days=sub[5]
+        url, title, img, year, _, days = sub
         days_string = utils.get_days_string_from_days(days)
         if days_string=='': days_string='DISABLED'
         days_format = _1CH.get_setting('format-sub-days')
@@ -1138,19 +1244,25 @@ def manage_subscriptions():
         else:
             _1CH.log('Ignoring subscription days format because %s is missing')
             
-        meta = create_meta('tvshow', sub[1], sub[3], '')
+        meta = create_meta('tvshow', title, year, '')
         meta['title'] = utils.format_label_sub(meta)
 
         menu_items = add_contextsearchmenu(meta['title'], 'tv')
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-            {'mode': 'edit_days', 'url': sub[0], 'days': days})
+            {'mode': 'edit_days', 'url': url, 'days': days})
         menu_items.append(('Edit days', runstring,))
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-            {'mode': 'cancel_subscription', 'url': sub[0]})
+            {'mode': 'cancel_subscription', 'url': url})
         menu_items.append(('Cancel subscription', runstring,))
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-            {'mode': 'SaveFav', 'fav_type': 'tv', 'title': sub[1], 'url': sub[0], 'year': sub[3]})
-        menu_items.append(('Add to Favorites', runstring,))
+        
+        if url in fav_urls:
+            runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'url': url})
+            menu_items.append(('Remove from Favorites', runstring,))
+        else:
+            runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
+                {'mode': 'SaveFav', 'fav_type': 'tv', 'title': title, 'url': url, 'year': year})
+            menu_items.append(('Add to Favorites', runstring,))
+            
         menu_items.append(('Show Information', 'XBMC.Action(Info)',))
 
         if META_ON:
@@ -1164,7 +1276,7 @@ def manage_subscriptions():
         listitem.setInfo('video', meta)
         listitem.setProperty('fanart_image', fanart)
         listitem.addContextMenuItems(menu_items, replaceItems=True)
-        queries = {'mode': 'TVShowSeasonList', 'title': sub[1], 'url': sub[0], 'img': img, 'imdbnum': meta['imdb_id'], 'video_type': 'tvshow', 'year': sub[3]}
+        queries = {'mode': 'TVShowSeasonList', 'title': title, 'url': url, 'img': img, 'imdbnum': meta['imdb_id'], 'video_type': 'tvshow', 'year': year}
         li_url = _1CH.build_plugin_url(queries)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, isFolder=True, totalItems=subs_len)
     _1CH.end_of_directory()
@@ -1175,115 +1287,6 @@ def compose(inner_func, *outer_funcs):
         return inner_func
     outer_func = compose(*outer_funcs)
     return lambda *args, **kwargs: outer_func(inner_func(*args, **kwargs))
-
-def build_listitem(section, video_type, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=None, subs=None):
-    if not subs: subs = []
-    if not extra_cms: extra_cms = []
-    menu_items = add_contextsearchmenu(title, section, resurl)
-    menu_items = menu_items + extra_cms
-
-    if video_type != 'episode' and 'Delete Favorite' not in [item[0] for item in menu_items]:
-        queries = {'mode': 'SaveFav', 'fav_type': section, 'title': title, 'url': resurl, 'year': year}
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
-        menu_items.append(('Add to Favorites', runstring), )
-
-    queries = {'mode': 'add_to_library', 'video_type': video_type, 'title': title, 'img': img, 'year': year,
-               'url': resurl}
-    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
-    menu_items.append(('Add to Library', runstring), )
-    if video_type in ('tv', 'tvshow', 'episode'):
-        queries = {'mode': 'add_subscription', 'video_type': video_type, 'url': resurl, 'title': title,
-                   'img': img, 'year': year}
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
-        menu_items.append(('Subscribe', runstring), )
-    else:
-        plugin_str = 'plugin://plugin.video.couchpotato_manager'
-        plugin_str += '/movies/add?title=%s' % title
-        runstring = 'XBMC.RunPlugin(%s)' % plugin_str
-        menu_items.append(('Add to CouchPotato', runstring), )
-
-    if META_ON:
-        if video_type == 'episode':
-            meta = __metaget__.get_episode_meta(title, imdbnum, season, episode)
-            meta['TVShowTitle'] = title
-        else:
-            meta = create_meta(video_type, title, year, img)
-
-        if 'cover_url' in meta:
-            img = meta['cover_url']
-
-        menu_items.append(('Show Information', 'XBMC.Action(Info)'), )
-
-        queries = {'mode': 'refresh_meta', 'video_type': video_type, 'title': meta['title'], 'imdb': meta['imdb_id'],
-                   'alt_id': 'imdbnum', 'year': year}
-        runstring = _1CH.build_plugin_url(queries)
-        runstring = 'RunPlugin(%s)' % runstring
-        menu_items.append(('Refresh Metadata', runstring,))
-
-        if 'trailer_url' in meta:
-            try:
-                url = meta['trailer_url']
-                url = url.encode('base-64').strip()
-                runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'PlayTrailer', 'url': url})
-                menu_items.append(('Watch Trailer', runstring,))
-            except: pass
-
-        if meta['overlay'] == 6:
-            label = 'Mark as watched'
-            new_status = 7
-        else:
-            label = 'Mark as unwatched'
-            new_status = 6
-
-        queries = {'mode': 'ChangeWatched', 'title': title, 'imdbnum': meta['imdb_id'], 'video_type': video_type, 'year': year, 'primewire_url': resurl, 'watched': new_status}
-        if video_type in ('tv', 'tvshow', 'episode'):
-            queries['season'] = season
-            queries['episode'] = episode
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
-        menu_items.append((label, runstring,))
-
-        fanart = ''
-        if FANART_ON:
-            try:
-                fanart = meta['backdrop_url']
-            except:
-                fanart = ''
-
-        if video_type == 'tvshow':
-            if resurl in subs:
-                meta['title'] = utils.format_label_sub(meta)
-            else:
-                meta['title'] = utils.format_label_tvshow(meta)
-        elif video_type == 'episode':
-            meta['title'] = utils.format_tvshow_episode(meta)
-        else:
-            meta['title'] = utils.format_label_movie(meta)
-
-        listitem = xbmcgui.ListItem(meta['title'], iconImage=img,
-                                    thumbnailImage=img)
-        listitem.setInfo('video', meta)
-        listitem.setProperty('fanart_image', fanart)
-        listitem.setProperty('imdb', meta['imdb_id'])
-        listitem.setProperty('img', img)
-        listitem.addContextMenuItems(menu_items, replaceItems=True)
-    else:  # Metadata off
-        if video_type == 'episode':
-            disp_title = '%sx%s' % (season, episode)
-            listitem = xbmcgui.ListItem(disp_title, iconImage=img,
-                                        thumbnailImage=img)
-        else:
-            if year:
-                disp_title = '%s (%s)' % (title, year)
-            else:
-                disp_title = title
-            listitem = xbmcgui.ListItem(disp_title, iconImage=img,
-                                        thumbnailImage=img)
-            listitem.addContextMenuItems(menu_items, replaceItems=True)
-
-    # Hack resumetime & totaltime to prevent XBMC from popping up a resume dialog if a native bookmark is set. UGH! 
-    listitem.setProperty('resumetime',str(0))
-    listitem.setProperty('totaltime',str(1))
-    return listitem
 
 def update_movie_cat():
     if _1CH.get_setting('auto-update-movies-cat') == "Featured":
