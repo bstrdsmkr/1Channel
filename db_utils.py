@@ -186,9 +186,9 @@ class DB_Connection():
             self.__execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS new_bkmark (url VARCHAR(255) PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')            
-            try: self.__execute('DROP INDEX unique_db_info ON db_info')
-            except: pass # ignore failures if the index doesn't exist
-            self.__execute('CREATE UNIQUE INDEX unique_db_info ON db_info (setting (255))')
+            self.__execute('ALTER IGNORE TABLE db_info DROP INDEX unique_db_info')            
+            self.__execute('ALTER IGNORE TABLE db_info ADD UNIQUE INDEX unique_db_info (setting (255))')
+            # self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_db_info ON db_info (setting)')
         else:
             self.__create_sqlite_db()
             self.__execute('CREATE TABLE IF NOT EXISTS seasons (season UNIQUE, contents)')
