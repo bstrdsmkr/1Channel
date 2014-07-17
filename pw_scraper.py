@@ -336,7 +336,12 @@ class PW_Scraper():
                 html=None
                 _1CH.log("Login failed for %s getting: %s" (self.username,url))
 
-        html = unicode(html, 'windows-1252')
+        # addon.net tries to use page's Content Type to convert to unicode
+        # if it fails (usually because the data in the page doesn't match the Content Type), then the page encoding is left as-is
+        # This then tries again with w-1252 code page which is the least restrictive
+        if not isinstance(html,unicode):
+            html = unicode(html, 'windows-1252')
+            
         after = time.time()
         _1CH.log('Url Fetch took: %.2f secs' % (after-before))
         return html
