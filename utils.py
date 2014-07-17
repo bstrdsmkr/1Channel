@@ -397,6 +397,33 @@ def unpack_query(query):
 
     return criteria
 
+def get_xbmc_fav_urls():
+    xbmc_favs=get_xbmc_favs()
+    fav_urls=[]
+    for fav in xbmc_favs:
+        if 'path' in fav:
+            fav_url=fav['path']
+        elif 'windowparameter' in fav:
+            fav_url=fav['windowparameter']
+
+        # Strip dialog force off so urls will match addon urls (HACK!)
+        fav_url=fav_url.replace('&dialog=True','')
+        fav_url=fav_url.replace('&dialog=False','')
+        fav_urls.append(fav_url)
+    return fav_urls
+    
+def get_xbmc_favs():
+    favs=[]
+    cmd = '{"jsonrpc": "2.0", "method": "Favourites.GetFavourites", "params": {"type": null, "properties": ["path", "windowparameter"]}, "id": 1}'
+    result = xbmc.executeJSONRPC(cmd)
+    result=json.loads(result)
+    if 'error' not in result:
+        for fav in result['result']['favourites']:
+            favs.append(fav)
+    else:
+        _1CH.log('Failed to get XBMC Favourites: %s' % (result['error']['message']))
+    return favs
+
 # Run a task on startup. Settings and mode values must match task name
 def do_startup_task(task):
     run_on_startup=_1CH.get_setting('auto-%s' % task)=='true' and _1CH.get_setting('%s-during-startup' % task) == 'true' 

@@ -54,12 +54,15 @@ class PW_Dispatcher:
             
         args=[]
         kwargs={}
+        unused_args=queries
+        if 'mode' in unused_args: del unused_args['mode']
         if self.args_registry[mode]:
             # positional arguments are all required
             for arg in self.args_registry[mode]:
                 arg=arg.strip()
                 if arg in queries:
                     args.append(queries[arg])
+                    del unused_args[arg]
                 else:
                     message='Error: mode |%s| requested argument |%s| but it was not provided.' % (mode, arg)
                     _1CH.log_error(message)
@@ -71,6 +74,8 @@ class PW_Dispatcher:
                 arg=arg.strip()
                 if arg in queries:
                     kwargs[arg]=queries[arg]
-            
+                    del unused_args[arg]
+        
         _1CH.log('Calling |%s| for mode |%s| with pos args |%s| and kwargs |%s|' % (self.func_registry[mode].__name__, mode, args,  kwargs))
+        if unused_args:_1CH.log('Warning: Arguments |%s| were passed but unused by |%s| for mode |%s|' % (unused_args, self.func_registry[mode].__name__, mode))
         self.func_registry[mode](*args, **kwargs)

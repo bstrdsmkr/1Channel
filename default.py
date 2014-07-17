@@ -98,7 +98,7 @@ def delete_favorite(url):
     xbmc.executebuiltin('Container.Refresh')
 
 @pw_dispatcher.register('GetSources', ['url', 'title'], ['year', 'img', 'imdbnum', 'dialog'])
-def get_sources(url, title, year='', img='', imdbnum='', dialog=False, respect_auto=True):
+def get_sources(url, title, year='', img='', imdbnum='', dialog=None, respect_auto=True):
     url = urllib.unquote(url)
     _1CH.log('Getting sources from: %s' % url)
     primewire_url = url
@@ -138,14 +138,18 @@ def get_sources(url, title, year='', img='', imdbnum='', dialog=False, respect_a
         auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
         
     else: # autoplay is off, or respect_auto is False
-        if dialog or _1CH.get_setting('source-win') == 'Dialog': #dialog is needed (playing from strm or dialogs are turned on)
+        if dialog is not None: dialog=bool(dialog) # cast dialog string to bool; but only if it was passed in
+        
+        # dialog is either True, False or None -- source-win is either Dialog or Directory
+        # If dialog is forced, or there is no force and it's set to dialog use the dialog
+        if dialog==True or (dialog is None and _1CH.get_setting('source-win') == 'Dialog'):
             if _1CH.get_setting('filter-source') == 'true':
                 play_filtered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
                 
             else:
                 play_unfiltered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
-                
-        else: # not from a strm (i.e. in the addon) and dialogs are off
+        # if dialog is forced off (False), or it's None, but source-win is Directory, then use a directory
+        else:
             if _1CH.get_setting('filter-source') == 'true':
                 play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume)
                 
@@ -175,7 +179,7 @@ def play_filtered_dialog(hosters, title, img, year, imdbnum, video_type, season,
     else:
         return
     
-    PlaySource(source, title, img, imdbnum, video_type, primewire_url, resume, year, season, episode, dbid, strm=True)
+    PlaySource(source, title, imdbnum, video_type, primewire_url, resume, year, season, episode, dbid)
 
 def play_unfiltered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid):
     sources=[]
@@ -186,7 +190,7 @@ def play_unfiltered_dialog(hosters, title, img, year, imdbnum, video_type, seaso
     dialog = xbmcgui.Dialog()       
     index = dialog.select('Choose your stream', sources)
     if index > -1:
-        PlaySource(hosters[index]['url'], title, img, imdbnum, video_type, primewire_url, resume, year, season, episode, dbid, strm=True)
+        PlaySource(hosters[index]['url'], title, imdbnum, video_type, primewire_url, resume, year, season, episode, dbid)
     else:
         return 
 
@@ -252,7 +256,7 @@ def auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, epi
             label = utils.format_label_source(source)
             dlg.update(percent, '', line1 + label)
             _1CH.log('Trying Source: %s' % (source['host']))
-            if not PlaySource(source['url'], title, img, imdbnum, video_type, primewire_url, resume, year, season, episode, dbid): 
+            if not PlaySource(source['url'], title, imdbnum, video_type, primewire_url, resume, year, season, episode, dbid): 
                 dlg.update(percent, 'Playback Failed: %s' % (label), line1 + label)
                 _1CH.log('Source Failed: %s' % (source['host']))
                 count += 1
@@ -265,7 +269,7 @@ def auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, epi
             _1CH.show_ok_dialog(['All Sources Failed to Play'], title='PrimeWire')
             break
 
-@pw_dispatcher.register('PlaySource',  ['url', ' title', 'img', 'imdbnum', 'video_type', 'primewire_url', 'resume'], ['year', 'season', 'episode'])    
+@pw_dispatcher.register('PlaySource',  ['url', ' title', 'imdbnum', 'video_type', 'primewire_url', 'resume'], ['year', 'season', 'episode'])    
 def PlaySource(url, title, imdbnum, video_type, primewire_url, resume, year='', season='', episode='', dbid=None):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
@@ -559,7 +563,7 @@ def BrowseAlphabetMenu(section=None):
 
 @pw_dispatcher.register('BrowseByGenreMenu', ['section'])
 def BrowseByGenreMenu(section=None): #2000
-    print 'Browse by genres screen'
+    _1CH.log('Browse by genres screen')
     for genre in pw_scraper.get_genres():
         _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': '', 'genre': genre},
                            {'title': genre}, img=art(genre.lower() + '.png'))
@@ -621,6 +625,8 @@ def get_section_params(section):
         section_params['subs'] = []
     
     section_params['fav_urls']=utils.get_fav_urls(section)
+    section_params['xbmc_fav_urls']=utils.get_xbmc_fav_urls()
+
     return section_params
 
 def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
@@ -640,13 +646,23 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
         temp_url=re.match('(/.*/).*',url).groups()[0]
     else:
         temp_url=url
-    liz = build_listitem(section_params, title, year, img, temp_url, imdbnum, season, episode, extra_cms=menu_items)
+
+    liz,menu_items = build_listitem(section_params, title, year, img, temp_url, imdbnum, season, episode, extra_cms=menu_items)
     img = liz.getProperty('img')
     imdbnum = liz.getProperty('imdb')
     if not section_params['folder']: # should only be when it's a movie and dialog are off and autoplay is off
         liz.setProperty('isPlayable','true')
     queries = {'mode': section_params['nextmode'], 'title': title, 'url': url, 'img': img, 'imdbnum': imdbnum, 'video_type': section_params['video_type'], 'year': year}
     liz_url = _1CH.build_plugin_url(queries)
+    
+    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'add_to_xbmc_favs', 'title': liz.getLabel(), 'url': liz_url, 'img': img, 'is_playable': liz.getProperty('isPlayable')})
+    if liz_url in section_params['xbmc_fav_urls']:
+        menu_items.insert(0,('Remove from XBMC Favourites', runstring),)
+    else:
+        menu_items.insert(0,('Add to XBMC Favourites', runstring),)
+    
+    liz.addContextMenuItems(menu_items, replaceItems=True)
+
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,section_params['folder'],totalItems)
 
 def build_listitem(section_params, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=None):
@@ -656,7 +672,7 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
 
     if resurl in section_params['fav_urls']:
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'DeleteFav', 'section': section_params['section'], 'title': title, 'url': resurl, 'year': year})
-        menu_items = [('Remove from Favorites', runstring)]
+        menu_items.append(('Remove from Favorites', runstring),)
     else:
         queries = {'mode': 'SaveFav', 'fav_type': section_params['section'], 'title': title, 'url': resurl, 'year': year}
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
@@ -742,7 +758,6 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
         listitem.setProperty('fanart_image', fanart)
         listitem.setProperty('imdb', meta['imdb_id'])
         listitem.setProperty('img', img)
-        listitem.addContextMenuItems(menu_items, replaceItems=True)
     else:  # Metadata off
         if section_params['video_type'] == 'episode':
             disp_title = '%sx%s' % (season, episode)
@@ -755,12 +770,11 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
                 disp_title = title
             listitem = xbmcgui.ListItem(disp_title, iconImage=img,
                                         thumbnailImage=img)
-            listitem.addContextMenuItems(menu_items, replaceItems=True)
 
     # Hack resumetime & totaltime to prevent XBMC from popping up a resume dialog if a native bookmark is set. UGH! 
     listitem.setProperty('resumetime',str(0))
     listitem.setProperty('totaltime',str(1))
-    return listitem
+    return (listitem,menu_items)
 
 @pw_dispatcher.register('GetFilteredResults', ['section'], ['genre', 'letter', 'sort', 'page'])
 def GetFilteredResults(section, genre='', letter='', sort='alphabet', page=None, paginate=None):
@@ -1446,6 +1460,23 @@ def metahandler_settings():
 @pw_dispatcher.register('ResolverSettings')
 def resolver_settings():
     urlresolver.display_settings()
+
+@pw_dispatcher.register('add_to_xbmc_favs', ['title', 'url', 'img'], ['is_playable'])
+def add_to_xbmc_favs(title, url, img, is_playable=False):
+    # playable urls have to be added as media; folders as window
+    if is_playable:
+        fav_type='media'
+        url_type='path'
+        url += '&dialog=True' # force playable urls to always present a dialog
+    else:
+        fav_type='window'
+        url_type='windowparameter'
+        url += '&dialog=False' # force non-playable urls to never present a dialog
+        
+    cmd = '{"jsonrpc": "2.0", "method": "Favourites.AddFavourite", "params": {"title": "%s", "type": "%s", "window": "10025", "%s": "%s", "thumbnail": "%s"}, "id": 1}'
+    cmd = cmd %(title, fav_type, url_type, url, img)
+    xbmc.executeJSONRPC(cmd)
+    xbmc.executebuiltin('Container.Refresh')
         
 def main(argv=None):
     if sys.argv: argv=sys.argv
