@@ -860,6 +860,7 @@ def TVShowSeasonList(url, title, year, old_imdb='', tvdbnum=''):
                                     thumbnailImage=temp['cover_url'])
         listitem.setInfo('video', temp)
         listitem.setProperty('fanart_image', fanart)
+        listitem.addContextMenuItems([], replaceItems=True)
         queries = {'mode': 'TVShowEpisodeList', 'season': season_num,
                    'imdbnum': imdbnum, 'title': title}
         li_url = _1CH.build_plugin_url(queries)
