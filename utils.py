@@ -319,7 +319,7 @@ def format_eta(seconds):
 # returns true if user chooses to resume, else false
 def get_resume_choice(url):
     question = 'Resume from %s' % (format_time(db_connection.get_bookmark(url)))
-    return xbmcgui.Dialog().yesno('Resume?', question, None, None, 'Start from beginning', 'Resume')
+    return xbmcgui.Dialog().yesno('Resume?', question, '', '', 'Start from beginning', 'Resume')
 
 # simple wrapper to avoid instantiating a db_connection in pw_scraper
 def get_cached_url(url, cache_limit):
