@@ -266,7 +266,7 @@ def auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, epi
             break
 
 @pw_dispatcher.register('PlaySource',  ['url', ' title', 'img', 'imdbnum', 'video_type', 'primewire_url', 'resume'], ['year', 'season', 'episode'])    
-def PlaySource(url, title, img, imdbnum, video_type, primewire_url, resume, year='', season='', episode='', dbid=None, strm=False):
+def PlaySource(url, title, imdbnum, video_type, primewire_url, resume, year='', season='', episode='', dbid=None):
     _1CH.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
 
@@ -558,7 +558,7 @@ def BrowseAlphabetMenu(section=None):
 
 
 @pw_dispatcher.register('BrowseByGenreMenu', ['section'])
-def BrowseByGenreMenu(section=None, letter=None): #2000
+def BrowseByGenreMenu(section=None): #2000
     print 'Browse by genres screen'
     for genre in pw_scraper.get_genres():
         _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': '', 'genre': genre},
@@ -566,7 +566,7 @@ def BrowseByGenreMenu(section=None, letter=None): #2000
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
-def add_contextsearchmenu(title, video_type, resurl=''):
+def add_contextsearchmenu(title, video_type):
     contextmenuitems = []
     nameonly=utils.filename_filter_out_year(title); #print 'nameonly:  '+nameonly
     
@@ -651,7 +651,7 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
 
 def build_listitem(section_params, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=None):
     if not extra_cms: extra_cms = []
-    menu_items = add_contextsearchmenu(title, section_params['section'], resurl)
+    menu_items = add_contextsearchmenu(title, section_params['section'])
     menu_items = menu_items + extra_cms
 
     if resurl in section_params['fav_urls']:
@@ -1012,7 +1012,7 @@ def add_favs_to_library(section):
     else:
         message='Favorite Movies Added to Library'
         
-    builtin = 'XBMC.Notification(Primewire,%s,4000, %s)'
+    builtin = 'XBMC.Notification(PrimeWire,%s,4000, %s)'
     xbmc.executebuiltin(builtin % (message,ICON_PATH))
 
 @pw_dispatcher.register('browse_watched_website', ['section'], ['page'])    
@@ -1087,7 +1087,7 @@ def repair_missing_images():
 @pw_dispatcher.register('add_to_library', ['video_type', 'url', 'title', 'img', 'year'], ['imdbnum'])
 def manual_add_to_library(video_type, url, title, img, year, imdbnum=''):
     add_to_library(video_type, url, title, img, year, imdbnum)
-    builtin = "XBMC.Notification(Add to Library,Added '%s' to library,2000, %s)" % (title, ICON_PATH)
+    builtin = "XBMC.Notification(PrimeWire, Added '%s' to library,2000, %s)" % (title, ICON_PATH)
     xbmc.executebuiltin(builtin)
 
 def add_to_library(video_type, url, title, img, year, imdbnum):
@@ -1184,10 +1184,10 @@ def add_subscription(url, title, img, year, imdbnum=''):
         days=utils.get_default_days()
         db_connection.add_subscription(url, title, img, year, imdbnum, days)
         add_to_library('tvshow', url, title, img, year, imdbnum)
-        builtin = "XBMC.Notification(Subscribe,Subscribed to '%s',2000, %s)" % (title, ICON_PATH)
+        builtin = "XBMC.Notification(PrimeWire, Subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)
     except:
-        builtin = "XBMC.Notification(Subscribe,Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
+        builtin = "XBMC.Notification(PrimeWire, Already subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)
     xbmc.executebuiltin('Container.Refresh')
 
@@ -1196,6 +1196,12 @@ def cancel_subscription(url):
     db_connection.delete_subscription(url)
     xbmc.executebuiltin('Container.Refresh')
 
+@pw_dispatcher.register('manual_update_subscriptions')
+def manual_update_subscriptions():
+    update_subscriptions()
+    builtin = "XBMC.Notification(PrimeWire, Subscriptions Updated, 2000, %s)" % (ICON_PATH)
+    xbmc.executebuiltin(builtin)
+    
 @pw_dispatcher.register('update_subscriptions')
 def update_subscriptions():
     day=datetime.datetime.now().weekday()
@@ -1206,6 +1212,12 @@ def update_subscriptions():
         xbmc.executebuiltin('UpdateLibrary(video)')
     if _1CH.get_setting('cleanup-subscriptions') == 'true':
         clean_up_subscriptions()
+
+@pw_dispatcher.register('manual_clean_up_subscriptions')
+def manual_clean_up_subscriptions():
+    clean_up_subscriptions()
+    builtin = "XBMC.Notification(PrimeWire, Subscriptions Cleaned Up, 2000, %s)" % (ICON_PATH)
+    xbmc.executebuiltin(builtin)
 
 @pw_dispatcher.register('clean_up_subscriptions')
 def clean_up_subscriptions():
@@ -1222,11 +1234,11 @@ def clean_up_subscriptions():
 def manage_subscriptions():
     utils.set_view('tvshows', 'tvshows-view')
     liz = xbmcgui.ListItem(label='Update Subscriptions')
-    liz_url = _1CH.build_plugin_url({'mode': 'update_subscriptions'})
+    liz_url = _1CH.build_plugin_url({'mode': 'manual_update_subscriptions'})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
     
     liz = xbmcgui.ListItem(label='Clean Up Subscriptions')
-    liz_url = _1CH.build_plugin_url({'mode': 'clean_up_subscriptions'})
+    liz_url = _1CH.build_plugin_url({'mode': 'manual_clean_up_subscriptions'})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
     
     fav_urls=utils.get_fav_urls('tv')
@@ -1411,7 +1423,7 @@ def install_local_metapack():
         
 @pw_dispatcher.register('movie_update', ['section', 'genre', 'letter', 'sort', 'page'])
 def movie_update(section, genre, letter, sort, page):
-    builtin = "XBMC.Notification(Updating,Please wait...,5000,%s)" % xbmcaddon.Addon().getAddonInfo('icon')
+    builtin = "XBMC.Notification(PrimeWire,Updating. Please wait...,5000,%s)" % xbmcaddon.Addon().getAddonInfo('icon')
     xbmc.executebuiltin(builtin)
     sort = update_movie_cat()
     section = 'movies'
