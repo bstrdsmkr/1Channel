@@ -336,7 +336,7 @@ class PW_Scraper():
                 html=None
                 _1CH.log("Login failed for %s getting: %s" (self.username,url))
 
-        #html = html.decode('iso-8859-1').encode('utf-8')
+        html = unicode(html, 'windows-1252')
         after = time.time()
         _1CH.log('Url Fetch took: %.2f secs' % (after-before))
         return html

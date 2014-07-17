@@ -163,9 +163,6 @@ class DB_Connection():
     
     def cache_season(self, season_num,season_html):
         sql = 'REPLACE INTO seasons(season,contents) VALUES(?, ?)'        
-
-        if not isinstance(season_html, unicode):
-            season_html = unicode(season_html, 'windows-1252')
         self.__execute(sql, (season_num, season_html))
     
     def get_cached_season(self, season_num):
