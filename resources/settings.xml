@@ -30,6 +30,7 @@
 		<setting id="source-win" type="labelenum" label="     Source Selection Method" values="Directory|Dialog" default="Dialog"/>
         <setting id="auto-watch" type="bool" label="30801" default="true"/>
         <setting label="30802" type="slider" id="watched-percent" range="70,1,100" option="int"  default="85" enable="!eq(-1,false)"/>
+		<setting label="Use Axel Downloader ([COLOR red]EXPERIMENTAL[/COLOR] download accelerator)" type="bool" id="enable-axel" default="false"/>
         <setting id="sorting-enabled" type="bool" label="30900" default="false"/>
         <setting id="host-rank" type="text" label="30901" visible="!eq(-1,false)"/>
         <setting id="first-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30902"

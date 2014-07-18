@@ -90,6 +90,13 @@ class Service(xbmc.Player):
         xbmc.log('1Channel: Playback Stopped')
         #Is the item from our addon?
         if self.tracking:
+            download_id=self.win.getProperty('download_id')
+            if download_id:
+                xbmc.log('Stopping Axel Download: %s' % (download_id))
+                import axelproxy as proxy
+                axelhelper =  proxy.ProxyHelper()
+                axelhelper.stop_download(download_id)
+
             playedTime = int(self._lastPos)
             min_watched_percent = int(ADDON.getSetting('watched-percent'))
             percent_played = int((playedTime / self._totalTime) * 100)

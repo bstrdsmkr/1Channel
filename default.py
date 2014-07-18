@@ -340,6 +340,20 @@ def PlaySource(url, title, imdbnum, video_type, primewire_url, resume, year='', 
 
     listitem.setProperty('IsPlayable', 'true')
     listitem.setInfo(type = "Video", infoLabels = meta)
+    
+    if _1CH.get_setting('enable-axel')=='true':
+        _1CH.log('Using Axel Downloader')
+        try:
+            import axelproxy1 as proxy
+            axelhelper =  proxy.ProxyHelper()
+            stream_url, download_id = axelhelper.create_proxy_url(stream_url, name=title)
+            win.setProperty('download_id', str(download_id))
+            _1CH.log('Axel Downloader: stream_url: %s, download_id: %s' % (stream_url, download_id))
+        except:
+            message='Axel [COLOR blue]ENABLED[/COLOR] but [COLOR red]NOT INSTALLED[/COLOR]'
+            xbmc.executebuiltin("XBMC.Notification(%s,%s,10000, %s)" % ('Axel Downloader',message, ICON_PATH))
+            pass
+
     listitem.setPath(stream_url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
 
