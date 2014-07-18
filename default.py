@@ -344,9 +344,11 @@ def PlaySource(url, title, imdbnum, video_type, primewire_url, resume, year='', 
     if _1CH.get_setting('enable-axel')=='true':
         _1CH.log('Using Axel Downloader')
         try:
+            download_name=title
+            if season and episode: download_name += ' %sx%s' % (season,episode)
             import axelproxy as proxy
             axelhelper =  proxy.ProxyHelper()
-            stream_url, download_id = axelhelper.create_proxy_url(stream_url, name=title)
+            stream_url, download_id = axelhelper.create_proxy_url(stream_url, name=download_name)
             win.setProperty('download_id', str(download_id))
             _1CH.log('Axel Downloader: stream_url: %s, download_id: %s' % (stream_url, download_id))
         except:
