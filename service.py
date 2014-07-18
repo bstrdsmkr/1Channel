@@ -20,6 +20,7 @@ import xbmc
 import xbmcgui
 import xbmcaddon
 import utils
+from utils import MODES
 from db_utils import DB_Connection
 
 db_connection = DB_Connection()
@@ -103,7 +104,8 @@ class Service(xbmc.Player):
                 xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')                
                 video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']                
                 dbid = self.meta['DBID'] if 'DBID' in self.meta else ''
-                builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=ChangeWatched&imdbnum=%s&video_type=%s&title=%s&season=%s&episode=%s&year=%s&primewire_url=%s&dbid=%s&watched=%s)' % (self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], self.primewire_url, dbid, 7)
+                builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=%s&imdbnum=%s&video_type=%s&title=%s&season=%s&episode=%s&year=%s&primewire_url=%s&dbid=%s&watched=%s)' \
+                % (MODES.CH_WATCH, self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], self.primewire_url, dbid, 7)
                 xbmc.executebuiltin(builtin)
                 db_connection.clear_bookmark(self.primewire_url)
             elif playedTime>0:
@@ -117,15 +119,15 @@ class Service(xbmc.Player):
 
 mig_watched_setting() # migrate from old 0, 1, 2 setting to actual value
 monitor = Service()
-utils.do_startup_task('update_subscriptions')
-utils.do_startup_task('movie_update')
-utils.do_startup_task('backup_db')
+utils.do_startup_task(MODES.UPD_SUBS)
+utils.do_startup_task(MODES.MOVIE_UPDATE)
+utils.do_startup_task(MODES.BACKUP_DB)
 
 while not xbmc.abortRequested:
     isPlaying=monitor.isPlaying()
-    utils.do_scheduled_task('update_subscriptions', isPlaying)
-    utils.do_scheduled_task('movie_update', isPlaying)
-    utils.do_scheduled_task('backup_db', isPlaying)
+    utils.do_scheduled_task(MODES.UPD_SUBS, isPlaying)
+    utils.do_scheduled_task(MODES.MOVIE_UPDATE, isPlaying)
+    utils.do_scheduled_task(MODES.BACKUP_DB, isPlaying)
 
     if monitor.tracking and monitor.isPlayingVideo():
         monitor._lastPos = monitor.getTime()

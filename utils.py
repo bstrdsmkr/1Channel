@@ -15,11 +15,6 @@ from pw_scraper import PW_Scraper
 
 db_connection = DB_Connection()
 
-hours_list={}
-hours_list['update_subscriptions'] = [2, 5, 10, 15, 24]
-hours_list['movie_update'] = [2, 5, 10, 15, 24]
-hours_list['backup_db'] = [12, 24, 168, 720]
-
 DAY_NUMS = list('0123456')
 DAY_CODES = ['M', 'T', 'W', 'H', 'F', 'Sa', 'Su']
 
@@ -28,6 +23,24 @@ pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 
 def enum(**enums):
     return type('Enum', (), enums)
+
+MODES = enum(SAVE_FAV='SaveFav', DEL_FAV='DeleteFav', GET_SOURCES='GetSources', PLAY_SOURCE='PlaySource', CH_WATCH='ChangeWatched', PLAY_TRAILER='PlayTrailer',
+                   SEARCH_QUERY='GetSearchQuery', DESC_QUERY='GetSearchQueryDesc', ADV_QUERY='GetSearchQueryAdvanced', SEARCH='Search', SEARCH_DESC='SearchDesc',
+                   SEARCH_ADV='SearchAdvanced', REMOTE_SEARCH='7000', MAIN='main', LIST_MENU='BrowseListMenu', AZ_MENU='BrowseAlphabetMenu', GENRE_MENU='BrowseByGenreMenu', 
+                   FILTER_RESULTS='GetFilteredResults', SEASON_LIST='TVShowSeasonList', EPISODE_LIST='TVShowEpisodeList', BROWSE_FAVS='browse_favorites', 
+                   BROWSE_FAVS_WEB='browse_favorites_website', MIG_FAVS='migrateFavs', FAV2LIB='fav2Library', BROWSE_W_WEB='browse_watched_website', ADD2LIB='add_to_library',
+                   ADD_SUB='add_subscription', CANCEL_SUB='cancel_subscription', MAN_UPD_SUBS='manual_update_subscriptions', UPD_SUBS='update_subscriptions',
+                   MAN_CLEAN_SUBS='manual_clean_up_subscriptions', CLEAN_SUBS='clean_up_subscriptions', MANAGE_SUBS='manage_subscriptions', PAGE_SELECT='PageSelect',
+                   FAV_PAGE_SELECT='FavPageSelect', WATCH_PAGE_SELECT='WatchedPageSelect', SEARCH_PAGE_SELECT='SearchPageSelect', EXPORT_DB='export_db', IMPORT_DB='import_db',
+                   BACKUP_DB='backup_db', EDIT_DAYS='edit_days', HELP='Help', FLUSH_CACHE='flush_cache', INSTALL_META='install_metapack', INSTALL_LOCAL_META='install_local_metapack',
+                   MOVIE_UPDATE='movie_update', SELECT_SOURCES='SelectSources', REFRESH_META='refresh_meta', META_SETTINGS='9998', RES_SETTINGS='ResolverSettings',
+                   TOGGLE_X_FAVS='toggle_xbmc_fav')
+
+hours_list={}
+hours_list[MODES.UPD_SUBS] = [2, 5, 10, 15, 24]
+hours_list[MODES.MOVIE_UPDATE] = [2, 5, 10, 15, 24]
+hours_list[MODES.BACKUP_DB] = [12, 24, 168, 720]
+
 
 def get_days_string_from_days(days):
     if days is None:
