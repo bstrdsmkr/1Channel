@@ -57,6 +57,7 @@ db_connection = DB_Connection()
 pw_dispatcher = PW_Dispatcher()
 
 SMODES = utils.enum(SEARCH='Search', SEARCH_DESC='SearchDesc', SEARCH_ADV='SearchAdvanced')
+FAV_ACTIONS = utils.enum(ADD='add', REMOVE='remove')
 
 PREPARE_ZIP = False
 __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
@@ -138,17 +139,17 @@ def get_sources(url, title, year='', img='', imdbnum='', dialog=None, respect_au
         auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
         
     else: # autoplay is off, or respect_auto is False
-        if dialog is not None: dialog=bool(dialog) # cast dialog string to bool; but only if it was passed in
+        if dialog is not None: dialog=int(dialog) # cast dialog string to int; but only if it was passed in
         
-        # dialog is either True, False or None -- source-win is either Dialog or Directory
+        # dialog is either 1, 0 or None -- source-win is either Dialog or Directory
         # If dialog is forced, or there is no force and it's set to dialog use the dialog
-        if dialog==True or (dialog is None and _1CH.get_setting('source-win') == 'Dialog'):
+        if dialog==1 or (dialog is None and _1CH.get_setting('source-win') == 'Dialog'):
             if _1CH.get_setting('filter-source') == 'true':
                 play_filtered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
                 
             else:
                 play_unfiltered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
-        # if dialog is forced off (False), or it's None, but source-win is Directory, then use a directory
+        # if dialog is forced off (0), or it's None, but source-win is Directory, then use a directory
         else:
             if _1CH.get_setting('filter-source') == 'true':
                 play_filtered_dir(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume)
@@ -655,11 +656,14 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
     queries = {'mode': section_params['nextmode'], 'title': title, 'url': url, 'img': img, 'imdbnum': imdbnum, 'video_type': section_params['video_type'], 'year': year}
     liz_url = _1CH.build_plugin_url(queries)
     
-    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'add_to_xbmc_favs', 'title': liz.getLabel(), 'url': liz_url, 'img': img, 'is_playable': liz.getProperty('isPlayable')})
-    if liz_url in section_params['xbmc_fav_urls']:
-        menu_items.insert(0,('Remove from XBMC Favourites', runstring),)
+    if utils.in_xbmc_favs(liz_url, section_params['xbmc_fav_urls']):
+        action=FAV_ACTIONS.REMOVE
+        label='Remove from XBMC Favourites'
     else:
-        menu_items.insert(0,('Add to XBMC Favourites', runstring),)
+        action=FAV_ACTIONS.ADD
+        label='Add to XBMC Favourites'
+    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'toggle_xbmc_fav', 'title': liz.getLabel(), 'url': liz_url, 'img': img, 'is_playable': liz.getProperty('isPlayable'), 'action': action})
+    menu_items.insert(0,(label, runstring),)
     
     liz.addContextMenuItems(menu_items, replaceItems=True)
 
@@ -1461,21 +1465,41 @@ def metahandler_settings():
 def resolver_settings():
     urlresolver.display_settings()
 
-@pw_dispatcher.register('add_to_xbmc_favs', ['title', 'url', 'img'], ['is_playable'])
-def add_to_xbmc_favs(title, url, img, is_playable=False):
+@pw_dispatcher.register('toggle_xbmc_fav', ['title', 'url', 'img', 'action'], ['is_playable'])
+def toggle_xbmc_fav(title, url, img, action, is_playable='false'):
     # playable urls have to be added as media; folders as window
-    if is_playable:
-        fav_type='media'
-        url_type='path'
-        url += '&dialog=True' # force playable urls to always present a dialog
+    fav_types = ['media', 'window']
+    url_types = ['path', 'windowparameter']
+    dialogs = ['&dialog=1', '&dialog=0']
+    
+    xbmc_fav_urls=utils.get_xbmc_fav_urls()
+    if is_playable=='true':
+        fav_index=0
     else:
-        fav_type='window'
-        url_type='windowparameter'
-        url += '&dialog=False' # force non-playable urls to never present a dialog
+        fav_index=1
+    opp_index = (fav_index+1)%2
+    
+    # annoyingly, json rpc toggles favorite despite it's name (i.e. if it exists, it removes it and vice versa)
+    fav_url = url + dialogs[fav_index]
+    opp_url = url + dialogs[opp_index]
+    cmd = '{"jsonrpc": "2.0", "method": "Favourites.AddFavourite", "params": {"title": "%s", "type": "%s", "window": "10025", "%s": "%s", "thumbnail": "%s"}, "id": 1}' 
+    fav_cmd = cmd % (title, fav_types[fav_index], url_types[fav_index], fav_url, img)
+    opp_cmd = cmd % (title, fav_types[opp_index], url_types[opp_index], opp_url, img)
+    fav_exists=utils.in_xbmc_favs(fav_url, xbmc_fav_urls, False)
+    opp_exists=utils.in_xbmc_favs(opp_url, xbmc_fav_urls, False)
+    
+    if action==FAV_ACTIONS.ADD:
+        if not fav_exists:
+            xbmc.executeJSONRPC(fav_cmd)
+    
+    if action==FAV_ACTIONS.REMOVE:
+        if fav_exists:
+            xbmc.executeJSONRPC(fav_cmd)
         
-    cmd = '{"jsonrpc": "2.0", "method": "Favourites.AddFavourite", "params": {"title": "%s", "type": "%s", "window": "10025", "%s": "%s", "thumbnail": "%s"}, "id": 1}'
-    cmd = cmd %(title, fav_type, url_type, url, img)
-    xbmc.executeJSONRPC(cmd)
+        # we should only need to remove this if it was added while source-win=<opposite current setting>
+        if opp_exists:
+            xbmc.executeJSONRPC(opp_cmd)
+         
     xbmc.executebuiltin('Container.Refresh')
         
 def main(argv=None):

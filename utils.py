@@ -406,11 +406,17 @@ def get_xbmc_fav_urls():
         elif 'windowparameter' in fav:
             fav_url=fav['windowparameter']
 
-        # Strip dialog force off so urls will match addon urls (HACK!)
-        fav_url=fav_url.replace('&dialog=True','')
-        fav_url=fav_url.replace('&dialog=False','')
         fav_urls.append(fav_url)
     return fav_urls
+
+def in_xbmc_favs(url, fav_urls, ignore_dialog=True):
+    if ignore_dialog:
+        fav_urls = (fav_url.replace('&dialog=1','').replace('&dialog=0','') for fav_url in fav_urls)
+    
+    if url in fav_urls:
+        return True
+    else:
+        return False
     
 def get_xbmc_favs():
     favs=[]
