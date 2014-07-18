@@ -60,7 +60,7 @@ class PW_Dispatcher:
             for arg in self.args_registry[mode]:
                 arg=arg.strip()
                 if arg in queries:
-                    args.append(queries[arg])
+                    args.append(self.__coerce(queries[arg]))
                     del unused_args[arg]
                 else:
                     message='Error: mode |%s| requested argument |%s| but it was not provided.' % (mode, arg)
@@ -72,10 +72,19 @@ class PW_Dispatcher:
             for arg in self.kwargs_registry[mode]:
                 arg=arg.strip()
                 if arg in queries:
-                    kwargs[arg]=queries[arg]
+                    kwargs[arg]=self.__coerce(queries[arg])
                     del unused_args[arg]
         
         if 'mode' in unused_args: del unused_args['mode'] # delete mode last in case it's used by the target function
         _1CH.log('Calling |%s| for mode |%s| with pos args |%s| and kwargs |%s|' % (self.func_registry[mode].__name__, mode, args,  kwargs))
         if unused_args:_1CH.log('Warning: Arguments |%s| were passed but unused by |%s| for mode |%s|' % (unused_args, self.func_registry[mode].__name__, mode))
         self.func_registry[mode](*args, **kwargs)
+
+    # since all params are passed as strings, do any conversions necessary to get good types (e.g. boolean)
+    def __coerce(self, arg):
+        if arg.lower() == 'true':
+            return True
+        elif arg.lower() == 'false':
+            return False
+
+        return arg

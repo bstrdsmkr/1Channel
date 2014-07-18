@@ -139,11 +139,9 @@ def get_sources(url, title, year='', img='', imdbnum='', dialog=None, respect_au
         auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
         
     else: # autoplay is off, or respect_auto is False
-        if dialog is not None: dialog=int(dialog) # cast dialog string to int; but only if it was passed in
-        
-        # dialog is either 1, 0 or None -- source-win is either Dialog or Directory
+        # dialog is either True, False or None -- source-win is either Dialog or Directory
         # If dialog is forced, or there is no force and it's set to dialog use the dialog
-        if dialog==1 or (dialog is None and _1CH.get_setting('source-win') == 'Dialog'):
+        if dialog or (dialog is None and _1CH.get_setting('source-win') == 'Dialog'):
             if _1CH.get_setting('filter-source') == 'true':
                 play_filtered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid)
                 
@@ -662,7 +660,7 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
     else:
         action=FAV_ACTIONS.ADD
         label='Add to XBMC Favourites'
-    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'toggle_xbmc_fav', 'title': liz.getLabel(), 'url': liz_url, 'img': img, 'is_playable': liz.getProperty('isPlayable'), 'action': action})
+    runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': 'toggle_xbmc_fav', 'title': liz.getLabel(), 'url': liz_url, 'img': img, 'is_playable': liz.getProperty('isPlayable')=='true', 'action': action})
     menu_items.insert(0,(label, runstring),)
     
     liz.addContextMenuItems(menu_items, replaceItems=True)
@@ -1466,14 +1464,14 @@ def resolver_settings():
     urlresolver.display_settings()
 
 @pw_dispatcher.register('toggle_xbmc_fav', ['title', 'url', 'img', 'action'], ['is_playable'])
-def toggle_xbmc_fav(title, url, img, action, is_playable='false'):
+def toggle_xbmc_fav(title, url, img, action, is_playable=False):
     # playable urls have to be added as media; folders as window
     fav_types = ['media', 'window']
     url_types = ['path', 'windowparameter']
-    dialogs = ['&dialog=1', '&dialog=0']
+    dialogs = ['&dialog=True', '&dialog=False']
     
     xbmc_fav_urls=utils.get_xbmc_fav_urls()
-    if is_playable=='true':
+    if is_playable:
         fav_index=0
     else:
         fav_index=1
