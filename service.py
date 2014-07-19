@@ -84,7 +84,7 @@ class Service(xbmc.Player):
             while self._totalTime == 0:
                 xbmc.sleep(1000)
                 self._totalTime = self.getTotalTime()
-                print "Total Time: %s"   % (self._totalTime)
+                xbmc.log("Total Time: %s"   % (self._totalTime))
 
     def onPlayBackStopped(self):
         xbmc.log('1Channel: Playback Stopped')
