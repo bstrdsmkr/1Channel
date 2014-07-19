@@ -51,7 +51,7 @@ class PW_Dispatcher:
             message='Error: Attempt to invoke unregistered mode |%s|' % (mode)
             _1CH.log_error(message)
             raise Exception(message)
-            
+
         args=[]
         kwargs={}
         unused_args=queries.copy()
@@ -82,9 +82,13 @@ class PW_Dispatcher:
 
     # since all params are passed as strings, do any conversions necessary to get good types (e.g. boolean)
     def __coerce(self, arg):
-        if arg.lower() == 'true':
+        temp=arg.lower()
+        if temp == 'true':
             return True
-        elif arg.lower() == 'false':
+        elif temp == 'false':
             return False
+        elif temp == 'none':
+            return None
+        
 
         return arg
