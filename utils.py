@@ -225,7 +225,7 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
 
     else:
         search_meta = __metaget__.search_movies(search_title)
-    print 'search_meta: %s' % search_meta
+    _1CH.log('search_meta: %s' % search_meta)
 
     option_list = ['Manual Search...']
     if search_meta:

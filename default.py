@@ -535,7 +535,7 @@ def BrowseAlphabetMenu(section=None):
 
 
 def BrowseByGenreMenu(section=None, letter=None): #2000
-    print 'Browse by genres screen'
+    _1CH.log('Browse by genres screen')
     for genre in GENRES:
         _1CH.add_directory({'mode': 'GetFilteredResults', 'section': section, 'sort': '', 'genre': genre},
                            {'title': genre}, img=art(genre.lower() + '.png'))
@@ -1341,7 +1341,7 @@ elif mode == 'ChangeWatched':
     ChangeWatched(imdb_id=imdbnum, video_type=video_type, name=title, season=season, episode=episode, year=year)
     xbmc.executebuiltin('Container.Refresh')
 elif mode == '9988':  # Metahandler Settings
-    print "Metahandler Settings"
+    _1CH.log("Metahandler Settings")
     import metahandler
 
     metahandler.display_settings()

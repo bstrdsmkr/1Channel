@@ -93,7 +93,7 @@ class Service(xbmc.Player):
             while self._totalTime == 0:
                 xbmc.sleep(1000)
                 self._totalTime = self.getTotalTime()
-                print "Total Time: %s"   % (self._totalTime)
+                xbmc.log("Total Time: %s"   % (self._totalTime))
 
     def onPlayBackStopped(self):
         xbmc.log('PrimeWire: Playback Stopped')
@@ -118,7 +118,6 @@ class Service(xbmc.Player):
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid": %s, "properties": ["playcount"]}, "id": 1}'
                         cmd = cmd %(DBID)
                         result = json.loads(xbmc.executeJSONRPC(cmd))
-                        print result
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "playcount": %s}, "id": 1}'
                         playcount = int(result['result']['episodedetails']['playcount']) + 1
                         cmd = cmd %(DBID, playcount)
@@ -128,7 +127,6 @@ class Service(xbmc.Player):
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid": %s, "properties": ["playcount"]}, "id": 1}'
                         cmd = cmd %(DBID)
                         result = json.loads(xbmc.executeJSONRPC(cmd))
-                        print result
                         cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "playcount": %s}, "id": 1}'
                         playcount = int(result['result']['moviedetails']['playcount']) + 1
                         cmd = cmd %(DBID, playcount)
