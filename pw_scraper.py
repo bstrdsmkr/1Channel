@@ -212,6 +212,39 @@ class PW_Scraper():
         pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
         return self.__get_results_gen(html, pageurl, page, paginate, pattern, self.__set_filtered_result)
 
+    def get_playlists(self, public, sort, page=None, paginate=True):
+        page_url = self.base_url + '/playlists.php?'
+        if not public: page_url += 'user=%s' % (self.username)
+        if sort: page_url += '&sort=%s' % (sort)
+        if page: page_url += '&page=%s' % (page)
+        if public:
+            html = self.__get_cached_url(page_url)
+        else:
+            html = self.__get_url(page_url, login=True)
+        
+        # doesn't seem to be any way to find out total playlists in page?
+        r = re.search('&page=([\d,]+)"> >>', html)
+        if r:
+            self.res_pages = r.group(1).replace(',','')
+        else:
+            self.res_pages=1
+            
+        pattern=r'class="playlist_thumb\".*?img src=\"(.*?)\".*?<strong><a href="(.*?)">\s*(.*?)\s*</a>.*?([\d]+) items.*?([\d]+) Views \|\s*(.*?)\s*\|'
+        return self.__get_results_gen(html, page_url, page, paginate, pattern, self.__set_playlists_result)
+
+    def __set_playlists_result(self, match):
+        result = {}
+        img, url, title, item_count, views, rating = match
+        if not img.startswith('http://'): img=self.base_url + img
+        result['img'] = img
+        result['url'] = url
+        result['title'] = title
+        result['item_count'] = item_count
+        result['views'] = views
+        result['rating'] = rating
+        result['year'] = '' #TODO: temp hack to make result gen work
+        return result
+    
     def get_genres(self):
         html=self.__get_cached_url(self.base_url, cache_limit=24)
         regex=re.compile('class="opener-menu-genre">(.*?)</ul>', re.DOTALL)

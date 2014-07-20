@@ -34,7 +34,7 @@ MODES = enum(SAVE_FAV='SaveFav', DEL_FAV='DeleteFav', GET_SOURCES='GetSources', 
                    FAV_PAGE_SELECT='FavPageSelect', WATCH_PAGE_SELECT='WatchedPageSelect', SEARCH_PAGE_SELECT='SearchPageSelect', EXPORT_DB='export_db', IMPORT_DB='import_db',
                    BACKUP_DB='backup_db', EDIT_DAYS='edit_days', HELP='Help', FLUSH_CACHE='flush_cache', INSTALL_META='install_metapack', INSTALL_LOCAL_META='install_local_metapack',
                    MOVIE_UPDATE='movie_update', SELECT_SOURCES='SelectSources', REFRESH_META='refresh_meta', META_SETTINGS='9988', RES_SETTINGS='ResolverSettings',
-                   TOGGLE_X_FAVS='toggle_xbmc_fav')
+                   TOGGLE_X_FAVS='toggle_xbmc_fav', PLAYLISTS_MENU='playlists_menu', GET_PLAYLISTS='get_playlists', SHOW_PLAYLIST='show_playlist', PL_PAGE_SELECT='PLPageSelect')
 
 hours_list={}
 hours_list[MODES.UPD_SUBS] = [2, 5, 10, 15, 24]

@@ -513,6 +513,8 @@ def AddonMenu():  # homescreen
                        fanart=art('fanart.png'))
     _1CH.add_directory({'mode': MODES.LIST_MENU, 'section': 'tv'}, {'title': 'TV shows'}, img=art('television.png'),
                        fanart=art('fanart.png'))
+    _1CH.add_directory({'mode': MODES.PLAYLISTS_MENU, 'section': 'playlist'}, {'title': 'Playlists'}, img=art('playlists.png'),
+                       fanart=art('fanart.png'))
     _1CH.add_directory({'mode': MODES.RES_SETTINGS}, {'title': 'Resolver Settings'}, img=art('settings.png'),
                        fanart=art('fanart.png'))
     _1CH.add_directory({'mode': MODES.HELP}, {'title': 'Help'}, img=art('help.png'), fanart=art('fanart.png'))
@@ -554,6 +556,51 @@ def BrowseListMenu(section):
     add_search_item({'mode': MODES.ADV_QUERY, 'section': section}, 'Search (Advanced Search)')
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+@pw_dispatcher.register(MODES.PLAYLISTS_MENU)
+def playlist_menu():
+    _1CH.log('Playlist Menu')
+    _1CH.add_directory({'mode': MODES.GET_PLAYLISTS, 'public': True, 'sort': 'date'}, {'title': 'Public Playlists (sorted by date)'}, img=art('playlists.png'),
+                       fanart=art('fanart.png'))
+    _1CH.add_directory({'mode': MODES.GET_PLAYLISTS, 'public': True, 'sort': 'rating'}, {'title': 'Public Playlists (sorted by rating)'}, img=art('playlists.png'),
+                       fanart=art('fanart.png'))
+    _1CH.add_directory({'mode': MODES.GET_PLAYLISTS, 'public': True, 'sort': 'hits'}, {'title': 'Public Playlists (sorted by views)'}, img=art('playlists.png'),
+                       fanart=art('fanart.png'))
+    if utils.website_is_integrated():
+        _1CH.add_directory({'mode': MODES.GET_PLAYLISTS, 'public': False, 'sort': 'date'}, {'title': 'Private Playlists (sorted by date)'}, img=art('playlists.png'),
+                           fanart=art('fanart.png'))
+        _1CH.add_directory({'mode': MODES.GET_PLAYLISTS, 'public': False, 'sort': 'rating'}, {'title': 'Private Playlists (sorted by rating)'}, img=art('playlists.png'),
+                           fanart=art('fanart.png'))
+        _1CH.add_directory({'mode': MODES.GET_PLAYLISTS, 'public': False, 'sort': 'hits'}, {'title': 'Private Playlists (sorted by views)'}, img=art('playlists.png'),
+                           fanart=art('fanart.png'))
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+@pw_dispatcher.register(MODES.GET_PLAYLISTS, ['public', 'sort'], ['page'])
+def get_playlists(public,sort, page=None, paginate=True):
+    _1CH.log('Browse Playlists: public: |%s| sort: |%s| page: |%s| paginate: |%s|' % (public, sort, page, paginate))
+    playlists=pw_scraper.get_playlists(public, sort, page, paginate)
+    total_pages = pw_scraper.get_last_res_pages()
+    
+    for playlist in playlists:
+        title = '%s (%s items) (%s views) (rating %s)' % (playlist['title'], playlist['item_count'], playlist['views'], playlist['rating'])
+        _1CH.add_directory({'mode': MODES.SHOW_PLAYLIST, 'url': playlist['url']}, {'title': title}, img=playlist['img'],fanart=art('fanart.png'))
+
+    if not page: page = 1
+    next_page = int(page)+1
+
+    if int(page) < int(total_pages) and paginate:
+        label = 'Skip to Page...'
+        command = _1CH.build_plugin_url(
+            {'mode': MODES.PL_PAGE_SELECT, 'section': 'playlist', 'pages': total_pages, 'public': public, 'sort': sort})
+        command = 'RunPlugin(%s)' % command
+        menu_items = [(label, command)]
+        meta = {'title': 'Next Page >>'}
+        _1CH.add_directory(
+            {'mode': MODES.GET_PLAYLISTS, 'public': public, 'sort': sort, 'page': next_page},
+            meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
+
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    
 
 # add searches as an items so they don't get added to the path history
 # _1CH.add_item doesn't work because it insists on adding non-folder items as playable
@@ -1350,7 +1397,8 @@ def update_movie_cat():
 @pw_dispatcher.register(MODES.FAV_PAGE_SELECT, ['mode', 'section'])
 @pw_dispatcher.register(MODES.WATCH_PAGE_SELECT, ['mode', 'section'])
 @pw_dispatcher.register(MODES.SEARCH_PAGE_SELECT, ['mode', 'section'], ['search', 'query'])
-def jump_to_page(mode, section, genre='', letter='', sort='', search='', query=''):
+@pw_dispatcher.register(MODES.PL_PAGE_SELECT, ['mode', 'section'], ['public', 'sort'])
+def jump_to_page(mode, section, genre='', letter='', sort='', search='', query='', public=''):
     if mode == MODES.PAGE_SELECT:
         queries={'mode': MODES.FILTER_RESULTS, 'section': section, 'genre': genre, 'letter': letter, 'sort': sort}
     elif mode==MODES.FAV_PAGE_SELECT:
@@ -1359,6 +1407,8 @@ def jump_to_page(mode, section, genre='', letter='', sort='', search='', query='
         queries={'mode': MODES.BROWSE_W_WEB, 'section': section}
     elif mode==MODES.SEARCH_PAGE_SELECT:
         queries={'mode': search, 'query': query, 'section': section}
+    elif mode==MODES.PL_PAGE_SELECT:
+        queries={'mode': MODES.GET_PLAYLISTS, 'section': section, 'public': public, 'sort': sort}
 
     pages = int(_1CH.queries['pages'])
     dialog = xbmcgui.Dialog()
