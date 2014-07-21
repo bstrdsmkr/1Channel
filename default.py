@@ -53,6 +53,7 @@ THEME = THEME_LIST[int(_1CH.get_setting('theme'))]
 THEME_PATH = os.path.join(_1CH.get_path(), 'art', 'themes', THEME)
 ICON_PATH = os.path.join(_1CH.get_path(), 'icon.png')
 FAV_ACTIONS = utils.enum(ADD='add', REMOVE='remove')
+PL_SORT = ['added', 'alphabet', 'popularity']
 
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 db_connection = DB_Connection()
@@ -602,8 +603,9 @@ def browse_playlists(public,sort, page=None, paginate=True):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     
 @pw_dispatcher.register(MODES.SHOW_PLAYLIST, ['url', 'public'])
-def show_playlist(url, public):
-    items=pw_scraper.show_playlist(url, public)
+def show_playlist(url, public):   
+    sort = PL_SORT[int(_1CH.get_setting('playlist-sort'))] 
+    items=pw_scraper.show_playlist(url, public, sort)
 
     # one playlist can contain both movies and tvshows so can't set the params for the whole playlist/section
     item_params={}

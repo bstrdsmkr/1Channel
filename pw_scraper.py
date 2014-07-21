@@ -245,9 +245,10 @@ class PW_Scraper():
         result['year'] = '' #TODO: temp hack to make result gen work
         return result
     
-    def show_playlist(self, playlist_url, public):
+    def show_playlist(self, playlist_url, public, sort=None):
             
         url = self.base_url + playlist_url
+        if sort: url += '&sort=%s' % (sort)
         if public:
             html=self.__get_cached_url(url, 1)
         else:
