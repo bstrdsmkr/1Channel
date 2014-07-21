@@ -334,7 +334,7 @@ class PW_Scraper():
                 html=net.http_GET(url, headers=headers).content
             else:
                 html=None
-                _1CH.log("Login failed for %s getting: %s" (self.username,url))
+                _1CH.log("Login failed for %s getting: %s" % (self.username,url))
 
         # addon.net tries to use page's Content Type to convert to unicode
         # if it fails (usually because the data in the page doesn't match the Content Type), then the page encoding is left as-is
