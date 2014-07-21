@@ -815,7 +815,7 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
     
     if utils.website_is_integrated():
         queries = {'mode': MODES.ADD2PL, 'item_url': resurl}
-        runstring = 'Container.Update(%s)' % _1CH.build_plugin_url(queries)
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
         menu_items.append(('Add to Playlist', runstring), )
         
     if section_params['video_type'] in ('tv', 'tvshow', 'episode'):
