@@ -577,16 +577,13 @@ def playlist_menu():
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 @pw_dispatcher.register(MODES.BROWSE_PLAYLISTS, ['public'], ['sort', 'page'])
-def browse_playlists(public,sort=None, page=None, paginate=True, item_url=None):
+def browse_playlists(public,sort=None, page=None, paginate=True):
     _1CH.log('Browse Playlists: public: |%s| sort: |%s| page: |%s| paginate: |%s|' % (public, sort, page, paginate))
     playlists=pw_scraper.get_playlists(public, sort, page, paginate)
     total_pages = pw_scraper.get_last_res_pages()
     for playlist in playlists:
         title = '%s (%s items) (%s views) (rating %s)' % (playlist['title'], playlist['item_count'], playlist['views'], playlist['rating'])
-        if item_url:
-            _1CH.add_directory({'mode': MODES.ADD2PL, 'playlist_url': playlist['url'], 'item_url': item_url}, {'title': title}, img=playlist['img'],fanart=art('fanart.png'))
-        else:
-            _1CH.add_directory({'mode': MODES.SHOW_PLAYLIST, 'url': playlist['url'], 'public': public}, {'title': title}, img=playlist['img'],fanart=art('fanart.png'))
+        _1CH.add_directory({'mode': MODES.SHOW_PLAYLIST, 'url': playlist['url'], 'public': public}, {'title': title}, img=playlist['img'],fanart=art('fanart.png'))
 
     if not page: page = 1
     next_page = int(page)+1
@@ -601,7 +598,7 @@ def browse_playlists(public,sort=None, page=None, paginate=True, item_url=None):
         _1CH.add_directory(
             {'mode': MODES.BROWSE_PLAYLISTS, 'public': public, 'sort': sort, 'page': next_page},
             meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
-
+    
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     
 @pw_dispatcher.register(MODES.SHOW_PLAYLIST, ['url', 'public'])
@@ -617,9 +614,6 @@ def show_playlist(url, public):
     for item in items:
         item_params.update(get_item_params(item))
         
-        # hack the item's url to match the library/db HACK!
-        item['url'] = item['url'].replace('/tv-', '/watch-', 1)
-        
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.RM_FROM_PL, 'playlist_url': url, 'item_url': item['url']})
         menu_items = [('Remove from Playlist', runstring)]
                 
@@ -627,21 +621,33 @@ def show_playlist(url, public):
         
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-@pw_dispatcher.register(MODES.ADD2PL, ['item_url'], ['playlist_url'])
-def add_to_playlist(item_url, playlist_url=None):
-    # present all personal playlists, selected one gets the item
-    if not playlist_url:
-        browse_playlists(False, item_url=item_url)
+@pw_dispatcher.register(MODES.ADD2PL, ['item_url'])
+def add_to_playlist(item_url):
+    playlists=pw_scraper.get_playlists(False)
+    sel_list=[]
+    url_list=[]
+    for playlist in playlists:
+        title = '%s (%s items) (%s views) (rating %s)' % (playlist['title'], playlist['item_count'], playlist['views'], playlist['rating'])
+        sel_list.append(title)
+        url_list.append(playlist['url'])
+    
+    if sel_list:
+        dialog=xbmcgui.Dialog()
+        ret = dialog.select('Select Playlist', sel_list)
+        if ret>-1:
+            try:
+                pw_scraper.add_to_playlist(url_list[ret], item_url)
+                message = 'Item added to playlist.'
+            except:
+                message = 'Error adding item to playlist.'
+            builtin = 'XBMC.Notification(PrimeWire,%s,4000, %s)'
+            xbmc.executebuiltin(builtin % (message,ICON_PATH))
+
     else:
-        try:
-            pw_scraper.add_to_playlist(playlist_url, item_url)
-            message = 'Item added to playlist'
-        except:
-            message = 'Error attempting to add item to playlist'
-
-        builtin = 'XBMC.Notification(PrimeWire,%s,4000, %s)'
-        xbmc.executebuiltin(builtin % (message,ICON_PATH))
-
+            builtin = 'XBMC.Notification(PrimeWire,%s,4000, %s)'
+            xbmc.executebuiltin(builtin % ('Create a playlist on the website first.',ICON_PATH))
+                
+    
 
 @pw_dispatcher.register(MODES.RM_FROM_PL, ['playlist_url', 'item_url'])
 def remove_from_playlist(playlist_url, item_url):
@@ -710,7 +716,7 @@ def add_contextsearchmenu(title, video_type):
 
 def get_item_params(item):
     item_params = {}
-    if item['url'].startswith('/watch'):
+    if item['video_type']=='movie':
         item_params['section']='movies'
         item_params['nextmode'] = MODES.GET_SOURCES
         item_params['video_type'] = 'movie'

@@ -196,7 +196,7 @@ class PW_Scraper():
         pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
         return self.__get_results_gen(html, pageurl, page, paginate, pattern, self.__set_filtered_result)
 
-    def get_playlists(self, public, sort, page=None, paginate=True):
+    def get_playlists(self, public, sort=None, page=None, paginate=True):
         page_url = self.base_url + '/playlists.php?'
         if not public: page_url += 'user=%s' % (self.username)
         if sort: page_url += '&sort=%s' % (sort)
@@ -243,8 +243,13 @@ class PW_Scraper():
         img, url, title, year = match
         result['img']=img
         result['url']='/'+url
+        result['url'] = result['url'].replace('/tv-', '/watch-', 1) # force tv urls to be consistent w/ movies
         result['title']=title
         result['year']=year
+        if url.startswith('tv-'):
+            result['video_type']='tvshow'
+        else:
+            result['video_type']='movie'
         return result
     
     def remove_from_playlist(self, playlist_url, item_url):
