@@ -34,7 +34,8 @@ MODES = enum(SAVE_FAV='SaveFav', DEL_FAV='DeleteFav', GET_SOURCES='GetSources', 
                    FAV_PAGE_SELECT='FavPageSelect', WATCH_PAGE_SELECT='WatchedPageSelect', SEARCH_PAGE_SELECT='SearchPageSelect', EXPORT_DB='export_db', IMPORT_DB='import_db',
                    BACKUP_DB='backup_db', EDIT_DAYS='edit_days', HELP='Help', FLUSH_CACHE='flush_cache', INSTALL_META='install_metapack', INSTALL_LOCAL_META='install_local_metapack',
                    MOVIE_UPDATE='movie_update', SELECT_SOURCES='SelectSources', REFRESH_META='refresh_meta', META_SETTINGS='9988', RES_SETTINGS='ResolverSettings',
-                   TOGGLE_X_FAVS='toggle_xbmc_fav', PLAYLISTS_MENU='playlists_menu', GET_PLAYLISTS='get_playlists', SHOW_PLAYLIST='show_playlist', PL_PAGE_SELECT='PLPageSelect')
+                   TOGGLE_X_FAVS='toggle_xbmc_fav', PLAYLISTS_MENU='playlists_menu', BROWSE_PLAYLISTS='get_playlists', SHOW_PLAYLIST='show_playlist', PL_PAGE_SELECT='PLPageSelect',
+                   RM_FROM_PL='remove_from_playlist')
 
 hours_list={}
 hours_list[MODES.UPD_SUBS] = [2, 5, 10, 15, 24]
@@ -375,10 +376,16 @@ def get_cached_url(url, cache_limit):
 def cache_url(url, body):
     return db_connection.cache_url(url,body)
     
-def get_fav_urls(fav_type):
+def get_fav_urls(fav_type=None):
     if website_is_integrated():
-        favs=pw_scraper.get_favorites(fav_type)
-        fav_urls=[fav['url'] for fav in favs]
+        if fav_type is None:
+            favs=pw_scraper.get_favorites('movies')
+            fav_urls=[fav['url'] for fav in favs]
+            favs=pw_scraper.get_favorites('tv')
+            fav_urls += [fav['url'] for fav in favs]
+        else:
+            favs=pw_scraper.get_favorites(fav_type)
+            fav_urls=[fav['url'] for fav in favs]
     else:
         favs=db_connection.get_favorites(fav_type)
         fav_urls=[fav[2] for fav in favs]

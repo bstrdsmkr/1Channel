@@ -245,6 +245,37 @@ class PW_Scraper():
         result['year'] = '' #TODO: temp hack to make result gen work
         return result
     
+    def show_playlist(self, playlist_url, public):
+            
+        url = self.base_url + playlist_url
+        if public:
+            html=self.__get_cached_url(url, 1)
+        else:
+            html=self.__get_url(url, login=True)
+        pattern=r'class="playlist_thumb\".*?img src=\"(.*?)\".*?href=\"(.*?)\">\s*(.*?)\s*<\/a>\s*\(?\s*([\d]*)\s*\)?'
+        return self.__get_results_gen(html, url, None, False, pattern, self.__set_playlist_result)
+    
+    def __set_playlist_result(self, match):
+        result={}
+        img, url, title, year = match
+        result['img']=img
+        result['url']='/'+url
+        result['title']=title
+        result['year']=year
+        return result
+    
+    def remove_from_playlist(self, playlist_url, item_url):
+        _1CH.log('Removing item: %s from playlist %s' % (item_url, playlist_url))
+        playlist_id = re.search('\?id=(\d+)', playlist_url).group(1)
+        item_id = re.search('/watch-(\d+)-', item_url).group(1)
+        url = self.base_url + '/playlists.php?plistitemid=%s&whattodo=remove_existing&edit=%s' % (item_id, playlist_id)
+        html = self.__get_url(url, login=True)
+        ok_message = "ok_message'>Movie removed from Playlist"
+        if ok_message in html:
+            return
+        else:
+            raise
+        
     def get_genres(self):
         html=self.__get_cached_url(self.base_url, cache_limit=24)
         regex=re.compile('class="opener-menu-genre">(.*?)</ul>', re.DOTALL)
@@ -270,7 +301,7 @@ class PW_Scraper():
             for item in regex.finditer(html):
                 result = set_result(item.groups())
                 result['title']=result['title'].strip()
-                if not result['year'] or len(result['year']) != 4: result['year'] = ''
+                if 'year' in result and (not result['year'] or len(result['year']) != 4): result['year'] = ''
                 yield result
             
             # if we're not paginating, then keep yielding until we run out of pages or hit the max
@@ -394,8 +425,8 @@ class PW_Scraper():
             if self.__login(url):
                 html = net.http_GET(url, headers=headers).content
             else:
-                html=None
-                _1CH.log("Login failed for %s getting: %s" % (self.username,url))
+                html = None
+                _1CH.log("Login failed for %s getting: %s" % (self.username, url))
 
         # addon.net tries to use page's Content Type to convert to unicode
         # if it fails (usually because the data in the page doesn't match the Content Type), then the page encoding is left as-is
