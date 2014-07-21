@@ -576,15 +576,17 @@ def playlist_menu():
                            fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-@pw_dispatcher.register(MODES.BROWSE_PLAYLISTS, ['public', 'sort'], ['page'])
-def browse_playlists(public,sort, page=None, paginate=True):
+@pw_dispatcher.register(MODES.BROWSE_PLAYLISTS, ['public'], ['sort', 'page'])
+def browse_playlists(public,sort=None, page=None, paginate=True, item_url=None):
     _1CH.log('Browse Playlists: public: |%s| sort: |%s| page: |%s| paginate: |%s|' % (public, sort, page, paginate))
     playlists=pw_scraper.get_playlists(public, sort, page, paginate)
     total_pages = pw_scraper.get_last_res_pages()
-    
     for playlist in playlists:
         title = '%s (%s items) (%s views) (rating %s)' % (playlist['title'], playlist['item_count'], playlist['views'], playlist['rating'])
-        _1CH.add_directory({'mode': MODES.SHOW_PLAYLIST, 'url': playlist['url'], 'public': public}, {'title': title}, img=playlist['img'],fanart=art('fanart.png'))
+        if item_url:
+            _1CH.add_directory({'mode': MODES.ADD2PL, 'playlist_url': playlist['url'], 'item_url': item_url}, {'title': title}, img=playlist['img'],fanart=art('fanart.png'))
+        else:
+            _1CH.add_directory({'mode': MODES.SHOW_PLAYLIST, 'url': playlist['url'], 'public': public}, {'title': title}, img=playlist['img'],fanart=art('fanart.png'))
 
     if not page: page = 1
     next_page = int(page)+1
@@ -624,6 +626,21 @@ def show_playlist(url, public):
         create_item(item_params,item['title'],item['year'],item['img'],item['url'], menu_items=menu_items)
         
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+@pw_dispatcher.register(MODES.ADD2PL, ['item_url'], ['playlist_url'])
+def add_to_playlist(item_url, playlist_url=None):
+    # present all personal playlists, selected one gets the item
+    if not playlist_url:
+        browse_playlists(False, item_url=item_url)
+    else:
+        try:
+            pw_scraper.add_to_playlist(playlist_url, item_url)
+            message = 'Item added to playlist'
+        except:
+            message = 'Error attempting to add item to playlist'
+
+        builtin = 'XBMC.Notification(PrimeWire,%s,4000, %s)'
+        xbmc.executebuiltin(builtin % (message,ICON_PATH))
 
 
 @pw_dispatcher.register(MODES.RM_FROM_PL, ['playlist_url', 'item_url'])
@@ -790,6 +807,11 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
     runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
     menu_items.append(('Add to Library', runstring), )
     
+    if utils.website_is_integrated():
+        queries = {'mode': MODES.ADD2PL, 'item_url': resurl}
+        runstring = 'Container.Update(%s)' % _1CH.build_plugin_url(queries)
+        menu_items.append(('Add to Playlist', runstring), )
+        
     if section_params['video_type'] in ('tv', 'tvshow', 'episode'):
         if resurl not in section_params['subs']:
             queries = {'mode': MODES.ADD_SUB, 'video_type': section_params['video_type'], 'url': resurl, 'title': title,

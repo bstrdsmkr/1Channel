@@ -87,12 +87,8 @@ class PW_Scraper():
         url = self.base_url + fav_url % (self.username, section)
         html = self.__get_url(url)
         r = re.search('strong>Favorites \(\s+([0-9,]+)\s+\)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        self.res_pages = int(math.ceil(total / float(PW_Scraper.ITEMS_PER_PAGE2)))
-        self.res_total = total
+        self.__set_totals(r, PW_Scraper.ITEMS_PER_PAGE2)
+        
         pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
         return self.__get_results_gen(html, url, page, paginate, pattern, self.__set_fav_result)   
     
@@ -113,12 +109,7 @@ class PW_Scraper():
         url = self.base_url + url % (self.username, section)
         html=self.__get_url(url)
         r = re.search('strong>Watched \(\s+([0-9,]+)\s+\)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        self.res_pages = int(math.ceil(total / float(PW_Scraper.ITEMS_PER_PAGE2)))
-        self.res_total = total
+        self.__set_totals(r, PW_Scraper.ITEMS_PER_PAGE2)
         
         pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_watched\'.+?<a href=\'(.+?)\' ref=\'add_watched\''''
         return self.__get_results_gen(html, url, page, paginate, pattern, self.__set_watched_result)   
@@ -174,12 +165,8 @@ class PW_Scraper():
 
         html = self.__get_cached_url(search_url, cache_limit=0)
         r = re.search('number_movies_result">([0-9,]+)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        self.res_pages = int(math.ceil(total / float(PW_Scraper.ITEMS_PER_PAGE)))
-        self.res_total = total
+        self.__set_totals(r, PW_Scraper.ITEMS_PER_PAGE)
+
         pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
         return self.__get_results_gen(html, search_url, page, paginate, pattern, self.__set_search_result)
     
@@ -204,11 +191,8 @@ class PW_Scraper():
         html = self.__get_cached_url(pageurl)
     
         r = re.search('number_movies_result">([0-9,]+)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        self.res_pages = int(math.ceil(total / float(PW_Scraper.ITEMS_PER_PAGE)))
+        self.__set_totals(r, PW_Scraper.ITEMS_PER_PAGE)
+
         pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
         return self.__get_results_gen(html, pageurl, page, paginate, pattern, self.__set_filtered_result)
 
@@ -242,11 +226,9 @@ class PW_Scraper():
         result['item_count'] = item_count
         result['views'] = views
         result['rating'] = rating
-        result['year'] = '' #TODO: temp hack to make result gen work
         return result
     
     def show_playlist(self, playlist_url, public, sort=None):
-            
         url = self.base_url + playlist_url
         if sort: url += '&sort=%s' % (sort)
         if public:
@@ -277,6 +259,18 @@ class PW_Scraper():
         else:
             raise
         
+    def add_to_playlist(self, playlist_url, item_url):
+        _1CH.log('Adding item %s to playlist %s' % (item_url, playlist_url))
+        playlist_id = re.search('\?id=(\d+)', playlist_url).group(1)
+        item_id = re.search('/watch-(\d+)-', item_url).group(1)
+        url = self.base_url + '/playlists.php?user=%s&edit=%s&plistitemid=%s&whattodo=add_existing' % (self.username, playlist_id, item_id)
+        html = self.__get_url(url, login=True)
+        ok_message = "ok_message'>Movie added to Playlist"
+        if ok_message in html:
+            return
+        else:
+            raise
+    
     def get_genres(self):
         html=self.__get_cached_url(self.base_url, cache_limit=24)
         regex=re.compile('class="opener-menu-genre">(.*?)</ul>', re.DOTALL)
@@ -399,6 +393,14 @@ class PW_Scraper():
         match = re.search('mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"', html)
         self.imdb_num = match.group(1) if match else ''
         return self.__season_gen(html)
+    
+    def __set_totals(self, r, items_per_page):
+        if r:
+            total = int(r.group(1).replace(',', ''))
+        else:
+            total = 0
+        self.res_pages = int(math.ceil(total / float(items_per_page)))
+        self.res_total = total
     
     def __season_gen(self, html):
         match = re.search('tv_container(.+?)<div class="clearer', html, re.DOTALL)
