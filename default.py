@@ -1649,14 +1649,14 @@ def toggle_xbmc_fav(title, url, img, action, is_playable=False):
 def main(argv=None):
     if sys.argv: argv=sys.argv
 
+    _1CH.log(_1CH.queries)
+    _1CH.log(argv)
+    
     # don't process params that don't match our url exactly. (e.g. plugin://plugin.video.1channel/extrafanart)
     plugin_url = 'plugin://%s/' % (_1CH.get_id())
     if argv[0] != plugin_url:
         return
 
-
-    _1CH.log(_1CH.queries)
-    _1CH.log(argv)
     mode = _1CH.queries.get('mode', None)
     if mode in [MODES.GET_SOURCES, MODES.PLAY_SOURCE, MODES.PLAY_TRAILER, MODES.RES_SETTINGS]:
         global urlresolver
