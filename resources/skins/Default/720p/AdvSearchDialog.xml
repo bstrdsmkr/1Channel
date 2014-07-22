@@ -19,16 +19,16 @@
 			</control>
 			<control type="image">
 				<description>Dialog Header image</description>
-				<left>40</left>
-				<top>16</top>
+				<posx>40</posx>
+				<posy>16</posy>
 				<width>450</width>
 				<height>40</height>
 				<texture>dialogheader.png</texture>
 			</control>
 			<control type="label" id="100">
 				<description>header label</description>
-				<left>40</left>
-				<top>20</top>
+				<posx>40</posx>
+				<posy>20</posy>
 				<width>450</width>
 				<height>30</height>
 				<font>font13_title</font>
@@ -40,8 +40,8 @@
 			</control>
 			<control type="button">
 				<description>Close Window button</description>
-				<left>420</left>
-				<top>15</top>
+				<posx>420</posx>
+				<posy>15</posy>
 				<width>64</width>
 				<height>32</height>
 				<label>-</label>
@@ -53,12 +53,12 @@
 			</control>
 		</control>
 		<control type="group">
-			<left>30</left>
-			<top>60</top>
+			<posx>30</posx>
+			<posy>60</posy>
 			<control type="label">
 				<description>Title Label</description>
-				<left>0</left>
-				<top>0</top>
+				<posx>0</posx>
+				<posy>0</posy>
 				<width>0</width>
 				<height>0</height>
 				<label>Title</label>
@@ -69,8 +69,8 @@
 			</control>
 			<control type="label">
 				<description>Tag Label</description>
-				<left>0</left>
-				<top>55</top>
+				<posx>0</posx>
+				<posy>55</posy>
 				<width>0</width>
 				<height>0</height>
 				<label>Tag</label>
@@ -81,8 +81,8 @@
 			</control>
 			<control type="label">
 				<description>Actor Label</description>
-				<left>0</left>
-				<top>110</top>
+				<posx>0</posx>
+				<posy>110</posy>
 				<width>0</width>
 				<height>0</height>
 				<label>Actor</label>
@@ -92,8 +92,8 @@
 			</control>
 			<control type="label">
 				<description>Director Label</description>
-				<left>0</left>
-				<top>165</top>
+				<posx>0</posx>
+				<posy>165</posy>
 				<width>0</width>
 				<height>0</height>
 				<label>Director</label>
@@ -103,8 +103,8 @@
 			</control>
 			<control type="label">
 				<description>Country Label</description>
-				<left>0</left>
-				<top>220</top>
+				<posx>0</posx>
+				<posy>220</posy>
 				<width>0</width>
 				<height>0</height>
 				<label>Country</label>
@@ -114,8 +114,8 @@
 			</control>
 			<control type="label">
 				<description>Genre Label</description>
-				<left>0</left>
-				<top>275</top>
+				<posx>0</posx>
+				<posy>275</posy>
 				<width>0</width>
 				<height>0</height>
 				<label>Genre</label>
@@ -125,8 +125,8 @@
 			</control>
 			<control type="label">
 				<description>Month Label</description>
-				<left>0</left>
-				<top>330</top>
+				<posx>0</posx>
+				<posy>330</posy>
 				<width>0</width>
 				<height>0</height>
 				<label>Month</label>
@@ -136,8 +136,8 @@
 			</control>
 			<control type="label">
 				<description>Year Label</description>
-				<left>155</left>
-				<top>330</top>
+				<posx>155</posx>
+				<posy>330</posy>
 				<width>0</width>
 				<height>0</height>
 				<label>Year</label>
@@ -147,8 +147,8 @@
 			</control>
 			<control type="label">
 				<description>Decade Label</description>
-				<left>310</left>
-				<top>330</top>
+				<posx>310</posx>
+				<posy>330</posy>
 				<width>0</width>
 				<height>0</height>
 				<label>Decade</label>
@@ -160,8 +160,8 @@
 		<control type="group" id="9001">
 			<control type="button" id="200">
 				<description>Search Button</description>
-				<left>50</left>
-				<top>460</top>
+				<posx>50</posx>
+				<posy>460</posy>
 				<width>200</width>
 				<height>40</height>
 				<align>center</align>
@@ -173,8 +173,8 @@
 			</control>
 			<control type="button" id="201">
 				<description>Cancel Button</description>
-				<left>260</left>
-				<top>460</top>
+				<posx>260</posx>
+				<posy>460</posy>
 				<width>200</width>
 				<height>40</height>
 				<align>center</align>
