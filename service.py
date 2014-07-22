@@ -111,8 +111,7 @@ class Service(xbmc.Player):
                 xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')                
                 video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']                
                 dbid = self.meta['DBID'] if 'DBID' in self.meta else ''
-                builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=%s&imdbnum=%s&video_type=%s&title=%s&season=%s&episode=%s&year=%s&primewire_url=%s&dbid=%s&watched=%s)' \
-                % (MODES.CH_WATCH, self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], self.primewire_url, dbid, 7)
+                builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=%sd&imdbnum=%s&video_type=%s&title=%s&season=%s&episode=%s&year=%s&primewire_url=%s&dbid=%s&watched=%s)' % (MODES.CH_WATCH, self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], self.primewire_url, dbid, 7)
                 xbmc.executebuiltin(builtin)
                 db_connection.clear_bookmark(self.primewire_url)
             elif playedTime>0:
