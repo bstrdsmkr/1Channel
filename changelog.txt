@@ -1,3 +1,28 @@
+[B]Version 2.5.0[/B]
+[B]Major[/B]
+Added PW playlists functionality:
+- ***Note: Personal playlists are only available when Website Integration is turned on***
+- Browse public & personal playlists
+- Play media from public & personal playlists
+- Add and Remove items from personal playlists
+- Specify a personal PW playlist as the source for subscriptions
+Rewrote subscription days function to be more usable and actually provide a meaningful function (i.e. the days of the week a subscription should be run on)
+Add a performance option to allow users to selectively paginate most result sets.
+Added ability to export and import the onechannel db to and from a csv file.
+Added functon to schedule a scheduled db export to serve as a scheduled onechannel DB backup
+Rewrote the DB upgrade code such that db's on each addon version should be more consistent.
+Add function to browse and set PW's watched list
+Added a context menu option on playable items to manually select a source when auto-play is turned on.
+Added [COLOR red]EXPERIMENTAL[/COLOR] support for Axel Download Accelerator.
+
+[B]Minor[/B]
+Added ability to add most menu items to XBMC's favorites.
+More code unification/refactors to make the addon easier to maintain.
+Unified startup and scheduled task function to allow code sharing between all scheduled tasks
+Allow user to specify their first day of the week for schedule days presentation
+Dynamically pull genres from PW site (at most once every 24 hours)
+Replaced query parsing and massive if/elif statement with generic plugin url dispatcher
+
 [B]Version 2.4.0[/B]
 [B]Major[/B]
 Replaced resume code with code that works better and more consistently.
