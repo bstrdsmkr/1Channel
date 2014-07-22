@@ -78,7 +78,7 @@
                  default="special://userdata/addon_data/plugin.video.1channel/TVShows"/>
         <setting id="movie-folder" type="folder" label="30804"
                  default="special://userdata/addon_data/plugin.video.1channel/Movies"/>
-		<setting id="sub-days" type="enum" values="All Days|No Days|Every Other Day|Today|Today & Tomorrow" label="Default Subscription Days" default="0"/> 
+		<setting id="sub-days" type="enum" values="All Days|No Days|Every Other Day|Today|Today &amp; Tomorrow" label="Default Subscription Days" default="0"/> 
 		<setting id="first-dow" type="enum" values="Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday" label="First Day of Week" default="0"/> 
 		<setting type="sep"/>
         <setting id="auto-update_subscriptions" type="bool" label="30805" default="false"/>
