@@ -396,6 +396,7 @@ def ChangeWatched(imdbnum, video_type, title, season, episode, primewire_url , y
 @pw_dispatcher.register(MODES.PLAY_TRAILER, ['url'])
 def PlayTrailer(url):
     url = url.decode('base-64')
+    url = 'http://www.youtube.com/watch?v=%s&hd=1' % (url)
     _1CH.log('Attempting to resolve and play trailer at %s' % url)
     sources = []
     hosted_media = urlresolver.HostedMediaFile(url=url)
