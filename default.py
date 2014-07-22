@@ -834,7 +834,7 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
             watchstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_TOWATCH_WEB, 'primewire_url': resurl, 'action':'add', 'refresh':True})        
             menu_items.append(('Add to Watch list', watchstring),)
         
-        if caller == 'browse_watched_website':
+        if caller == MODES.BROWSE_W_WEB:
             watchedstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_WATCH_WEB, 'primewire_url': resurl,'action':'delete', 'refresh':True})
             menu_items.append(('Remove from Watched list', watchedstring),)
         else:
@@ -1217,7 +1217,7 @@ def browse_watched_website(section, page=None):
     paginate=(_1CH.get_setting('paginate-watched')=='true' and _1CH.get_setting('paginate')=='true')
     
     for video in pw_scraper.get_watched(section, page, paginate):
-        create_item(section_params,video['title'],video['year'],video['img'],video['url'], caller='browse_watched_website')
+        create_item(section_params,video['title'],video['year'],video['img'],video['url'], caller=MODES.BROWSE_W_WEB)
         
     total_pages=pw_scraper.get_last_res_pages()
     if not page: page = 1
