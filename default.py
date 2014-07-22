@@ -1255,6 +1255,11 @@ def jump_to_page(queries={}):
         builtin = 'Container.Update(%s)' % url
         xbmc.executebuiltin(builtin)
 
+# don't process params that don't match our url exactly. (e.g. plugin://plugin.video.1channel/extrafanart)
+plugin_url = 'plugin://%s/' % (_1CH.get_id())
+if sys.argv[0] != plugin_url:
+    sys.exit()
+
 mode = _1CH.queries.get('mode', None)
 section = _1CH.queries.get('section', '')
 genre = _1CH.queries.get('genre', '')
