@@ -260,6 +260,20 @@ def website_is_integrated():
     passwd = _1CH.get_setting('passwd') is not None
     return enabled and user and passwd
 
+def using_pl_subs():
+    return (website_is_integrated() and _1CH.get_setting('playlist-sub'))
+
+def get_subs_pl_url():
+    return '/playlists.php?id=%s' % (_1CH.get_setting('playlist-sub'))
+
+def get_subscriptions(day=None, order_matters=False):
+    if using_pl_subs():
+        items=pw_scraper.show_playlist(get_subs_pl_url(), False)
+        subs = [(item['url'], item['title'], item['img'], item['year'], '', '0123456') for item in items]
+    else:
+        subs=db_connection.get_subscriptions(day, order_matters)
+    return subs
+
 def rank_host(source):
     host = source['host']
     ranking = _1CH.get_setting('host-rank').split(',')

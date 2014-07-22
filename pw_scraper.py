@@ -254,23 +254,18 @@ class PW_Scraper():
     
     def remove_from_playlist(self, playlist_url, item_url):
         _1CH.log('Removing item: %s from playlist %s' % (item_url, playlist_url))
-        playlist_id = re.search('\?id=(\d+)', playlist_url).group(1)
-        item_id = re.search('/watch-(\d+)-', item_url).group(1)
-        url = self.base_url + '/playlists.php?plistitemid=%s&whattodo=remove_existing&edit=%s' % (item_id, playlist_id)
-        html = self.__get_url(url, login=True)
-        ok_message = "ok_message'>Movie removed from Playlist"
-        if ok_message in html:
-            return
-        else:
-            raise
+        return self.__manage_playlist(playlist_url, item_url, 'remove_existing')
         
     def add_to_playlist(self, playlist_url, item_url):
         _1CH.log('Adding item %s to playlist %s' % (item_url, playlist_url))
+        return self.__manage_playlist(playlist_url, item_url, 'add_existing')
+    
+    def __manage_playlist(self, playlist_url, item_url, action):
         playlist_id = re.search('\?id=(\d+)', playlist_url).group(1)
         item_id = re.search('/watch-(\d+)-', item_url).group(1)
-        url = self.base_url + '/playlists.php?user=%s&edit=%s&plistitemid=%s&whattodo=add_existing' % (self.username, playlist_id, item_id)
+        url = self.base_url + '/playlists.php?plistitemid=%s&whattodo=%s&edit=%s' % (item_id, action, playlist_id)
         html = self.__get_url(url, login=True)
-        ok_message = "ok_message'>Movie added to Playlist"
+        ok_message = "ok_message'>"
         if ok_message in html:
             return
         else:

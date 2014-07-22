@@ -1332,7 +1332,11 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
 def add_subscription(url, title, year, img='', imdbnum=''):
     try:
         days=utils.get_default_days()
-        db_connection.add_subscription(url, title, img, year, imdbnum, days)
+        if utils.using_pl_subs():
+            pw_scraper.add_to_playlist(utils.get_subs_pl_url(), url)
+        else:
+            db_connection.add_subscription(url, title, img, year, imdbnum, days)
+            
         add_to_library('tvshow', url, title, img, year, imdbnum)
         builtin = "XBMC.Notification(PrimeWire, Subscribed to '%s',2000, %s)" % (title, ICON_PATH)
         xbmc.executebuiltin(builtin)
@@ -1343,7 +1347,11 @@ def add_subscription(url, title, year, img='', imdbnum=''):
 
 @pw_dispatcher.register(MODES.CANCEL_SUB, ['url'])
 def cancel_subscription(url):
-    db_connection.delete_subscription(url)
+    if utils.using_pl_subs():
+        pw_scraper.remove_from_playlist(utils.get_subs_pl_url(), url)
+    else:
+        db_connection.delete_subscription(url)
+
     xbmc.executebuiltin('Container.Refresh')
 
 @pw_dispatcher.register(MODES.MAN_UPD_SUBS)
@@ -1355,7 +1363,7 @@ def manual_update_subscriptions():
 @pw_dispatcher.register(MODES.UPD_SUBS)
 def update_subscriptions():
     day=datetime.datetime.now().weekday()
-    subs=db_connection.get_subscriptions(day)
+    subs=utils.get_subscriptions(day)
     for sub in subs:
         add_to_library('tvshow', sub[0], sub[1], sub[2], sub[3], sub[4])
     if _1CH.get_setting('library-update') == 'true':
@@ -1372,7 +1380,7 @@ def manual_clean_up_subscriptions():
 @pw_dispatcher.register(MODES.CLEAN_SUBS)
 def clean_up_subscriptions():
     _1CH.log('Cleaning up dead subscriptions')
-    subs=db_connection.get_subscriptions()
+    subs=utils.get_subscriptions()
     for sub in subs:
         meta = __metaget__.get_meta('tvshow', sub[1], year=sub[3])
         if meta['status'] == 'Ended':
@@ -1393,7 +1401,7 @@ def manage_subscriptions():
     
     fav_urls=utils.get_fav_urls('tv')
 
-    subs=db_connection.get_subscriptions(order_matters=True)
+    subs=utils.get_subscriptions(order_matters=True)
     subs_len=len(subs)
     for sub in subs:
         url, title, img, year, _, days = sub
@@ -1410,9 +1418,10 @@ def manage_subscriptions():
         meta['title'] = utils.format_label_sub(meta)
 
         menu_items = add_contextsearchmenu(meta['title'], 'tv')
-        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-            {'mode': MODES.EDIT_DAYS, 'url': url, 'days': days})
-        menu_items.append(('Edit days', runstring,))
+        if not utils.using_pl_subs():
+            runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
+                {'mode': MODES.EDIT_DAYS, 'url': url, 'days': days})
+            menu_items.append(('Edit days', runstring,))
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
             {'mode': MODES.CANCEL_SUB, 'url': url})
         menu_items.append(('Cancel subscription', runstring,))
