@@ -60,11 +60,11 @@
         <setting id="dir-cache" type="bool" label="Cache Directory Listings (ON=Faster, but triggers XBMC bugs in resume)" default="false"/>
         <setting id="filter-source" type="bool" label="Filter Source Lists (OFF=Faster, but shows unusable sources)" default="true"/>Robinso
 		<setting id="paginate" label="Paginate Website Results (ON=Faster and avoids runaway results)"  type="bool" default="true"/>
-		<setting id="paginate-favs" type="bool" label="      Paginate Website Favorites" enable="eq(-1,true)" default="false"/>
-		<setting id="paginate-watched" type="bool" label="      Paginate Website Watched" enable="eq(-2,true)" default="false"/>
-		<setting id="paginate-towatch" type="bool" label="      Paginate Website To Watch" enable="eq(-2,true)" default="false"/>
-		<setting id="paginate-search" type="bool" label="      Paginate Search Results"  enable="eq(-3,true)" default="false"/>
-		<setting id="paginate-lists" type="bool" label="      Paginate Built-in Lists (e.g. Most Popular, Featured, etc.)"  enable="eq(-4,true)" default="true"/>
+		<setting id="paginate-favs" type="bool" label="      Paginate Website Favorites" enable="eq(-1,true)" visible="eq(-1,true)"  default="false"/>
+		<setting id="paginate-watched" type="bool" label="      Paginate Website Watched" enable="eq(-2,true)" visible="eq(-2,true)" default="false"/>
+		<setting id="paginate-towatch" type="bool" label="      Paginate Website To Watch" enable="eq(-3,true)" visible="eq(-3,true)" default="false"/>
+		<setting id="paginate-search" type="bool" label="      Paginate Search Results"  enable="eq(-4,true)" visible="eq(-4,true)" default="false"/>
+		<setting id="paginate-lists" type="bool" label="      Paginate Built-in Lists (e.g. Most Popular, Featured, etc.)"  enable="eq(-5,true)" visible="eq(-5,true)" default="true"/>
         <setting type="sep"/>
         <setting id="use-meta" type="bool" label="30600" default="true"/>
         <setting id="meta-path" type="action" label="30601" enable="!eq(-1,false)"
