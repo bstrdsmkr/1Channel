@@ -364,6 +364,12 @@ def PlaySource(url, title, imdbnum, video_type, primewire_url, resume, year='', 
 
 @pw_dispatcher.register(MODES.CH_WATCH, ['imdbnum', 'video_type', 'title', 'primewire_url', 'watched'], ['season', 'episode', 'year', 'dbid'])
 def change_watched(imdbnum, video_type, title, primewire_url , watched, season='', episode='', year='', dbid=None):
+    if watched==True:
+        overlay=7
+        whattodo='add'
+    else:
+        whattodo='delete'
+        overlay=6
 
     # meta['dbid'] only gets set for strms
     if dbid and int(dbid) > 0:
@@ -373,7 +379,7 @@ def change_watched(imdbnum, video_type, title, primewire_url , watched, season='
             result = json.loads(xbmc.executeJSONRPC(cmd))
             print result
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "playcount": %s}, "id": 1}'
-            playcount = int(result['result']['episodedetails']['playcount']) + 1 if watched == 7 else 0
+            playcount = int(result['result']['episodedetails']['playcount']) + 1 if watched == True else 0
             cmd = cmd %(dbid, playcount)
             result = xbmc.executeJSONRPC(cmd)
             xbmc.log('PrimeWire: Marking episode .strm as watched: %s' %result)
@@ -383,15 +389,14 @@ def change_watched(imdbnum, video_type, title, primewire_url , watched, season='
             result = json.loads(xbmc.executeJSONRPC(cmd))
             print result
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "playcount": %s}, "id": 1}'
-            playcount = int(result['result']['moviedetails']['playcount']) + 1 if watched == 7 else 0
+            playcount = int(result['result']['moviedetails']['playcount']) + 1 if watched == True else 0
             cmd = cmd %(dbid, playcount)
             result = xbmc.executeJSONRPC(cmd)
             xbmc.log('PrimeWire: Marking movie .strm as watched: %s' %result)
             
-    __metaget__.change_watched(video_type, title, imdbnum, season=season, episode=episode, year=year, watched=watched)
+    __metaget__.change_watched(video_type, title, imdbnum, season=season, episode=episode, year=year, watched=overlay)
 
     if utils.website_is_integrated():
-        whattodo = 'add' if watched=='7' else 'delete'
         change_watched_website(primewire_url, whattodo, refresh=False)
         
     xbmc.executebuiltin("XBMC.Container.Refresh")
@@ -549,7 +554,7 @@ def BrowseListMenu(section):
                            img=art('favourites.png'), fanart=art('fanart.png'))                          
         _1CH.add_directory({'mode': MODES.BROWSE_W_WEB, 'section': section}, {'title': 'Website Watched List'},
                            img=art('watched.png'), fanart=art('fanart.png'))
-        _1CH.add_directory({'mode': MODES.BROWSE_TW_WEB, 'section': section}, {'title': 'Website Watch List'},
+        _1CH.add_directory({'mode': MODES.BROWSE_TW_WEB, 'section': section}, {'title': 'Website To Watch List'},
                            img=art('favourites.png'), fanart=art('fanart.png'))
     else:
         _1CH.add_directory({'mode': MODES.BROWSE_FAVS, 'section': section}, {'title': 'Favourites'},
@@ -774,7 +779,7 @@ def get_section_params(section):
 
     return section_params
 
-def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None, caller=''):
+def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
     #_1CH.log('Create Item: %s, %s, %s, %s, %s, %s, %s, %s, %s' % (section_params, title, year, img, url, imdbnum, season, episode, totalItems))
     if menu_items is None: menu_items=[]
     if section_params['nextmode']==MODES.GET_SOURCES and _1CH.get_setting('auto-play')=='true':
@@ -792,7 +797,7 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
     else:
         temp_url=url
 
-    liz,menu_items = build_listitem(section_params, title, year, img, temp_url, imdbnum, season, episode, extra_cms=menu_items, caller=caller)
+    liz,menu_items = build_listitem(section_params, title, year, img, temp_url, imdbnum, season, episode, extra_cms=menu_items)
     img = liz.getProperty('img')
     imdbnum = liz.getProperty('imdb')
     if not section_params['folder']: # should only be when it's a movie and dialog are off and autoplay is off
@@ -813,7 +818,7 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
 
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,section_params['folder'],totalItems)
 
-def build_listitem(section_params, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=None, caller=''):
+def build_listitem(section_params, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=None):
     if not extra_cms: extra_cms = []
     menu_items = add_contextsearchmenu(title, section_params['section'])
     menu_items = menu_items + extra_cms
@@ -827,17 +832,11 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
         menu_items.append(('Add to Favorites', runstring), )
         
     if resurl and utils.website_is_integrated():
-        if caller == MODES.BROWSE_TW_WEB:
-            watchstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_TOWATCH_WEB, 'primewire_url': resurl, 'action':'delete', 'refresh':True})
-            menu_items.append(('Remove from Watch List', watchstring),)
-        else: 
+        if 'Remove from ToWatch List' not in (item[0] for item in menu_items):
             watchstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_TOWATCH_WEB, 'primewire_url': resurl, 'action':'add', 'refresh':True})        
-            menu_items.append(('Add to Watch list', watchstring),)
+            menu_items.append(('Add to ToWatch list', watchstring),)
         
-        if caller == MODES.BROWSE_W_WEB:
-            watchedstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_WATCH_WEB, 'primewire_url': resurl,'action':'delete', 'refresh':True})
-            menu_items.append(('Remove from Watched list', watchedstring),)
-        else:
+        if 'Remove from Watched list' not in (item[0] for item in menu_items):
             watchedstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_WATCH_WEB, 'primewire_url': resurl,'action':'add', 'refresh':True})
             menu_items.append(('Add to Watched List', watchedstring),)
 
@@ -891,12 +890,12 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
 
         if meta['overlay'] == 6:
             label = 'Mark as watched'
-            new_status = 7
+            watched=True
         else:
             label = 'Mark as unwatched'
-            new_status = 6
+            watched=False
 
-        queries = {'mode': MODES.CH_WATCH, 'title': title, 'imdbnum': meta['imdb_id'], 'video_type': section_params['video_type'], 'year': year, 'primewire_url': resurl, 'watched': new_status}
+        queries = {'mode': MODES.CH_WATCH, 'title': title, 'imdbnum': meta['imdb_id'], 'video_type': section_params['video_type'], 'year': year, 'primewire_url': resurl, 'watched': watched}
         if section_params['video_type'] in ('tv', 'tvshow', 'episode'):
             queries['season'] = season
             queries['episode'] = episode
@@ -1217,7 +1216,10 @@ def browse_watched_website(section, page=None):
     paginate=(_1CH.get_setting('paginate-watched')=='true' and _1CH.get_setting('paginate')=='true')
     
     for video in pw_scraper.get_watched(section, page, paginate):
-        create_item(section_params,video['title'],video['year'],video['img'],video['url'], caller=MODES.BROWSE_W_WEB)
+        watchedstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_WATCH_WEB, 'primewire_url': video['url'],'action':'delete', 'refresh':True})
+        menu_items=[('Remove from Watched list', watchedstring),]
+
+        create_item(section_params,video['title'],video['year'],video['img'],video['url'], menu_items=menu_items)
         
     total_pages=pw_scraper.get_last_res_pages()
     if not page: page = 1
@@ -1251,8 +1253,12 @@ def browse_towatch_website(section, page=None):
     section_params = get_section_params(section)
     paginate=(_1CH.get_setting('paginate-towatched')=='true' and _1CH.get_setting('paginate')=='true')
     
+    menu_items=[]
     for video in pw_scraper.get_towatch(section, page, paginate):
-        create_item(section_params,video['title'],video['year'],video['img'],video['url'], caller=MODES.BROWSE_TW_WEB)
+        watchstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_TOWATCH_WEB, 'primewire_url': video['url'], 'action':'delete', 'refresh':True})
+        menu_items = [('Remove from ToWatch List', watchstring),]
+
+        create_item(section_params,video['title'],video['year'],video['img'],video['url'], menu_items=menu_items)
         
     total_pages=pw_scraper.get_last_res_pages()
     if not page: page = 1
@@ -1432,8 +1438,8 @@ def update_subscriptions():
     for sub in subs:
         add_to_library('tvshow', sub[0], sub[1], sub[2], sub[3], sub[4])
         
-    if _1CH.get_setting('auto-update_towatch') == 'true': update_towatch( False )
-    
+    if _1CH.get_setting('auto-update_towatch') == 'true': 
+        update_towatch()
     if _1CH.get_setting('library-update') == 'true':
         xbmc.executebuiltin('UpdateLibrary(video)')
     if _1CH.get_setting('cleanup-subscriptions') == 'true':
@@ -1520,15 +1526,12 @@ def manage_subscriptions():
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, isFolder=True, totalItems=subs_len)
     _1CH.end_of_directory()
 
-@pw_dispatcher.register(MODES.UPD_TOWATCH,['update_library'])
-def update_towatch( update_library = True ):
+def update_towatch():
     if not utils.website_is_integrated(): return
     
-    movies=pw_scraper.get_towatch('movies', None, False)
+    movies=pw_scraper.get_towatch('movies')
     for movie in movies:
         add_to_library('movie', movie['url'], movie['title'], movie['img'], movie['year'], None)
-    if update_library and _1CH.get_setting('library-update') == 'true':
-        xbmc.executebuiltin('UpdateLibrary(video)')
         
 def compose(inner_func, *outer_funcs):
     """Compose multiple unary functions together into a single unary function"""

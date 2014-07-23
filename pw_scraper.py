@@ -410,6 +410,19 @@ class PW_Scraper():
         self.imdb_num = match.group(1) if match else ''
         return self.__season_gen(html)
     
+    def change_watched(self, primewire_url, action, whattodo):
+        if not utils.website_is_integrated(): return
+        
+        _1CH.log("Update Website %s List" % action.capitalize() )
+        id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', primewire_url)
+        if id_num:
+            change_url = '%s/addtowatched.php?id=%s&action=%s&whattodo=%s'            
+            change_url = change_url % (self.base_url, id_num.group(1), action.lower(), whattodo.lower())
+            _1CH.log('%s %s URL: %s' %(whattodo.capitalize(), action.capitalize(), change_url))
+            self.__get_url(change_url,login=True)       
+        else:
+            _1CH.log("pw.scraper.change_watched() couldn't scrape primewire ID")
+
     def __set_totals(self, r, items_per_page):
         if r:
             total = int(r.group(1).replace(',', ''))
@@ -585,16 +598,3 @@ class PW_Scraper():
                 return 0
     
         return sorted(items, cmp=comparer)
-        
-    def change_watched(self, primewire_url, action, whattodo):
-        if not utils.website_is_integrated(): return
-        
-        _1CH.log("Update Website %s List" % action.capitalize() )
-        id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', primewire_url)
-        if id_num:
-            change_url = '%s/addtowatched.php?id=%s&action=%s&whattodo=%s'            
-            change_url = change_url % (self.base_url, id_num.group(1), action.lower(), whattodo.lower())
-            _1CH.log('%s %s URL: %s' %(whattodo.capitalize(), action.capitalize(), change_url))
-            self.__get_url(change_url,login=True)       
-        else:
-            _1CH.log("pw.scraper.change_watched() couldn't scrape primewire ID")
