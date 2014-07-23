@@ -22,6 +22,7 @@ Unified startup and scheduled task function to allow code sharing between all sc
 Allow user to specify their first day of the week for schedule days presentation
 Dynamically pull genres from PW site (at most once every 24 hours)
 Replaced query parsing and massive if/elif statement with generic plugin url dispatcher
+Fixed PlayTrailer if trailer is using YouTube
 
 [B]Version 2.4.0[/B]
 [B]Major[/B]
