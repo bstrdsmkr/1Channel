@@ -54,6 +54,8 @@ THEME_PATH = os.path.join(_1CH.get_path(), 'art', 'themes', THEME)
 ICON_PATH = os.path.join(_1CH.get_path(), 'icon.png')
 FAV_ACTIONS = utils.enum(ADD='add', REMOVE='remove')
 PL_SORT = ['added', 'alphabet', 'popularity']
+REMOVE_TW_MENU='Remove from ToWatch List'
+REMOVE_W_MENU='Remove from Watched list'
 
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 db_connection = DB_Connection()
@@ -832,11 +834,11 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
         menu_items.append(('Add to Favorites', runstring), )
         
     if resurl and utils.website_is_integrated():
-        if 'Remove from ToWatch List' not in (item[0] for item in menu_items):
+        if REMOVE_TW_MENU not in (item[0] for item in menu_items):
             watchstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_TOWATCH_WEB, 'primewire_url': resurl, 'action':'add', 'refresh':True})        
             menu_items.append(('Add to ToWatch list', watchstring),)
         
-        if 'Remove from Watched list' not in (item[0] for item in menu_items):
+        if REMOVE_W_MENU not in (item[0] for item in menu_items):
             watchedstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_WATCH_WEB, 'primewire_url': resurl,'action':'add', 'refresh':True})
             menu_items.append(('Add to Watched List', watchedstring),)
 
@@ -1217,7 +1219,7 @@ def browse_watched_website(section, page=None):
     
     for video in pw_scraper.get_watched(section, page, paginate):
         watchedstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_WATCH_WEB, 'primewire_url': video['url'],'action':'delete', 'refresh':True})
-        menu_items=[('Remove from Watched list', watchedstring),]
+        menu_items=[(REMOVE_W_MENU, watchedstring),]
 
         create_item(section_params,video['title'],video['year'],video['img'],video['url'], menu_items=menu_items)
         
@@ -1253,10 +1255,9 @@ def browse_towatch_website(section, page=None):
     section_params = get_section_params(section)
     paginate=(_1CH.get_setting('paginate-towatched')=='true' and _1CH.get_setting('paginate')=='true')
     
-    menu_items=[]
     for video in pw_scraper.get_towatch(section, page, paginate):
         watchstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.CH_TOWATCH_WEB, 'primewire_url': video['url'], 'action':'delete', 'refresh':True})
-        menu_items = [('Remove from ToWatch List', watchstring),]
+        menu_items = [(REMOVE_TW_MENU, watchstring),]
 
         create_item(section_params,video['title'],video['year'],video['img'],video['url'], menu_items=menu_items)
         
