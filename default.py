@@ -882,7 +882,7 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
         runstring = 'RunPlugin(%s)' % runstring
         menu_items.append(('Refresh Metadata', runstring,))
 
-        if 'trailer_url' in meta:
+        if 'trailer_url' in meta and meta['trailer_url']:
             try:
                 url = meta['trailer_url']
                 url = url.encode('base-64').strip()
