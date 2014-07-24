@@ -9,9 +9,11 @@ Added PW playlists functionality:
 Rewrote subscription days function to be more usable and actually provide a meaningful function (i.e. the days of the week a subscription should be run on)
 Add a performance option to allow users to selectively paginate most result sets.
 Added ability to export and import the onechannel db to and from a csv file.
-Added functon to schedule a scheduled db export to serve as a scheduled onechannel DB backup
+Added function to schedule a db export to serve as a scheduled onechannel DB backup
 Rewrote the DB upgrade code such that db's on each addon version should be more consistent.
-Add function to browse and set PW's watched list
+Added function to browse and set PW's watched list
+Added function to browse and set PW's ToWatch list
+Added option for the ToWatch list to serve as a movie subscription list (i.e. added to the user's library)
 Added a context menu option on playable items to manually select a source when auto-play is turned on.
 Added [COLOR red]EXPERIMENTAL[/COLOR] support for Axel Download Accelerator.
 
