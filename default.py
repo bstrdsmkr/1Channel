@@ -1461,7 +1461,7 @@ def clean_up_subscriptions():
 
 @pw_dispatcher.register(MODES.MAN_UPD_TOWATCH)
 def man_update_towatch():
-    update_subscriptions()
+    update_towatch()
     if _1CH.get_setting('library-update') == 'true':
         xbmc.executebuiltin('UpdateLibrary(video)')
     builtin = "XBMC.Notification(PrimeWire,ToWatch LIst added to library, 2000, %s)" % (ICON_PATH)
