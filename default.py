@@ -1240,16 +1240,12 @@ def browse_watched_website(section, page=None):
 @pw_dispatcher.register(MODES.BROWSE_TW_WEB, ['section'], ['page'])    
 def browse_towatch_website(section, page=None):
     if section=='movie': section='movies'
-
-    # TODO: Extend fav2Library
-    # if section=='tv':
-        # label='Add Watched TV Shows to Library'
-    # else:
-        # label='Add Watched Movies to Library'
-
-    # liz = xbmcgui.ListItem(label=label)
-    # liz_url = _1CH.build_plugin_url({'mode': 'fav2Library', 'section': section})
-    # xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
+ 
+    if section=='movies':
+        label='Add To Watch List Movies to Library'
+        liz = xbmcgui.ListItem(label=label)
+        liz_url = _1CH.build_plugin_url({'mode': MODES.UPD_TOWATCH, 'force_update': True})
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
         
 
     section_params = get_section_params(section)
@@ -1527,12 +1523,16 @@ def manage_subscriptions():
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, isFolder=True, totalItems=subs_len)
     _1CH.end_of_directory()
 
-def update_towatch():
-    if not utils.website_is_integrated(): return
+@pw_dispatcher.register(MODES.UPD_TOWATCH,None,['force_update'])
+def update_towatch(force_update=False):
+    if not force_update and not utils.website_is_integrated(): return
     
     movies=pw_scraper.get_towatch('movies')
     for movie in movies:
         add_to_library('movie', movie['url'], movie['title'], movie['img'], movie['year'], None)
+        
+    if force_update:
+        xbmc.executebuiltin('UpdateLibrary(video)')
         
 def compose(inner_func, *outer_funcs):
     """Compose multiple unary functions together into a single unary function"""
