@@ -121,12 +121,7 @@ class PW_Scraper():
         url = self.base_url + url % (self.username, section)
         html=self.__get_url(url)
         r = re.search('strong>To Watch \(\s+([0-9,]+)\s+\)', html)
-        if r:
-            total = int(r.group(1).replace(',', ''))
-        else:
-            total = 0
-        self.res_pages = int(math.ceil(total / float(PW_Scraper.ITEMS_PER_PAGE2)))
-        self.res_total = total
+        self.__set_totals(r, PW_Scraper.ITEMS_PER_PAGE2)
         
         pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>'''
         return self.__get_results_gen(html, url, page, paginate, pattern, self.__set_watched_result)  
