@@ -1460,7 +1460,7 @@ def clean_up_subscriptions():
             db_connection.delete_subscription(sub[0])
 
 @pw_dispatcher.register(MODES.MAN_UPD_TOWATCH)
-def man_update_towatch():
+def manual_update_towatch():
     update_towatch()
     if _1CH.get_setting('library-update') == 'true':
         xbmc.executebuiltin('UpdateLibrary(video)')
