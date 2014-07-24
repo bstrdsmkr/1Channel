@@ -1244,7 +1244,7 @@ def browse_towatch_website(section, page=None):
     if section=='movies':
         label='Add To Watch List Movies to Library'
         liz = xbmcgui.ListItem(label=label)
-        liz_url = _1CH.build_plugin_url({'mode': MODES.UPD_TOWATCH})
+        liz_url = _1CH.build_plugin_url({'mode': MODES.MAN_UPD_TOWATCH})
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
         
 
@@ -1459,6 +1459,21 @@ def clean_up_subscriptions():
             except: pass
             db_connection.delete_subscription(sub[0])
 
+@pw_dispatcher.register(MODES.MAN_UPD_TOWATCH)
+def man_update_towatch():
+    update_subscriptions()
+    if _1CH.get_setting('library-update') == 'true':
+        xbmc.executebuiltin('UpdateLibrary(video)')
+    builtin = "XBMC.Notification(PrimeWire,ToWatch LIst added to library, 2000, %s)" % (ICON_PATH)
+    xbmc.executebuiltin(builtin)
+
+def update_towatch():
+    if not utils.website_is_integrated(): return
+    
+    movies=pw_scraper.get_towatch('movies')
+    for movie in movies:
+        add_to_library('movie', movie['url'], movie['title'], movie['img'], movie['year'], None)
+        
 @pw_dispatcher.register(MODES.MANAGE_SUBS)
 def manage_subscriptions():
     utils.set_view('tvshows', 'tvshows-view')
@@ -1523,14 +1538,6 @@ def manage_subscriptions():
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), li_url, listitem, isFolder=True, totalItems=subs_len)
     _1CH.end_of_directory()
 
-@pw_dispatcher.register(MODES.UPD_TOWATCH)
-def update_towatch():
-    if not utils.website_is_integrated(): return
-    
-    movies=pw_scraper.get_towatch('movies')
-    for movie in movies:
-        add_to_library('movie', movie['url'], movie['title'], movie['img'], movie['year'], None)
-        
 def compose(inner_func, *outer_funcs):
     """Compose multiple unary functions together into a single unary function"""
     if not outer_funcs:
