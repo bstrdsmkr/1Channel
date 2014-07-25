@@ -1337,35 +1337,11 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
                 filename = filename % (season_num, epnum)
                 show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
                 final_path = os.path.join(save_path, show_title, 'Season '+season_num, filename)
-                final_path = xbmc.makeLegalFilename(final_path)
-                if not xbmcvfs.exists(os.path.dirname(final_path)):
-                    try:
-                        try: xbmcvfs.mkdirs(os.path.dirname(final_path))
-                        except: os.mkdir(os.path.dirname(final_path))
-                    except:
-                        _1CH.log('Failed to create directory %s' % final_path)
-
                 queries = {'mode': MODES.GET_SOURCES, 'url': epurl, 'imdbnum': '', 'title': show_title, 'img': '',
                            'dialog': 1, 'video_type': 'episode'}
                 strm_string = _1CH.build_plugin_url(queries)
-
-                old_strm_string=''
-                try:
-                    f = xbmcvfs.File(final_path, 'r')
-                    old_strm_string = f.read()
-                    f.close()
-                except:  pass
-
-                #print "Old String: %s; New String %s" %(old_strm_string,strm_string)
-                # string will be blank if file doesn't exist or is blank
-                if strm_string != old_strm_string:
-                    try:
-                        _1CH.log('Writing strm: %s' % strm_string)
-                        file_desc = xbmcvfs.File(final_path, 'w')
-                        file_desc.write(strm_string)
-                        file_desc.close()
-                    except Exception, e:
-                        _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
+                
+                write_strm(strm_string, final_path)
         if not found_seasons:
             _1CH.log_error('No Seasons found for %s at %s' % (show_title, url))
                 
@@ -1379,23 +1355,36 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
         filename = utils.filename_from_title(title, 'movie')
         title = re.sub(r'[^\w\-_\. ]', '_', title)
         final_path = os.path.join(save_path, title, filename)
-        final_path = xbmc.makeLegalFilename(final_path)
-        if not xbmcvfs.exists(os.path.dirname(final_path)):
-            try:
-                try: xbmcvfs.mkdirs(os.path.dirname(final_path))
-                except: os.mkdir(os.path.dirname(final_path))
-            except Exception, e:
-                try: _1CH.log('Failed to create directory %s' % final_path)
-                except: pass
-                # if not xbmcvfs.exists(final_path):
-                #temp disabled bc of change in .strm format. Reenable in next version
+                
+        write_strm(strm_string, final_path)
+
+def write_strm(stream, path):
+    path = xbmc.makeLegalFilename(path)
+    if not xbmcvfs.exists(os.path.dirname(path)):
         try:
-            file_desc = xbmcvfs.File(final_path, 'w')
-            file_desc.write(strm_string)
+            try: xbmcvfs.mkdirs(os.path.dirname(path))
+            except: os.mkdir(os.path.dirname(path))
+        except:
+            _1CH.log('Failed to create directory %s' % path)
+
+    old_strm_string=''
+    try:
+        f = xbmcvfs.File(path, 'r')
+        old_strm_string = f.read()
+        f.close()
+    except:  pass
+    
+    #print "Old String: %s; New String %s" %(old_strm_string,strm_string)
+    # string will be blank if file doesn't exist or is blank
+    if stream != old_strm_string:
+        try:
+            _1CH.log('Writing strm: %s' % stream)
+            file_desc = xbmcvfs.File(path, 'w')
+            file_desc.write(stream)
             file_desc.close()
         except Exception, e:
-            _1CH.log('Failed to create .strm file: %s\n%s' % (final_path, e))
-
+            _1CH.log('Failed to create .strm file: %s\n%s' % (path, e))
+    
 @pw_dispatcher.register(MODES.ADD_SUB, ['url', 'title', 'year'], ['img', 'imdbnum'])
 def add_subscription(url, title, year, img='', imdbnum=''):
     try:
