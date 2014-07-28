@@ -138,6 +138,8 @@
 		<setting type="sep"/>
         <setting id="flush_cache" type="action" label="Flush webpage cache..." enable="true"
                  action="RunPlugin(plugin://plugin.video.1channel/?mode=flush_cache)"/>
+        <setting id="reset_db" type="action" label="Reset 1Channel DB ([COLOR red]SQLITE Only[/COLOR])" enable="true"
+                 action="RunPlugin(plugin://plugin.video.1channel/?mode=reset_db)"/>
 		<setting id="db_export" type="action" label="Export data from 1Channel DB" enable="true"
 				action="RunPlugin(plugin://plugin.video.1channel/?mode=export_db)"/>
 		<setting id="db_import" type="action" label="Import data into 1Channel DB" enable="true"

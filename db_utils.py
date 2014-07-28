@@ -354,6 +354,16 @@ class DB_Connection():
                 if dlg.iscanceled(): return False
                 complete += 1
         
+    def reset_db(self):
+        if self.db_type==DB_TYPES.SQLITE:
+            os.remove(self.db_path)
+            self.db=None
+            self.__connect_to_db()
+            self.init_database()
+            return True
+        else:
+            return False
+    
     def __execute(self, sql, params=None):
         if params is None:
             params=[]

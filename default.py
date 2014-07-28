@@ -1578,6 +1578,16 @@ def jump_to_page(mode, section, genre='', letter='', sort='', search='', query='
         builtin = 'Container.Update(%s)' % url
         xbmc.executebuiltin(builtin)
 
+@pw_dispatcher.register(MODES.RESET_DB)
+def reset_db():
+    if db_connection.reset_db():
+        message='DB Reset Successful'
+    else:
+        message='Reset only allowed on sqlite DBs'
+    
+    builtin = "XBMC.Notification(PrimeWire,%s,2000, %s)" % (message, ICON_PATH)
+    xbmc.executebuiltin(builtin)        
+
 @pw_dispatcher.register(MODES.EXPORT_DB)
 def export_db():
     try:
