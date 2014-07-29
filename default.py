@@ -39,6 +39,7 @@ from pw_scraper import PW_Scraper
 from db_utils import DB_Connection
 from pw_dispatcher import PW_Dispatcher
 from utils import MODES
+from utils import SUB_TYPES
 
 global urlresolver
 
@@ -379,7 +380,6 @@ def change_watched(imdbnum, video_type, title, primewire_url , watched, season='
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid": %s, "properties": ["playcount"]}, "id": 1}'
             cmd = cmd %(dbid)
             result = json.loads(xbmc.executeJSONRPC(cmd))
-            print result
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": %s, "playcount": %s}, "id": 1}'
             playcount = int(result['result']['episodedetails']['playcount']) + 1 if watched == True else 0
             cmd = cmd %(dbid, playcount)
@@ -389,7 +389,6 @@ def change_watched(imdbnum, video_type, title, primewire_url , watched, season='
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid": %s, "properties": ["playcount"]}, "id": 1}'
             cmd = cmd %(dbid)
             result = json.loads(xbmc.executeJSONRPC(cmd))
-            print result
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": %s, "playcount": %s}, "id": 1}'
             playcount = int(result['result']['moviedetails']['playcount']) + 1 if watched == True else 0
             cmd = cmd %(dbid, playcount)
@@ -761,7 +760,7 @@ def get_section_params(section):
         section_params['nextmode'] = MODES.SEASON_LIST
         section_params['video_type'] = 'tvshow'
         section_params['folder'] = True
-        subscriptions = db_connection.get_subscriptions()
+        subscriptions = utils.get_subscriptions()
         section_params['subs'] = [row[0] for row in subscriptions]
     elif section=='episode':
         section_params['nextmode'] = MODES.GET_SOURCES
@@ -1391,6 +1390,7 @@ def add_subscription(url, title, year, img='', imdbnum=''):
         days=utils.get_default_days()
         if utils.using_pl_subs():
             pw_scraper.add_to_playlist(utils.get_subs_pl_url(), url)
+            db_connection.add_ext_sub(SUB_TYPES.PW_PL, url, imdbnum, days)
         else:
             db_connection.add_subscription(url, title, img, year, imdbnum, days)
             
@@ -1406,6 +1406,7 @@ def add_subscription(url, title, year, img='', imdbnum=''):
 def cancel_subscription(url):
     if utils.using_pl_subs():
         pw_scraper.remove_from_playlist(utils.get_subs_pl_url(), url)
+        db_connection.delete_ext_sub(SUB_TYPES.PW_PL, url)
     else:
         db_connection.delete_subscription(url)
 
@@ -1493,10 +1494,9 @@ def manage_subscriptions():
         meta['title'] = utils.format_label_sub(meta)
 
         menu_items = add_contextsearchmenu(meta['title'], 'tv')
-        if not utils.using_pl_subs():
-            runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
-                {'mode': MODES.EDIT_DAYS, 'url': url, 'days': days})
-            menu_items.append(('Edit days', runstring,))
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
+            {'mode': MODES.EDIT_DAYS, 'url': url, 'days': days})
+        menu_items.append(('Edit days', runstring,))
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(
             {'mode': MODES.CANCEL_SUB, 'url': url})
         menu_items.append(('Cancel subscription', runstring,))
@@ -1629,8 +1629,8 @@ def backup_db():
     full_path = path + 'db_backup_' + now_str +'.csv'
     db_connection.export_from_db(full_path)
 
-@pw_dispatcher.register(MODES.EDIT_DAYS, ['url', 'days'])
-def edit_days(url, days):
+@pw_dispatcher.register(MODES.EDIT_DAYS, ['url'], ['days'])
+def edit_days(url, days=''):
     try:
         # use a keyboard if the hidden setting is true
         if _1CH.get_setting('use-days-keyboard')=='true':
@@ -1644,7 +1644,10 @@ def edit_days(url, days):
         else:
             new_days=utils.days_select(days)
             
-        db_connection.edit_days(url, new_days)
+        if utils.using_pl_subs():
+            db_connection.edit_external_days(SUB_TYPES.PW_PL, url, new_days)
+        else:
+            db_connection.edit_days(url, new_days)
         xbmc.executebuiltin('Container.Refresh')
     except: pass # if clicked cancel just abort
 

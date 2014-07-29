@@ -156,6 +156,27 @@ class DB_Connection():
         sql = "UPDATE subscriptions SET days=? WHERE url=?"
         self.__execute(sql, (days, url))
     
+    def add_ext_sub(self, sub_type, url, imdbnum, days):
+        sql = 'REPLACE INTO external_subs (type, url, imdbnum, days) VALUES (?, ?, ?, ?)'
+        self.__execute(sql, (sub_type, url, imdbnum, days))
+
+    def delete_ext_sub(self, sub_type, url):
+        sql = 'DELETE FROM external_subs WHERE type=? and url=?'
+        self.__execute(sql, (sub_type, url,))
+
+    def edit_external_days(self, sub_type, url, days):
+        sql = "UPDATE external_subs SET days=? WHERE type=? and url=?"
+        self.__execute(sql, (days, sub_type, url))
+
+    def get_external_subs(self, sub_type, day=None):
+        sql = 'SELECT type, url, imdbnum, days FROM external_subs WHERE type=?'
+        if day: sql += ' AND days LIKE ?'
+        if day is None:
+            rows=self.__execute(sql, (sub_type,))
+        else:
+            rows=self.__execute(sql, (sub_type,'%{0}%'.format(day)))
+        return rows
+    
     def cache_url(self,url,body):
         now = time.time()
         sql = 'REPLACE INTO url_cache (url,response,timestamp) VALUES(?, ?, ?)'
@@ -250,6 +271,7 @@ class DB_Connection():
             self.__execute('CREATE TABLE IF NOT EXISTS url_cache (url UNIQUE, response, timestamp)')
             self.__execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS new_bkmark (url TEXT PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')
+            self.__execute('CREATE TABLE IF NOT EXISTS external_subs (type INTEGER NOT NULL, url TEXT NOT NULL, imdbnum TEXT, days VARCHAR(7), PRIMARY KEY (type, url))')
             self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_fav ON favorites (url)')
             self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_sub ON subscriptions (url)')
             self.__execute('CREATE UNIQUE INDEX IF NOT EXISTS unique_url ON url_cache (url)')

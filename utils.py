@@ -38,6 +38,8 @@ MODES = enum(SAVE_FAV='SaveFav', DEL_FAV='DeleteFav', GET_SOURCES='GetSources', 
                    RM_FROM_PL='remove_from_playlist', ADD2PL='add_to_playlist', BROWSE_TW_WEB='browse_towatch_website', CH_TOWATCH_WEB='change_towatch_website',
                    CH_WATCH_WEB='change_watched_website', MAN_UPD_TOWATCH='man_update_towatch', RESET_DB='reset_db')
 
+SUB_TYPES  = enum(PW_PL=0)
+
 hours_list={}
 hours_list[MODES.UPD_SUBS] = [2, 5, 10, 15, 24]
 hours_list[MODES.MOVIE_UPDATE] = [2, 5, 10, 15, 24]
@@ -82,7 +84,6 @@ def get_default_days():
     dow=datetime.datetime.now().weekday()
     def_days.append(str(dow))
     def_days.append(str(dow)+str((dow+1)%7))
-    print def_days
     return def_days[int(_1CH.get_setting('sub-days'))]        
 
 def format_label_tvshow(info):
@@ -269,11 +270,45 @@ def get_subs_pl_url():
 
 def get_subscriptions(day=None, order_matters=False):
     if using_pl_subs():
+        def_days=get_default_days()
         items=pw_scraper.show_playlist(get_subs_pl_url(), False)
-        subs = [(item['url'], item['title'], item['img'], item['year'], '', '0123456') for item in items]
+        ext_subs = db_connection.get_external_subs(SUB_TYPES.PW_PL)
+        subs=[]
+        for item in items:
+            for i, sub in enumerate(ext_subs):
+                if item['url']==sub[1]:
+                    item['days']=sub[3]
+                    del ext_subs[i]
+                    break
+            else:
+                # add the item to ext_subs with default days
+                db_connection.add_ext_sub(SUB_TYPES.PW_PL, item['url'], '', def_days)
+                item['days']=def_days
+
+            # only add this item to the list if we are pulling all days or a day that this item runs on
+            if day is None or str(day) in item['days']:
+                subs.append((item['url'], item['title'], item['img'], item['year'], '', item['days']))
+            
+            if order_matters:
+                subs.sort(cmp=days_cmp, key=lambda k:k[5]+k[1])
     else:
         subs=db_connection.get_subscriptions(day, order_matters)
     return subs
+
+# "all days" goes to the top, "no days" goes to the bottom, everything else is sorted lexicographically
+def days_cmp(x,y):
+    if x==y:
+        return 0
+    elif x=='0123456':
+        return -1
+    elif y=='0123456':
+        return 1
+    elif x=='':
+        return 1
+    elif y=='':
+        return -1
+    else:
+        return cmp(x,y)
 
 def rank_host(source):
     host = source['host']

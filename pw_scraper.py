@@ -103,7 +103,7 @@ class PW_Scraper():
         return fav
     
     def get_watched(self, section, page=None, paginate=False):
-        _1CH.log('Getting %s watched list from website' % (section))
+        _1CH.log('Getting %s Watched list from website' % (section))
         url = '/profile.php?user=%s&watched&show=%s'
         if page: url += '&page=%s' % (page)
         url = self.base_url + url % (self.username, section)
@@ -115,7 +115,7 @@ class PW_Scraper():
         return self.__get_results_gen(html, url, page, paginate, pattern, self.__set_watched_result)   
     
     def get_towatch(self, section, page=None, paginate=False):
-        _1CH.log('Getting %s watch list from website' % (section))
+        _1CH.log('Getting %s ToWatch list from website' % (section))
         url = '/profile.php?user=%s&towatch&show=%s'
         if page: url += '&page=%s' % (page)
         url = self.base_url + url % (self.username, section)
