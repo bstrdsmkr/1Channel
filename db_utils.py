@@ -256,10 +256,11 @@ class DB_Connection():
         if self.db_type == DB_TYPES.MYSQL:
             self.__execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
-            self.__execute('CREATE TABLE IF NOT EXISTS subscriptions (url VARCHAR(255) UNIQUE, title TEXT, img TEXT, year TEXT, imdbnum TEXT, days VARCHAR(7)')
+            self.__execute('CREATE TABLE IF NOT EXISTS subscriptions (url VARCHAR(255) UNIQUE, title TEXT, img TEXT, year TEXT, imdbnum TEXT, days VARCHAR(7))')
             self.__execute('CREATE TABLE IF NOT EXISTS url_cache (url VARCHAR(255), response MEDIUMBLOB, timestamp TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS db_info (setting TEXT, value TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS new_bkmark (url VARCHAR(255) PRIMARY KEY NOT NULL, resumepoint DOUBLE NOT NULL)')            
+            self.__execute('CREATE TABLE IF NOT EXISTS external_subs (type INTEGER NOT NULL, url VARCHAR(255) NOT NULL, imdbnum TEXT, days VARCHAR(7), PRIMARY KEY (type, url))')
             try: self.__execute('DROP INDEX unique_db_info ON db_info')
             except: pass # ignore failures if the index doesn't exist
             self.__execute('CREATE UNIQUE INDEX unique_db_info ON db_info (setting (255))')
@@ -395,7 +396,7 @@ class DB_Connection():
         cur = self.db.cursor()
         _1CH.log_debug('Running: %s with %s' % (sql, params))
         cur.execute(sql, params)
-        if sql[:6].upper() == 'SELECT':
+        if sql[:6].upper() == 'SELECT' or sql[:4].upper() == 'SHOW':
             rows=cur.fetchall()
         cur.close()
         self.db.commit()
@@ -430,12 +431,11 @@ class DB_Connection():
     
     def __drop_all(self):
         if self.db_type==DB_TYPES.MYSQL:
-            #TODO: find better way to list tables in mysql
-            db_objects=['seasons', 'favorites', 'subscriptions', 'url_cache', 'db_info', 'new_bkmark']
+            sql = 'show tables'
         else:
             sql = 'select name from sqlite_master where type="table"'
-            rows=self.__execute(sql)
-            db_objects = [row[0] for row in rows]
+        rows=self.__execute(sql)
+        db_objects = [row[0] for row in rows]
             
         for db_object in db_objects:
             sql = 'DROP TABLE IF EXISTS %s' % (db_object)
