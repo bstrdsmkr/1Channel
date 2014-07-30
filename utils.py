@@ -291,22 +291,25 @@ def get_subscriptions(day=None, order_matters=False):
                     subs.append((item['url'], item['title'], item['img'], item['year'], '', item['days']))
                 
                 if order_matters:
-                    subs.sort(cmp=days_cmp, key=lambda k:k[5]+k[1])
+                    subs.sort(cmp=days_cmp, key=lambda k:k[5].ljust(7)+k[1])
     else:
         subs=db_connection.get_subscriptions(day, order_matters)
     return subs
 
 # "all days" goes to the top, "no days" goes to the bottom, everything else is sorted lexicographically
 def days_cmp(x,y):
-    if x==y:
-        return 0
-    elif x=='0123456':
+    xdays, xtitle=x[:7], x[7:]
+    ydays, ytitle=y[:7], y[7:]
+    #print 'xdays,xtitle,ydays,ytitle: |%s|%s|%s|%s|' % (xdays,xtitle,ydays,ytitle)
+    if xdays==ydays:
+        return cmp(xtitle,ytitle)
+    elif xdays =='0123456':
         return -1
-    elif y=='0123456':
+    elif ydays =='0123456':
         return 1
-    elif x=='':
+    elif xdays==' '*7:
         return 1
-    elif y=='':
+    elif ydays==' '*7:
         return -1
     else:
         return cmp(x,y)
