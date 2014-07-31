@@ -561,7 +561,7 @@ def BrowseListMenu(section):
         _1CH.add_directory({'mode': MODES.BROWSE_W_WEB, 'section': section}, {'title': 'Website Watched List'},
                            img=art('watched.png'), fanart=art('fanart.png'))
         _1CH.add_directory({'mode': MODES.BROWSE_TW_WEB, 'section': section}, {'title': 'Website To Watch List'},
-                           img=art('favourites.png'), fanart=art('fanart.png'))
+                           img=art('towatch.png'), fanart=art('fanart.png'))
     else:
         _1CH.add_directory({'mode': MODES.BROWSE_FAVS, 'section': section}, {'title': 'Favourites'},
                            img=art('favourites.png'), fanart=art('fanart.png'))
