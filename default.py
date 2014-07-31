@@ -51,7 +51,12 @@ USE_POSTERS = _1CH.get_setting('use-posters') == 'true'
 POSTERS_FALLBACK = _1CH.get_setting('posters-fallback') == 'true'
 THEME_LIST = ['Classic', 'Glossy_Black', 'PrimeWire']
 THEME = THEME_LIST[int(_1CH.get_setting('theme'))]
-THEME_PATH = os.path.join(_1CH.get_path(), 'art', 'themes', THEME)
+try:
+    themepak_path = xbmcaddon.Addon('script.1channel.themepak').getAddonInfo('path')
+except:
+    themepak_path = ''
+THEME_PATH = os.path.join(themepak_path, 'art', 'themes', THEME)
+
 ICON_PATH = os.path.join(_1CH.get_path(), 'icon.png')
 FAV_ACTIONS = utils.enum(ADD='add', REMOVE='remove')
 PL_SORT = ['added', 'alphabet', 'popularity']
