@@ -28,7 +28,7 @@ def enum(**enums):
     return type('Enum', (), enums)
 
 DB_TYPES= enum(MYSQL='mysql', SQLITE='sqlite')
-CSV_MARKERS = enum(FAVORITES='***FAVORITES***', SUBSCRIPTIONS='***SUBSCRIPTIONS***', BOOKMARKS='***BOOKMARKS***')
+CSV_MARKERS = enum(FAVORITES='***FAVORITES***', SUBSCRIPTIONS='***SUBSCRIPTIONS***', BOOKMARKS='***BOOKMARKS***', EXT_SUBS='***EXTERNAL SUBSCRIPTIONS***')
 
 _1CH = Addon('plugin.video.1channel')
 
@@ -168,13 +168,29 @@ class DB_Connection():
         sql = "UPDATE external_subs SET days=? WHERE type=? and url=?"
         self.__execute(sql, (days, sub_type, url))
 
-    def get_external_subs(self, sub_type, day=None):
-        sql = 'SELECT type, url, imdbnum, days FROM external_subs WHERE type=?'
-        if day: sql += ' AND days LIKE ?'
-        if day is None:
-            rows=self.__execute(sql, (sub_type,))
+    def get_external_subs(self, sub_type=None, day=None):
+        sql = 'SELECT type, url, imdbnum, days FROM external_subs'
+        if sub_type: sql +=' WHERE type=?'
+        if day:
+            if sub_type:
+                sql += ' AND'
+            else:
+                sql += ' WHERE' 
+            sql += ' days LIKE ?'
+
+        params=None
+        if sub_type and day:
+            params=(sub_type, day)
+        elif sub_type:
+            params = (sub_type,)
+        elif day:
+            params = (day,)
+
+        if not params:
+            rows=self.__execute(sql)
         else:
-            rows=self.__execute(sql, (sub_type,'%{0}%'.format(day)))
+            rows=self.__execute(sql, params)
+
         return rows
     
     def cache_url(self,url,body):
@@ -209,15 +225,22 @@ class DB_Connection():
         with open(full_path, 'w') as f:
             writer=csv.writer(f)
             f.write('***VERSION: %s***\n' % self.__get_db_version())
-            f.write(CSV_MARKERS.FAVORITES+'\n')
-            for fav in self.get_favorites():
-                writer.writerow(fav)
-            f.write(CSV_MARKERS.SUBSCRIPTIONS+'\n')
-            for sub in self.get_subscriptions():
-                writer.writerow(sub)
-            f.write(CSV_MARKERS.BOOKMARKS+'\n')
-            for bookmark in self.get_bookmarks():
-                writer.writerow(bookmark)
+            try:
+                f.write(CSV_MARKERS.FAVORITES+'\n')
+                for fav in self.get_favorites():
+                    writer.writerow(fav)
+                f.write(CSV_MARKERS.SUBSCRIPTIONS+'\n')
+                for sub in self.get_subscriptions():
+                    writer.writerow(sub)
+                f.write(CSV_MARKERS.BOOKMARKS+'\n')
+                for bookmark in self.get_bookmarks():
+                    writer.writerow(bookmark)
+                f.write(CSV_MARKERS.EXT_SUBS+'\n')
+                for sub in self.get_external_subs():
+                    writer.writerow(sub)
+                    
+            except db_lib.OperationalError: # ignore operational errors as some tables may not exist on upgrade
+                pass
     
     def import_into_db(self, full_path):
         with open(full_path,'r') as f:
@@ -225,7 +248,7 @@ class DB_Connection():
             mode=''
             _=f.readline() #read header
             for line in reader:
-                if CSV_MARKERS.FAVORITES in line[0] or CSV_MARKERS.SUBSCRIPTIONS in line[0] or CSV_MARKERS.BOOKMARKS in line[0]:
+                if CSV_MARKERS.FAVORITES in line[0] or CSV_MARKERS.SUBSCRIPTIONS in line[0] or CSV_MARKERS.BOOKMARKS in line[0] or CSV_MARKERS.EXT_SUBS in line[0]:
                     mode=line[0]
                     continue
                 elif mode==CSV_MARKERS.FAVORITES:
@@ -238,6 +261,8 @@ class DB_Connection():
                     self.add_subscription(line[0], line[1], line[2], line[3], line[4], line[5])
                 elif mode==CSV_MARKERS.BOOKMARKS:
                     self.set_bookmark(line[0], line[1])
+                elif mode==CSV_MARKERS.EXT_SUBS:
+                    self.add_ext_sub(line[0], line[1], line[2], line[3])
                 else:
                     raise Exception('CSV line found while in no mode')
     
