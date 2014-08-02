@@ -1,3 +1,19 @@
+[B][COLOR blue]2.5.0 Release Notes[/COLOR][/B]
+- This release adds support for PrimeWire Public & Personal Playlists.
+- Public Playlists are always available but in order to browse, or add/remove from personal playlists "Website Integration" must be enabled in the 1CH settings.
+- You can now specify a PrimeWire playlist to be used for TV Show subscriptions. Enter the ID of the playlist (the part after "?id=" in the url when viewing the playlist in your browser)
+- Subscription Days has been rewritten to serve a useful function now. A subscription can be associated with multiple days of the week and will only run on those days.
+- When your subscriptions are migrated for this version, under some circumstances they may migrate as "DISABLED" (i.e. No Days). To re-enable them, specify the days they should be run on (See next bullet).
+- To change the days for a subscription use the context menu in the subscriptions view and select "Edit Days"
+- The default days assigned to a subscription when it is created can be changed in the 1CH settings.
+- On the database tab, there is now a function to export the 1CH db to a csv file and to import a csv into the DB. You can use this to save your 1CH data before deleting the 1CH DB in case of a DB issue.
+- You can also schedule an export to keep backups of the 1CH DB that can be used as DB backups.
+- You can now browse the PrimeWire Watched and ToWatch lists.
+- The PrimeWire ToWatch list can also be used as a movie subscription list. Movies added to the list will automatically get added to your library. (See "Library Integration" in 1CH Settings)
+- If you are using auto-play, when playing videos from within the addon you can now bring up the context menu and pick "Select Sources" to manually pick a source instead.
+- The 1Channel themes have been moved to a separate addon (called 1Channel Themepak). It should be in the same repository as 1Channel itself. You need to install this addon in order for themes to work in the addon.
+- [COLOR red]EXPERIMENTAL[/COLOR] support has been added for Axel Download Accelerator.  When it works, it makes a noticeable difference in buffering BUT expect bugs, hangs, crashes, etc. when using it.
+
 [B][COLOR blue]2.4.0 Release Notes[/COLOR][/B]
 - The attempt in V2.3.0 to use XBMC's native resume functionality ultimately failed due to XBMC bugs that couldn't be worked around. The new approach is purely custom, but should work better and more consistently. One benefit of this approach is that resume points can be consistent within the addon and library.
 - Under the covers major changes in the code base have been made to make the whole addon easier to maintain.

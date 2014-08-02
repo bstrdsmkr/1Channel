@@ -16,6 +16,7 @@ Added function to browse and set PW's ToWatch list
 Added option for the ToWatch list to serve as a movie subscription list (i.e. added to the user's library)
 Added a context menu option on playable items to manually select a source when auto-play is turned on.
 Added [COLOR red]EXPERIMENTAL[/COLOR] support for Axel Download Accelerator.
+Moved themes to separate addon to reduce size of main addon (was 4.3MB; now 600K)
 
 [B]Minor[/B]
 Added ability to add most menu items to XBMC's favorites.
