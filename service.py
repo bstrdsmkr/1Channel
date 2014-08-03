@@ -29,13 +29,13 @@ db_connection.init_database()
 ADDON = xbmcaddon.Addon(id='plugin.video.1channel')
 
 # temporary method to migrate from old watched setting to new one
-def mig_watched_setting():
+def migrate_settings():
     new_values=[70, 80, 90]
     watched=int(ADDON.getSetting('watched-percent'))
     if 0 <= watched <= 2:
         print "setting: %s, %s" % (watched, new_values[watched])
         ADDON.setSetting('watched-percent', str(new_values[watched]))
-
+    
 class Service(xbmc.Player):
     def __init__(self, *args, **kwargs):
         xbmc.Player.__init__(self, *args, **kwargs)
@@ -123,7 +123,7 @@ class Service(xbmc.Player):
         xbmc.log('1Channel: Playback completed')
         self.onPlayBackStopped()
 
-mig_watched_setting() # migrate from old 0, 1, 2 setting to actual value
+migrate_settings()
 monitor = Service()
 utils.do_startup_task(MODES.UPD_SUBS)
 utils.do_startup_task(MODES.MOVIE_UPDATE)

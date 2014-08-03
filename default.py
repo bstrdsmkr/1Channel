@@ -35,6 +35,7 @@ from addon.common.addon import Addon
 try: from metahandler import metahandlers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
 import utils
+from urllib2 import HTTPError
 from pw_scraper import PW_Scraper
 from db_utils import DB_Connection
 from pw_dispatcher import PW_Dispatcher
@@ -1428,7 +1429,13 @@ def update_subscriptions():
     day=datetime.datetime.now().weekday()
     subs=utils.get_subscriptions(day)
     for sub in subs:
-        add_to_library('tvshow', sub[0], sub[1], sub[2], sub[3], sub[4])
+        try:
+            add_to_library('tvshow', sub[0], sub[1], sub[2], sub[3], sub[4])
+        except HTTPError as e:
+            _1CH.log('Subscription Update Failed for %s (%s): %s' % (sub[0], sub[1], e))
+            builtin = "XBMC.Notification(PrimeWire,%s - %s, 2000, %s)" % (e, sub[1], ICON_PATH)
+            xbmc.executebuiltin(builtin)
+            
         
     if _1CH.get_setting('auto-update_towatch') == 'true': 
         update_towatch()
@@ -1436,6 +1443,15 @@ def update_subscriptions():
         xbmc.executebuiltin('UpdateLibrary(video)')
     if _1CH.get_setting('cleanup-subscriptions') == 'true':
         clean_up_subscriptions()
+    if _1CH.get_setting(MODES.UPD_SUBS+'-notify')=='true':
+        builtin = "XBMC.Notification(PrimeWire,Subscription Updated, 2000, %s)" % (ICON_PATH)
+        xbmc.executebuiltin(builtin)
+        interval=datetime.timedelta(hours=utils.hours_list[MODES.UPD_SUBS][int(_1CH.get_setting(MODES.UPD_SUBS+'-interval'))])
+        last_run = _1CH.get_setting('%s-last_run' % (MODES.UPD_SUBS))
+        next_run = datetime.datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S.%f") + interval
+        builtin = "XBMC.Notification(PrimeWire,Next Update @ %s,5000, %s)" % (next_run.strftime("%Y-%m-%d %H:%M:%S"), ICON_PATH)
+        xbmc.executebuiltin(builtin)
+    
 
 @pw_dispatcher.register(MODES.MAN_CLEAN_SUBS)
 def manual_clean_up_subscriptions():
@@ -1464,7 +1480,6 @@ def manual_update_towatch():
 
 def update_towatch():
     if not utils.website_is_integrated(): return
-    
     movies=pw_scraper.get_towatch('movies')
     for movie in movies:
         add_to_library('movie', movie['url'], movie['title'], movie['img'], movie['year'], None)

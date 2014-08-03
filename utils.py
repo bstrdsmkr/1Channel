@@ -41,7 +41,7 @@ MODES = enum(SAVE_FAV='SaveFav', DEL_FAV='DeleteFav', GET_SOURCES='GetSources', 
 SUB_TYPES  = enum(PW_PL=0)
 
 hours_list={}
-hours_list[MODES.UPD_SUBS] = [2, 5, 10, 15, 24]
+hours_list[MODES.UPD_SUBS] = [2, 2] + range(2, 25) # avoid accidental runaway subscription updates
 hours_list[MODES.MOVIE_UPDATE] = [2, 5, 10, 15, 24]
 hours_list[MODES.BACKUP_DB] = [12, 24, 168, 720]
 
@@ -513,7 +513,7 @@ def do_startup_task(task):
         xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task))
         _1CH.set_setting('%s-last_run' % (task), now.strftime("%Y-%m-%d %H:%M:%S.%f"))
     
-# Run a recurring scheduled task. Settings and move values much match task name
+# Run a recurring scheduled task. Settings and mode values must match task name
 def do_scheduled_task(task, isPlaying):
     now = datetime.datetime.now()
     if _1CH.get_setting('auto-%s' % task) == 'true':

@@ -84,13 +84,13 @@
 		<setting type="sep"/>
         <setting id="auto-update_subscriptions" type="bool" label="30805" default="false"/>
         <setting id="auto-update_towatch" type="bool" label="30816" default="true" enable="eq(-1,true)"/>
-        <setting id="update_subscriptions-interval" type="enum" values="2h|5h|10h|15h|24h" label="30806" default="3"
-                 enable="eq(-2,true)"/>
+        <setting id="update_subscriptions-interval" type="slider" range="2,1,24" option="int" label="30806" default="12" enable="eq(-2,true)"/>
         <setting id="update_subscriptions-during-playback" type="bool" label="30809" default="true" enable="eq(-3,true)"/>
         <setting id="update_subscriptions-during-startup" type="bool" label="30815" default="false" enable="eq(-4,true)" />
         <setting id="library-update" type="bool" label="30807" default="true" enable="eq(-5,true)"/>
         <setting id="cleanup-subscriptions" type="bool" label="30808" default="true" enable="eq(-6,true)"/>
-        <setting id="update_subscriptions-last_run" type="text" default="1970-01-01 23:59:00.000000" visible="false"/>
+        <setting id="update_subscriptions-notify" type="bool" label="       Show Notifications" default="true" enable="eq(-7,true)"/>
+        <setting id="update_subscriptions-last_run" type="text" label="       Last Subscription Update" default="1970-01-01 23:59:00.000000" enable="false"/>
     </category>
 
     <category label="Skin Integration">
@@ -134,7 +134,7 @@
                  enable="eq(-2,true)" visible="eq(-2,true)"/>
         <setting id="backup_db-during-playback" type="bool" label="     During Playback?" default="true" enable="eq(-3,true)" visible="eq(-3,true)"/>
         <setting id="backup_db-during-startup" type="bool" label="     On Startup?" default="false" enable="eq(-4,true)" visible="eq(-4,true)"/>
-        <setting id="backup_db-last_run" type="text" default="1970-01-01 23:59:00.000000" visible="false"/>
+        <setting id="backup_db-last_run" type="text" label="     Last DB Backup" default="1970-01-01 23:59:00.000000" visible="eq(-5,true)" enable="false"/>
 		<setting type="sep"/>
         <setting id="flush_cache" type="action" label="Flush webpage cache..." enable="true"
                  action="RunPlugin(plugin://plugin.video.1channel/?mode=flush_cache)"/>
