@@ -1423,6 +1423,9 @@ def manual_update_subscriptions():
     update_subscriptions()
     builtin = "XBMC.Notification(PrimeWire, Subscriptions Updated, 2000, %s)" % (ICON_PATH)
     xbmc.executebuiltin(builtin)
+    now=datetime.datetime.now()
+    _1CH.set_setting('%s-last_run' % MODES.UPD_SUBS, now.strftime("%Y-%m-%d %H:%M:%S.%f"))
+    xbmc.executebuiltin('Container.Refresh')
     
 @pw_dispatcher.register(MODES.UPD_SUBS)
 def update_subscriptions():
@@ -1446,10 +1449,7 @@ def update_subscriptions():
     if _1CH.get_setting(MODES.UPD_SUBS+'-notify')=='true':
         builtin = "XBMC.Notification(PrimeWire,Subscription Updated, 2000, %s)" % (ICON_PATH)
         xbmc.executebuiltin(builtin)
-        interval=datetime.timedelta(hours=utils.hours_list[MODES.UPD_SUBS][int(_1CH.get_setting(MODES.UPD_SUBS+'-interval'))])
-        last_run = _1CH.get_setting('%s-last_run' % (MODES.UPD_SUBS))
-        next_run = datetime.datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S.%f") + interval
-        builtin = "XBMC.Notification(PrimeWire,Next Update @ %s,5000, %s)" % (next_run.strftime("%Y-%m-%d %H:%M:%S"), ICON_PATH)
+        builtin = "XBMC.Notification(PrimeWire,Next Update in %s hours,5000, %s)" % (_1CH.get_setting(MODES.UPD_SUBS+'-interval'), ICON_PATH)
         xbmc.executebuiltin(builtin)
     
 
@@ -1487,7 +1487,7 @@ def update_towatch():
 @pw_dispatcher.register(MODES.MANAGE_SUBS)
 def manage_subscriptions():
     utils.set_view('tvshows', 'tvshows-view')
-    liz = xbmcgui.ListItem(label='Update Subscriptions')
+    liz = xbmcgui.ListItem(label='Update Subscriptions ([B]Last Run: %s[/B])' % (_1CH.get_setting(MODES.UPD_SUBS+'-last_run')))
     liz_url = _1CH.build_plugin_url({'mode': MODES.MAN_UPD_SUBS})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
     
