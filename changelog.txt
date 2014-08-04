@@ -28,6 +28,10 @@ Replaced query parsing and massive if/elif statement with generic plugin url dis
 Fixed PlayTrailer if trailer is using YouTube
 Add settings function to delete & recreate DB to make it easier for some people
 
+[B]Version 2.4.1[/B]
+[B]Minor[/B]
+Added retry on http requests to recover more gracefully from transient server errors (e.g. HTTP Error 503)
+
 [B]Version 2.4.0[/B]
 [B]Major[/B]
 Replaced resume code with code that works better and more consistently.

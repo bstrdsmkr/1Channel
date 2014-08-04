@@ -25,6 +25,7 @@ import xbmc
 import xbmcgui
 import os
 import math
+import socket
 from operator import itemgetter
 from addon.common.net import Net
 from addon.common.addon import Addon
@@ -36,6 +37,8 @@ USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
 _1CH = Addon('plugin.video.1channel')
 ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
+MAX_RETRIES=2
+TEMP_ERRORS=[500, 502, 503, 504]
 
 class PW_Scraper():
     ITEMS_PER_PAGE = 24
@@ -443,14 +446,10 @@ class PW_Scraper():
     def __get_url(self, url, headers={}, login=False):
         _1CH.log_debug('Fetching URL: %s' % url)
         before = time.time()
-        cookiejar = _1CH.get_profile()
-        cookiejar = os.path.join(cookiejar, 'cookies')
-        net = Net()
-        net.set_cookies(cookiejar)
-        html = net.http_GET(url, headers=headers).content
+        html = self.__http_get_with_retry_1(url, headers)
         if login and not '<a href="/logout.php">[ Logout ]</a>' in html:
             if self.__login(url):
-                html = net.http_GET(url, headers=headers).content
+                html = self.__http_get_with_retry_1(url, headers)
             else:
                 html = None
                 _1CH.log("Login failed for %s getting: %s" % (self.username, url))
@@ -464,7 +463,7 @@ class PW_Scraper():
         after = time.time()
         _1CH.log_debug('Url Fetch took: %.2f secs' % (after - before))
         return html
-    
+
     def __get_cached_url(self, url, cache_limit=8):
         _1CH.log_debug('Fetching Cached URL: %s' % url)
         before = time.time()
@@ -483,8 +482,7 @@ class PW_Scraper():
         req.add_header('Referer', self.base_url)
     
         try:
-            response = urllib2.urlopen(req, timeout=10)
-            body = response.read()
+            body = self.__http_get_with_retry_2(url, req)
             if '<title>Are You a Robot?</title>' in body:
                 _1CH.log('bot detection')
     
@@ -541,8 +539,6 @@ class PW_Scraper():
             dialog.ok("Connection failed", "Failed to connect to url", url)
             _1CH.log('Failed to connect to URL %s' % url)
             return ''
-    
-        response.close()
         
         utils.cache_url(url, body)
         after = time.time()
@@ -565,6 +561,60 @@ class PW_Scraper():
         else:
             return False
 
+    def __http_get_with_retry_1(self, url, headers):
+        net = Net()
+        cookiejar = _1CH.get_profile()
+        cookiejar = os.path.join(cookiejar, 'cookies')
+        net.set_cookies(cookiejar)
+        retries=0
+        html=None
+        while retries<=MAX_RETRIES:
+            try:
+                html = net.http_GET(url, headers=headers).content
+                # if no exception, jump out of the loop
+                break
+            except urllib2.HTTPError as e:
+                # if it's a temporary code, retry
+                if e.code in TEMP_ERRORS:
+                    retries += 1
+                    _1CH.log('Retry #%s for URL %s because of HTTP Error %s' % (retries, url, e.code))
+                    continue
+                # if it's not pass it back up the stack
+                else:
+                    raise
+        else:
+            raise
+        
+        return html
+         
+    def __http_get_with_retry_2(self, url, request):
+        retries=0
+        html=None
+        while retries<=MAX_RETRIES:
+            try:
+                response = urllib2.urlopen(request, timeout=10)
+                html=response.read()
+                # if no exception, jump out of the loop
+                break
+            except socket.timeout:
+                retries += 1
+                _1CH.log('Retry #%s for URL %s because of timeout' % (retries, url))
+                continue
+            except urllib2.HTTPError as e:
+                # if it's a temporary code, retry
+                if e.code in TEMP_ERRORS:
+                    retries += 1
+                    _1CH.log('Retry #%s for URL %s because of HTTP Error %s' % (retries, url, e.code))
+                    continue
+                # if it's not pass it back up the stack
+                else:
+                    raise
+        else:
+            raise
+        
+        response.close()
+        return html
+    
     def __multikeysort(self, items, columns, functions=None, getter=itemgetter):
         """Sort a list of dictionary objects or objects by multiple keys bidirectionally.
     
