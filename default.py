@@ -1432,14 +1432,8 @@ def update_subscriptions():
     day=datetime.datetime.now().weekday()
     subs=utils.get_subscriptions(day)
     for sub in subs:
-        try:
-            add_to_library('tvshow', sub[0], sub[1], sub[2], sub[3], sub[4])
-        except HTTPError as e:
-            _1CH.log('Subscription Update Failed for %s (%s): %s' % (sub[0], sub[1], e))
-            builtin = "XBMC.Notification(PrimeWire,%s - %s, 2000, %s)" % (e, sub[1], ICON_PATH)
-            xbmc.executebuiltin(builtin)
-            
-        
+        add_to_library('tvshow', sub[0], sub[1], sub[2], sub[3], sub[4])
+
     if _1CH.get_setting('auto-update_towatch') == 'true': 
         update_towatch()
     if _1CH.get_setting('library-update') == 'true':
