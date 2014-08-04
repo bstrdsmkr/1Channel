@@ -517,14 +517,9 @@ def do_startup_task(task):
 def do_scheduled_task(task, isPlaying):
     now = datetime.datetime.now()
     if _1CH.get_setting('auto-%s' % task) == 'true':
-        last_run = _1CH.get_setting('%s-last_run' % (task))
-        hours = hours_list[task][int(_1CH.get_setting('%s-interval' % (task)))]
-        last_run = datetime.datetime.strptime(last_run, "%Y-%m-%d %H:%M:%S.%f")
-        elapsed = now - last_run
-
-        threshold = datetime.timedelta(hours=hours)
-        #_1CH.log("Update Status on [%s]: %s of %s" % (task, elapsed, threshold))
-        if elapsed > threshold:
+        next_run=get_next_run(task)
+        #_1CH.log("Update Status on [%s]: Currently: %s Will Run: %s" % (task, now, next_run))
+        if now >= next_run:
             is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
             if not is_scanning:
                 during_playback = _1CH.get_setting('%s-during-playback' % (task))=='true'
@@ -538,6 +533,11 @@ def do_scheduled_task(task, isPlaying):
             else:
                 _1CH.log('Service: Scanning... Busy... Postponing [%s]' % (task))
 
+def get_next_run(task):
+    last_run=datetime.datetime.strptime(_1CH.get_setting(task+'-last_run'), "%Y-%m-%d %H:%M:%S.%f") 
+    interval=datetime.timedelta(hours=hours_list[MODES.UPD_SUBS][int(_1CH.get_setting(task+'-interval'))])
+    return (last_run+interval)
+    
 def get_adv_search_query(section):
     if section=='tv':
         header_text='Advanced TV Show Search'

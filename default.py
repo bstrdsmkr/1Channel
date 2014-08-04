@@ -1481,7 +1481,8 @@ def update_towatch():
 @pw_dispatcher.register(MODES.MANAGE_SUBS)
 def manage_subscriptions():
     utils.set_view('tvshows', 'tvshows-view')
-    liz = xbmcgui.ListItem(label='Update Subscriptions ([B]Last Run: %s[/B])' % (_1CH.get_setting(MODES.UPD_SUBS+'-last_run')))
+    next_run = utils.get_next_run(MODES.UPD_SUBS)
+    liz = xbmcgui.ListItem(label='Update Subscriptions ([B]Next Scheduled Run: %s[/B])' % (next_run.strftime('%Y-%m-%d %H:%M:%S')))
     liz_url = _1CH.build_plugin_url({'mode': MODES.MAN_UPD_SUBS})
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
     
