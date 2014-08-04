@@ -591,18 +591,18 @@ def BrowseListMenu(section):
 @pw_dispatcher.register(MODES.PLAYLISTS_MENU)
 def playlist_menu():
     _1CH.log('Playlist Menu')
-    _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': True, 'sort': 'date'}, {'title': 'Public Playlists (sorted by date)'}, img=art('playlists.png'),
+    _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': True, 'sort': 'date'}, {'title': 'Public Playlists (sorted by date)'}, img=art('public_playlists_date.png'),
                        fanart=art('fanart.png'))
-    _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': True, 'sort': 'rating'}, {'title': 'Public Playlists (sorted by rating)'}, img=art('playlists.png'),
+    _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': True, 'sort': 'rating'}, {'title': 'Public Playlists (sorted by rating)'}, img=art('public_playlists_rating.png'),
                        fanart=art('fanart.png'))
-    _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': True, 'sort': 'hits'}, {'title': 'Public Playlists (sorted by views)'}, img=art('playlists.png'),
+    _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': True, 'sort': 'hits'}, {'title': 'Public Playlists (sorted by views)'}, img=art('public_playlists_views.png'),
                        fanart=art('fanart.png'))
     if utils.website_is_integrated():
-        _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': False, 'sort': 'date'}, {'title': 'Personal Playlists (sorted by date)'}, img=art('playlists.png'),
+        _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': False, 'sort': 'date'}, {'title': 'Personal Playlists (sorted by date)'}, img=art('personal_playlists_date.png'),
                            fanart=art('fanart.png'))
-        _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': False, 'sort': 'rating'}, {'title': 'Personal Playlists (sorted by rating)'}, img=art('playlists.png'),
+        _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': False, 'sort': 'rating'}, {'title': 'Personal Playlists (sorted by rating)'}, img=art('personal_playlists_rating.png'),
                            fanart=art('fanart.png'))
-        _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': False, 'sort': 'hits'}, {'title': 'Personal Playlists (sorted by views)'}, img=art('playlists.png'),
+        _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': False, 'sort': 'hits'}, {'title': 'Personal Playlists (sorted by views)'}, img=art('personal_playlists_views.png'),
                            fanart=art('fanart.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
