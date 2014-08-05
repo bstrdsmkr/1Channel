@@ -92,17 +92,16 @@ class PW_Scraper():
         r = re.search('strong>Favorites \(\s+([0-9,]+)\s+\)', html)
         self.__set_totals(r, PW_Scraper.ITEMS_PER_PAGE2)
         
-        pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
+        pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a>'''
         return self.__get_results_gen(html, url, page, paginate, pattern, self.__set_fav_result)   
     
     def __set_fav_result(self, match):
         fav = {}
-        link, img, year, title, delete = match
+        link, img, year, title = match
         fav['url'] = link.replace('/tv-', '/watch-', 1) # hack the returned favorite url so that it matches all the other pages
         fav['img'] = img
         fav['year'] = year
         fav['title'] = title
-        fav['delete'] = delete
         return fav
     
     def get_watched(self, section, page=None, paginate=False):
