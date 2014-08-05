@@ -63,6 +63,7 @@ FAV_ACTIONS = utils.enum(ADD='add', REMOVE='remove')
 PL_SORT = ['added', 'alphabet', 'popularity']
 REMOVE_TW_MENU='Remove from ToWatch List'
 REMOVE_W_MENU='Remove from Watched list'
+REMOVE_FAV_MENU='Remove from Favorites'
 
 pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 db_connection = DB_Connection()
@@ -781,7 +782,11 @@ def get_section_params(section):
         section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
         section_params['subs'] = []
     
-    section_params['fav_urls']=utils.get_fav_urls(section)
+    # only grab actual fav_urls if not using website favs (otherwise too much site load)
+    if utils.website_is_integrated():
+        section_params['fav_urls']=[]
+    else:
+        section_params['fav_urls']=utils.get_fav_urls(section)
     section_params['xbmc_fav_urls']=utils.get_xbmc_fav_urls()
 
     return section_params
@@ -830,10 +835,13 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
     menu_items = add_contextsearchmenu(title, section_params['section'])
     menu_items = menu_items + extra_cms
 
+    # fav_urls is only populated when local favs are used
     if resurl in section_params['fav_urls']:
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.DEL_FAV, 'section': section_params['section'], 'title': title, 'url': resurl, 'year': year})
-        menu_items.append(('Remove from Favorites', runstring),)
-    else:
+        menu_items.append((REMOVE_FAV_MENU, runstring),)
+    # will show add to favs always when using website favs and not on favorites view;
+    # but only when item isn't in favs when using local favs 
+    elif REMOVE_FAV_MENU not in [menu[0] for menu in menu_items]:
         queries = {'mode': MODES.SAVE_FAV, 'fav_type': section_params['section'], 'title': title, 'url': resurl, 'year': year}
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
         menu_items.append(('Add to Favorites', runstring), )
@@ -1130,7 +1138,10 @@ def browse_favorites_website(section, page=None):
     paginate=(_1CH.get_setting('paginate-favs')=='true' and _1CH.get_setting('paginate')=='true')
     
     for fav in pw_scraper.get_favorites(section, page, paginate):
-        create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'])
+        runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url({'mode': MODES.DEL_FAV, 'section': section_params['section'], 'title': fav['title'], 'url': fav['url'], 'year': fav['year']})
+        menu_items=[(REMOVE_FAV_MENU, runstring),]
+
+        create_item(section_params,fav['title'],fav['year'],fav['img'],fav['url'], menu_items=menu_items)
     
     total_pages=pw_scraper.get_last_res_pages()
     if not page: page = 1
