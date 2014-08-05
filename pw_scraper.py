@@ -442,12 +442,12 @@ class PW_Scraper():
                 season_label = r.group(1)
                 yield (season_label, season_html)
     
-    def __get_url(self, url, headers={}, login=False):
-        _1CH.log_debug('Fetching URL: %s' % url)
+    def __get_url(self,url, headers={}, login=False):
         before = time.time()
-        html = self.__http_get_with_retry_1(url, headers)
+        html = self.__http_get_with_retry_1(url, headers)  
         if login and not '<a href="/logout.php">[ Logout ]</a>' in html:
-            if self.__login(url):
+            _1CH.log('Logging in for url %s' % url)
+            if self.__login(self.base_url):
                 html = self.__http_get_with_retry_1(url, headers)
             else:
                 html = None
@@ -544,8 +544,7 @@ class PW_Scraper():
         _1CH.log_debug('Cached Url Fetch took: %.2f secs' % (after - before))
         return body
     
-    def __login(self, redirect):
-        _1CH.log_debug('Logging in for url %s' % redirect)
+    def __login(self,redirect):
         url = self.base_url + '/login.php'
         net = Net()
         cookiejar = _1CH.get_profile()
@@ -561,6 +560,7 @@ class PW_Scraper():
             return False
 
     def __http_get_with_retry_1(self, url, headers):
+        _1CH.log('Fetching URL: %s' % url)
         net = Net()
         cookiejar = _1CH.get_profile()
         cookiejar = os.path.join(cookiejar, 'cookies')
@@ -587,6 +587,7 @@ class PW_Scraper():
         return html
          
     def __http_get_with_retry_2(self, url, request):
+        _1CH.log('Fetching URL: %s' % request.get_full_url())
         retries=0
         html=None
         while retries<=MAX_RETRIES:
