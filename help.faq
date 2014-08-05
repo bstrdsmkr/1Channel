@@ -1,4 +1,4 @@
-[B][COLOR blue]2.4.1 Release Notes[/COLOR][/B]
+[B][COLOR blue]2.4.2 Release Notes[/COLOR][/B]
 - The attempt in V2.3.0 to use XBMC's native resume functionality ultimately failed due to XBMC bugs that couldn't be worked around. The new approach is purely custom, but should work better and more consistently. One benefit of this approach is that resume points can be consistent within the addon and library.
 - Under the covers major changes in the code base have been made to make the whole addon easier to maintain.
  - The advanced search function has been rewritten to make it far more usable.

@@ -100,18 +100,17 @@ class PW_Scraper():
     
     def __get_fav_gen(self, html, url, page, paginate):
         if not page: page=1
-        pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a></td>.+?class="favs_deleted"><a href=\'(.+?)\' ref=\'delete_fav\''''
+        pattern = '''<div class="index_item"> <a href="(.+?)"><img src="(.+?(\d{1,4})?\.jpg)" width="150" border="0">.+?<td align="center"><a href=".+?">(.+?)</a>'''
         regex = re.compile(pattern, re.IGNORECASE | re.DOTALL)
         while True:
             fav={}
             for item in regex.finditer(html):
-                link, img, year, title, delete = item.groups()
+                link, img, year, title = item.groups()
                 if not year or len(year) != 4: year = ''
                 fav['url']=link
                 fav['img']=img
                 fav['year']=year
                 fav['title']=title
-                fav['delete']=delete
                 yield fav
             
             # if we're not paginating, then keep yielding until we run out of pages or hit the max
@@ -325,11 +324,12 @@ class PW_Scraper():
                 yield (season_label,season_html)
     
     def __get_url(self,url, headers={}, login=False):
-        _1CH.log('Fetching URL: %s' % url)
         before = time.time()
         html = self.__http_get_with_retry_1(url, headers)
+  
         if login and not '<a href="/logout.php">[ Logout ]</a>' in html:
-            if self.__login(url):
+            _1CH.log('Logging in for url %s' % url)
+            if self.__login(self.base_url):
                 html = self.__http_get_with_retry_1(url, headers)
             else:
                 html=None
@@ -427,7 +427,6 @@ class PW_Scraper():
         return body
     
     def __login(self,redirect):
-        _1CH.log('Logging in for url %s' % redirect)
         url = self.base_url + '/login.php'
         net = Net()
         cookiejar = _1CH.get_profile()
@@ -443,6 +442,7 @@ class PW_Scraper():
             return False
 
     def __http_get_with_retry_1(self, url, headers):
+        _1CH.log('Fetching URL: %s' % url)
         net = Net()
         cookiejar = _1CH.get_profile()
         cookiejar = os.path.join(cookiejar, 'cookies')
@@ -469,6 +469,7 @@ class PW_Scraper():
         return html
          
     def __http_get_with_retry_2(self, url, request):
+        _1CH.log('Fetching URL: %s' % request.get_full_url())
         retries=0
         html=None
         while retries<=MAX_RETRIES:
