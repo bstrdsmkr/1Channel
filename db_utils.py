@@ -225,22 +225,22 @@ class DB_Connection():
         with open(full_path, 'w') as f:
             writer=csv.writer(f)
             f.write('***VERSION: %s***\n' % self.__get_db_version())
-            try:
+            if self.__table_exists('favorites'):
                 f.write(CSV_MARKERS.FAVORITES+'\n')
                 for fav in self.get_favorites():
                     writer.writerow(fav)
+            if self.__table_exists('subscriptions'):
                 f.write(CSV_MARKERS.SUBSCRIPTIONS+'\n')
                 for sub in self.get_subscriptions():
                     writer.writerow(sub)
+            if self.__table_exists('new_bkmark'):
                 f.write(CSV_MARKERS.BOOKMARKS+'\n')
                 for bookmark in self.get_bookmarks():
                     writer.writerow(bookmark)
+            if self.__table_exists('external_subs'):
                 f.write(CSV_MARKERS.EXT_SUBS+'\n')
                 for sub in self.get_external_subs():
                     writer.writerow(sub)
-                    
-            except db_lib.OperationalError: # ignore operational errors as some tables may not exist on upgrade
-                pass
     
     def import_into_db(self, full_path):
         with open(full_path,'r') as f:
@@ -311,6 +311,18 @@ class DB_Connection():
 
         sql = 'REPLACE INTO db_info (setting, value) VALUES(?,?)'
         self.__execute(sql, ('version', _1CH.get_version()))
+
+    def __table_exists(self, table):
+        if self.db_type==DB_TYPES.MYSQL:
+            sql='SHOW TABLES LIKE ?'
+        else:
+            sql='select name from sqlite_master where type="table" and name = ?'
+        rows=self.__execute(sql, (table,))
+        
+        if not rows:
+            return False
+        else:
+            return True
 
     def repair_meta_images(self):
         from metahandler import metahandlers
