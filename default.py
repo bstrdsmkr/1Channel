@@ -1294,6 +1294,7 @@ def browse_towatch_website(section, page=None):
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 def create_meta(video_type, title, year, thumb):
+    print 'Calling Create Meta: %s, %s, %s' % (video_type, title, year)
     try:
         year = int(year)
     except:
@@ -1303,9 +1304,9 @@ def create_meta(video_type, title, year, thumb):
     if META_ON:
         try:
             if video_type == 'tvshow':
-                meta = __metaget__.get_meta(video_type, title)
+                meta = __metaget__.get_meta(video_type, title, year=year)
                 if not (meta['imdb_id'] or meta['tvdb_id']):
-                    meta = __metaget__.get_meta(video_type, title, year=year)
+                    meta = __metaget__.get_meta(video_type, title)
 
             else:  # movie
                 meta = __metaget__.get_meta(video_type, title, year=year)

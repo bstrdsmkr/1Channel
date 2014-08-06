@@ -349,21 +349,21 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
             else:
                 disptitle = option['title']
             option_list.append(disptitle)
-        dialog = xbmcgui.Dialog()
-        index = dialog.select('Choose', option_list)
+    dialog = xbmcgui.Dialog()
+    index = dialog.select('Choose', option_list)
 
-        if index == 0:
-            refresh_meta_manual(video_type, old_title, imdb, alt_id, year)
-        elif index > -1:
-            new_imdb_id = search_meta[index - 1]['imdb_id']
+    if index == 0:
+        refresh_meta_manual(video_type, old_title, imdb, alt_id, year)
+    elif index > -1:
+        new_imdb_id = search_meta[index - 1]['imdb_id']
 
-            #Temporary workaround for metahandlers problem:
-            #Error attempting to delete from cache table: no such column: year
-            if video_type == 'tvshow': year = ''
+        #Temporary workaround for metahandlers problem:
+        #Error attempting to delete from cache table: no such column: year
+        if video_type == 'tvshow': year = ''
 
-            _1CH.log(search_meta[index - 1])
-            __metaget__.update_meta(video_type, old_title, imdb, year=year)
-            xbmc.executebuiltin('Container.Refresh')
+        _1CH.log(search_meta[index - 1])
+        __metaget__.update_meta(video_type, old_title, imdb, year=year, new_imdb_id=new_imdb_id)
+        xbmc.executebuiltin('Container.Refresh')
 
 
 def refresh_meta_manual(video_type, old_title, imdb, alt_id, year):
