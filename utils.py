@@ -498,8 +498,9 @@ def get_xbmc_favs():
     result = xbmc.executeJSONRPC(cmd)
     result=json.loads(result)
     if 'error' not in result:
-        for fav in result['result']['favourites']:
-            favs.append(fav)
+        if result['result']['favourites'] is not None:
+            for fav in result['result']['favourites']:
+                favs.append(fav)
     else:
         _1CH.log('Failed to get XBMC Favourites: %s' % (result['error']['message']))
     return favs
