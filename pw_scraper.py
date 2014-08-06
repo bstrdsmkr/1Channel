@@ -233,6 +233,12 @@ class PW_Scraper():
         result = {}
         img, url, title, item_count, views, rating = match
         if not img.startswith('http://'): img=self.base_url + img
+
+        # cleanse playlist title (strips out non-printable chars)
+        parser = HTMLParser.HTMLParser()
+        title = parser.unescape(title)
+        title=title.encode('ascii', 'ignore')
+        
         result['img'] = img
         result['url'] = url
         result['title'] = title
