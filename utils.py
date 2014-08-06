@@ -334,7 +334,7 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
         results = api.get_matching_shows(search_title)
         search_meta = []
         for item in results:
-            option = {'tvdb_id': item[0], 'title': item[1], 'imdb_id': item[2], 'year': year}
+            option = {'tvdb_id': item[0], 'title': item[1], 'imdb_id': item[2]}
             search_meta.append(option)
 
     else:
@@ -344,11 +344,12 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
     option_list = ['Manual Search...']
     if search_meta:
         for option in search_meta:
-            if 'year' in option:
+            if 'year' in option and option['year'] is not None:
                 disptitle = '%s (%s)' % (option['title'], option['year'])
             else:
                 disptitle = option['title']
             option_list.append(disptitle)
+
     dialog = xbmcgui.Dialog()
     index = dialog.select('Choose', option_list)
 
@@ -356,13 +357,15 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
         refresh_meta_manual(video_type, old_title, imdb, alt_id, year)
     elif index > -1:
         new_imdb_id = search_meta[index - 1]['imdb_id']
-
+        try: new_tmdb_id = search_meta[index - 1]['tmdb_id']
+        except: new_tmdb_id=''
+        
         #Temporary workaround for metahandlers problem:
         #Error attempting to delete from cache table: no such column: year
         if video_type == 'tvshow': year = ''
 
         _1CH.log(search_meta[index - 1])
-        __metaget__.update_meta(video_type, old_title, imdb, year=year, new_imdb_id=new_imdb_id)
+        __metaget__.update_meta(video_type, old_title, imdb, year=year, new_imdb_id=new_imdb_id, new_tmdb_id=new_tmdb_id)
         xbmc.executebuiltin('Container.Refresh')
 
 
