@@ -535,7 +535,12 @@ def do_scheduled_task(task, isPlaying):
                 _1CH.log('Service: Scanning... Busy... Postponing [%s]' % (task))
 
 def get_next_run(task):
-    last_run=datetime.datetime.strptime(_1CH.get_setting(task+'-last_run'), "%Y-%m-%d %H:%M:%S.%f") 
+    # strptime mysteriously fails sometimes with TypeError; this is a hacky workaround
+    # note, they aren't 100% equal as time.strptime loses fractional seconds but they are close enough
+    try:
+        last_run=datetime.datetime.strptime(_1CH.get_setting(task+'-last_run'), "%Y-%m-%d %H:%M:%S.%f")
+    except TypeError:
+        last_run=datetime.datetime(*(time.strptime(_1CH.get_setting(task+'-last_run'), '%Y-%m-%d %H:%M:%S.%f')[0:6]))
     interval=datetime.timedelta(hours=hours_list[MODES.UPD_SUBS][int(_1CH.get_setting(task+'-interval'))])
     return (last_run+interval)
     
