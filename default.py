@@ -895,7 +895,7 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
 
         menu_items.append(('Show Information', 'XBMC.Action(Info)'), )
 
-        queries = {'mode': MODES.REFRESH_META, 'video_type': section_params['video_type'], 'title': meta['title'], 'imdb': meta['imdb_id'],
+        queries = {'mode': MODES.REFRESH_META, 'video_type': section_params['video_type'], 'title': meta['title'], 'imdbnum': meta['imdb_id'],
                    'alt_id': 'imdbnum', 'year': year}
         runstring = _1CH.build_plugin_url(queries)
         runstring = 'RunPlugin(%s)' % runstring
@@ -1717,8 +1717,8 @@ def movie_update(section, genre, letter, sort, page):
 def select_sources(url, title, img, year, imdbnum, dialog):
     get_sources(url, title, img, year, imdbnum, dialog, False)
 
-@pw_dispatcher.register(MODES.REFRESH_META, ['video_type', 'title', 'imdbnum', 'alt_id', 'year'])
-def refresh_meta(video_type, title, imdbnum, alt_id, year):
+@pw_dispatcher.register(MODES.REFRESH_META, ['video_type', 'title', 'alt_id'], ['imdbnum', 'year'])
+def refresh_meta(video_type, title, alt_id, imdbnum='', year=''):
     utils.refresh_meta(video_type, title, imdbnum, alt_id, year)
 
 @pw_dispatcher.register(MODES.META_SETTINGS)
