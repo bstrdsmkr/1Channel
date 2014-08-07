@@ -52,10 +52,10 @@ USE_POSTERS = _1CH.get_setting('use-posters') == 'true'
 POSTERS_FALLBACK = _1CH.get_setting('posters-fallback') == 'true'
 THEME_LIST = ['Classic', 'Glossy_Black', 'PrimeWire']
 THEME = THEME_LIST[int(_1CH.get_setting('theme'))]
-try:
+if xbmc.getCondVisibility('System.HasAddon(script.1channel.themepak)'):
     themepak_path = xbmcaddon.Addon('script.1channel.themepak').getAddonInfo('path')
-except:
-    themepak_path = ''
+else:
+    themepak_path=''
 THEME_PATH = os.path.join(themepak_path, 'art', 'themes', THEME)
 
 ICON_PATH = os.path.join(_1CH.get_path(), 'icon.png')
