@@ -99,20 +99,21 @@ class Service(xbmc.Player):
 
             playedTime = int(self._lastPos)
             min_watched_percent = int(ADDON.getSetting('watched-percent'))
-            percent_played = int((playedTime / self._totalTime) * 100)
+            try: percent_played = int((playedTime / self._totalTime) * 100)
+            except: percent_played=0 # guard div by zero
             pTime = utils.format_time(playedTime)
             tTime = utils.format_time(self._totalTime)
             xbmc.log('1Channel: Service: Played %s of %s total = %s%%/%s%%' % (pTime, tTime, percent_played, min_watched_percent))
             videotype = 'movie' if self.video_type == 'movie' else 'episode'
             if playedTime == 0 and self._totalTime == 999999:
                 raise RuntimeError('XBMC silently failed to start playback')
-            elif (percent_played >= min_watched_percent) and (
-                        self.video_type == 'movie' or (self.meta['season'] and self.meta['episode'])):
-                xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')                
-                video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']                
-                dbid = self.meta['DBID'] if 'DBID' in self.meta else ''
-                builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=%s&imdbnum=%s&video_type=%s&title=%s&season=%s&episode=%s&year=%s&primewire_url=%s&dbid=%s&watched=%s)'
-                xbmc.executebuiltin(builtin % (MODES.CH_WATCH, self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], self.primewire_url, dbid, True))
+            elif (percent_played >= min_watched_percent):
+                if (self.video_type == 'movie' or (self.meta['season'] and self.meta['episode'])):
+                    xbmc.log('PrimeWire: Service: Threshold met. Marking item as watched')                
+                    video_title = self.meta['title'] if self.video_type == 'movie' else self.meta['TVShowTitle']                
+                    dbid = self.meta['DBID'] if 'DBID' in self.meta else ''
+                    builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=%s&imdbnum=%s&video_type=%s&title=%s&season=%s&episode=%s&year=%s&primewire_url=%s&dbid=%s&watched=%s)'
+                    xbmc.executebuiltin(builtin % (MODES.CH_WATCH, self.meta['imdb'], videotype,video_title.strip(), self.meta['season'], self.meta['episode'], self.meta['year'], self.primewire_url, dbid, True))
                 db_connection.clear_bookmark(self.primewire_url)
             elif playedTime>0:
                 xbmc.log('1Channel: Service: Threshold not met. Setting bookmark on %s to %s seconds' % (self.primewire_url,playedTime))
