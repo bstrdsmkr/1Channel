@@ -1771,8 +1771,8 @@ def toggle_xbmc_fav(title, url, img, action, is_playable=False):
 def main(argv=None):
     if sys.argv: argv=sys.argv
 
-    _1CH.log('Version: %s: Queries: %s' % (_1CH.get_version(),_1CH.queries))
-    _1CH.log('Args: %s' % (argv))
+    _1CH.log('Version: |%s| Queries: |%s|' % (_1CH.get_version(),_1CH.queries))
+    _1CH.log('Args: |%s|' % (argv))
     
     # don't process params that don't match our url exactly. (e.g. plugin://plugin.video.1channel/extrafanart)
     plugin_url = 'plugin://%s/' % (_1CH.get_id())
