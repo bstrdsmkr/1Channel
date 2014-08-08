@@ -1016,8 +1016,8 @@ def GetFilteredResults(section, genre='', letter='', sort='alphabet', page=None,
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
-@pw_dispatcher.register(MODES.SEASON_LIST, ['url', 'title', 'year'], ['tvdbnum'])
-def TVShowSeasonList(url, title, year, old_imdb='', tvdbnum=''):
+@pw_dispatcher.register(MODES.SEASON_LIST, ['url', 'title'], ['year', 'tvdbnum'])
+def TVShowSeasonList(url, title, year='', old_imdb='', tvdbnum=''):
     _1CH.log('Seasons for TV Show %s' % url)
     season_gen=pw_scraper.get_season_list(url)
     seasons = list(season_gen) # copy the generator into a list so that we can iterate over it multiple times
@@ -1080,8 +1080,8 @@ def TVShowSeasonList(url, title, year, old_imdb='', tvdbnum=''):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     utils.set_view('seasons', 'seasons-view')
     
-@pw_dispatcher.register(MODES.EPISODE_LIST, ['title', 'year', 'season', 'imdbnum']) # TVShowEpisodeList(title, season, imdbnum, tvdbnum)
-def TVShowEpisodeList(title, year, season, imdbnum):
+@pw_dispatcher.register(MODES.EPISODE_LIST, ['title', 'season', 'imdbnum'], ['year']) # TVShowEpisodeList(title, season, imdbnum, tvdbnum)
+def TVShowEpisodeList(title, season, imdbnum, year=''):
     season_html = db_connection.get_cached_season(season)
     r = '"tv_episode_item".+?href="(.+?)">(.*?)</a>'
     episodes = re.finditer(r, season_html, re.DOTALL)
