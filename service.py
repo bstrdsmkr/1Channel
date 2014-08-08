@@ -23,10 +23,11 @@ import utils
 from utils import MODES
 from db_utils import DB_Connection
 
+ADDON = xbmcaddon.Addon(id='plugin.video.1channel')
+xbmc.log('1Channel: Installed Version: %s' % (ADDON.getAddonInfo('version')))
+
 db_connection = DB_Connection()
 db_connection.init_database()
-
-ADDON = xbmcaddon.Addon(id='plugin.video.1channel')
 
 # temporary method to migrate from old watched setting to new one
 def migrate_settings():
@@ -44,7 +45,6 @@ class Service(xbmc.Player):
         self.last_run = 0
         self.DB = ''
         xbmc.log('1Channel: Service starting...')
-
 
     def reset(self):
         xbmc.log('1Channel: Service: Resetting...')
