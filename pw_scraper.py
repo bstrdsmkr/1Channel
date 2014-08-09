@@ -349,7 +349,7 @@ class PW_Scraper():
             headers = {'Referer': url}
             html = self.__get_url(adulturl, headers=headers, login=True)
         
-        imdbregex = 'mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"'
+        imdbregex = 'mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7}).*?"'
         match = re.search(imdbregex, html)
         if match:
             self.imdb_num = match.group(1)
@@ -409,7 +409,7 @@ class PW_Scraper():
             headers = {'Referer': url}
             html = self.__get_url(adulturl, headers=headers, login=True)
 
-        match = re.search('mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7})"', html)
+        match = re.search('mlink_imdb">.+?href="http://www.imdb.com/title/(tt[0-9]{7}).*?"', html)
         self.imdb_num = match.group(1) if match else ''
         return self.__season_gen(html)
     
