@@ -694,6 +694,7 @@ def add_search_item(queries, label):
     liz = xbmcgui.ListItem(label=label, iconImage=art('search.png'), thumbnailImage=art('search.png'))
     liz.setProperty('IsPlayable', 'false')
     liz.setProperty('fanart_image', art('fanart.png'))
+    liz.setInfo('video', {'title': label})
     liz_url = _1CH.build_plugin_url(queries)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz, isFolder=False)
 
