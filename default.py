@@ -1326,8 +1326,8 @@ def repair_missing_images():
     _1CH.log("Repairing Metadata Images")
     db_connection.repair_meta_images()
 
-@pw_dispatcher.register(MODES.ADD2LIB, ['video_type', 'url', 'title', 'year'], ['img', 'imdbnum'])
-def manual_add_to_library(video_type, url, title, year, img='', imdbnum=''):
+@pw_dispatcher.register(MODES.ADD2LIB, ['video_type', 'url', 'title'], ['year', 'img', 'imdbnum'])
+def manual_add_to_library(video_type, url, title, year='', img='', imdbnum=''):
     add_to_library(video_type, url, title, img, year, imdbnum)
     builtin = "XBMC.Notification(PrimeWire, Added '%s' to library,2000, %s)" % (title, ICON_PATH)
     xbmc.executebuiltin(builtin)
