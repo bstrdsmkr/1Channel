@@ -80,7 +80,7 @@ def art(name):
     return os.path.join(THEME_PATH, name)
 
 @pw_dispatcher.register(MODES.SAVE_FAV, ['fav_type', 'title', 'url'], ['year'])
-def save_favorite(fav_type, title, url, year):
+def save_favorite(fav_type, title, url, year=''):
     if fav_type != 'tv': fav_type = 'movie'
     _1CH.log('Saving Favorite type: %s name: %s url: %s year: %s' % (fav_type, title, url, year))
     
