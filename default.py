@@ -935,7 +935,8 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
         listitem=xbmcgui.ListItem(meta['title'], iconImage=art['thumb'], thumbnailImage=art['thumb'])
         listitem.setProperty('fanart_image', art['fanart'])
         try: listitem.setArt(art)
-        except: pass # method doesn't exist in Frodo        listitem.setInfo('video', meta)
+        except: pass # method doesn't exist in Frodo        
+        listitem.setInfo('video', meta)
         listitem.setProperty('imdb', meta['imdb_id'])
         listitem.setProperty('img', img)
     else:  # Metadata off
