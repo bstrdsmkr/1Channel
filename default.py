@@ -889,10 +889,7 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
             meta = __metaget__.get_episode_meta(title, imdbnum, season, episode)
             meta['TVShowTitle'] = title
         else:
-            meta = create_meta(section_params['video_type'], title, year, img)
-
-        if 'cover_url' in meta:
-            img = meta['cover_url']
+            meta = create_meta(section_params['video_type'], title, year)
 
         menu_items.append(('Show Information', 'XBMC.Action(Info)'), )
 
@@ -924,13 +921,6 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
         runstring = 'RunPlugin(%s)' % _1CH.build_plugin_url(queries)
         menu_items.append((label, runstring,))
 
-        fanart = ''
-        if FANART_ON:
-            try:
-                fanart = meta['backdrop_url']
-            except:
-                fanart = ''
-
         if section_params['video_type'] == 'tvshow':
             if resurl in section_params['subs']:
                 meta['title'] = utils.format_label_sub(meta)
@@ -941,10 +931,11 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
         else:
             meta['title'] = utils.format_label_movie(meta)
 
-        listitem = xbmcgui.ListItem(meta['title'], iconImage=img,
-                                    thumbnailImage=img)
-        listitem.setInfo('video', meta)
-        listitem.setProperty('fanart_image', fanart)
+        art=make_art(section_params['video_type'], meta, img)
+        listitem=xbmcgui.ListItem(meta['title'], iconImage=art['thumb'], thumbnailImage=art['thumb'])
+        listitem.setProperty('fanart_image', art['fanart'])
+        try: listitem.setArt(art)
+        except: pass # method doesn't exist in Frodo        listitem.setInfo('video', meta)
         listitem.setProperty('imdb', meta['imdb_id'])
         listitem.setProperty('img', img)
     else:  # Metadata off
@@ -1294,8 +1285,8 @@ def browse_towatch_website(section, page=None):
         
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
-def create_meta(video_type, title, year, thumb):
-    print 'Calling Create Meta: %s, %s, %s' % (video_type, title, year)
+def create_meta(video_type, title, year):
+    _1CH.log_debug('Calling Create Meta: %s, %s, %s' % (video_type, title, year))
     try:
         year = int(year)
     except:
@@ -1313,14 +1304,23 @@ def create_meta(video_type, title, year, thumb):
                 meta = __metaget__.get_meta(video_type, title, year=year)
                 _ = meta['tmdb_id']
 
-            if video_type == 'tvshow' and not USE_POSTERS:
-                meta['cover_url'] = meta['banner_url']
-            if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg', ''):
-                meta['cover_url'] = thumb
         except:
             try: _1CH.log('Error assigning meta data for %s %s %s' % (video_type, title, year))
             except: pass
     return meta
+
+def make_art(video_type, meta, pw_img):
+    _1CH.log_debug('Making Art: %s, %s, %s' % (video_type, meta, pw_img))
+    art={'thumb': '', 'poster': '', 'fanart': '', 'banner': ''}
+    art['thumb']=meta['cover_url']
+    art['poster']=meta['cover_url']
+    if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg', ''):
+        art['thumb']=pw_img
+        art['poster']=pw_img
+
+    if FANART_ON: art['fanart']=meta['backdrop_url']
+    if 'banner_url' in meta: art['banner']=meta['banner_url']
+    return art
 
 def repair_missing_images():
     _1CH.log("Repairing Metadata Images")
@@ -1524,7 +1524,7 @@ def manage_subscriptions():
         else:
             _1CH.log('Ignoring subscription days format because %s is missing')
             
-        meta = create_meta('tvshow', title, year, '')
+        meta = create_meta('tvshow', title, year)
         meta['title'] = utils.format_label_sub(meta)
 
         menu_items = add_contextsearchmenu(meta['title'], 'tv')

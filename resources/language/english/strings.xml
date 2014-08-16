@@ -4,8 +4,7 @@
     <string id="30600">Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)</string>
 	<string id="30601">       MetaData Settings...</string>
 	<string id="30602">       Enable Fanart</string>
-	<string id="30603">       Use posters for TV shows</string>
-	<string id="30604">              Fallback if unavailable</string>
+	<string id="30604">       Fallback to PW Posters if Cover Art unavailable</string>
 
 	<string id="30720">Install local metapack...</string>
 	<string id="30700">       Install Tv Show MetaData A-G</string>
