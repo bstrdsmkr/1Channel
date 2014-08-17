@@ -1482,7 +1482,7 @@ def clean_up_subscriptions():
         if meta['status'] == 'Ended':
             try: _1CH.log('Selecting %s  for removal' % sub[1])
             except: pass
-            db_connection.delete_subscription(sub[0])
+            cancel_subscription(sub[0])
 
 @pw_dispatcher.register(MODES.MAN_UPD_TOWATCH)
 def manual_update_towatch():
