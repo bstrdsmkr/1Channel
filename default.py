@@ -1288,25 +1288,21 @@ def browse_towatch_website(section, page=None):
 
 def create_meta(video_type, title, year):
     _1CH.log_debug('Calling Create Meta: %s, %s, %s' % (video_type, title, year))
-    try:
-        year = int(year)
-    except:
-        year = 0
-    year = str(year)
     meta = {'title': title, 'year': year, 'imdb_id': '', 'overlay': ''}
     if META_ON:
         try:
             if video_type == 'tvshow':
-                meta = __metaget__.get_meta(video_type, title, year=year)
-                if not (meta['imdb_id'] or meta['tvdb_id']):
-                    meta = __metaget__.get_meta(video_type, title)
+                meta = __metaget__.get_meta(video_type, title, year=str(year))
+                if not meta['imdb_id'] and not meta['tvdb_id']:
+                    _1CH.log_debug('No Meta Match for %s on title & year: |%s|%s|' % (video_type, title, year))
+                    # call update_meta to force metahandlers to delete data it might have cached from get_meta
+                    meta = __metaget__.update_meta(video_type, title, '')
 
             else:  # movie
-                meta = __metaget__.get_meta(video_type, title, year=year)
-                _ = meta['tmdb_id']
+                meta = __metaget__.get_meta(video_type, title, year=str(year))
 
-        except:
-            try: _1CH.log('Error assigning meta data for %s %s %s' % (video_type, title, year))
+        except Exception as e:
+            try: _1CH.log('Error (%s) assigning meta data for %s %s %s' % (str(e),video_type, title, year))
             except: pass
     return meta
 
