@@ -23,7 +23,6 @@ import xbmc
 import xbmcvfs
 from addon.common.addon import Addon
 import utils
-import log_utils
 
 def enum(**enums):
     return type('Enum', (), enums)
@@ -46,18 +45,18 @@ class DB_Connection():
             if self.address is not None and self.username is not None \
             and self.password is not None and self.dbname is not None:
                 import mysql.connector as db_lib
-                log_utils.log('Loading MySQL as DB engine')
+                utils.log('Loading MySQL as DB engine')
                 self.db_type = DB_TYPES.MYSQL
             else:
-                log_utils.log('MySQL is enabled but not setup correctly', xbmc.LOGERROR)
+                utils.log('MySQL is enabled but not setup correctly', xbmc.LOGERROR)
                 raise ValueError('MySQL enabled but not setup correctly')
         else:
             try:
                 from sqlite3 import dbapi2 as db_lib
-                log_utils.log('Loading sqlite3 as DB engine')
+                utils.log('Loading sqlite3 as DB engine')
             except:
                 from pysqlite2 import dbapi2 as db_lib
-                log_utils.log('pysqlite2 as DB engine')
+                utils.log('pysqlite2 as DB engine')
             self.db_type = DB_TYPES.SQLITE
             db_dir = xbmc.translatePath("special://database")
             self.db_path = os.path.join(db_dir, 'onechannelcache.db')
@@ -275,10 +274,10 @@ class DB_Connection():
         cur_version = _1CH.get_version()
         db_version = self.__get_db_version()
         if db_version is not None and cur_version !=  db_version:
-            log_utils.log('DB Upgrade from %s to %s detected.' % (db_version,cur_version))
+            utils.log('DB Upgrade from %s to %s detected.' % (db_version,cur_version))
             self.__prep_for_reinit()
 
-        log_utils.log('Building PrimeWire Database', xbmc.LOGDEBUG)
+        utils.log('Building PrimeWire Database', xbmc.LOGDEBUG)
         if self.db_type == DB_TYPES.MYSQL:
             self.__execute('CREATE TABLE IF NOT EXISTS seasons (season INTEGER UNIQUE, contents TEXT)')
             self.__execute('CREATE TABLE IF NOT EXISTS favorites (type VARCHAR(10), name TEXT, url VARCHAR(255) UNIQUE, year VARCHAR(10))')
@@ -306,9 +305,9 @@ class DB_Connection():
         
         # reload the previously saved backup export
         if db_version is not None and cur_version !=  db_version:
-            log_utils.log('Restoring DB from backup at %s' % (self.mig_path), xbmc.LOGDEBUG)
+            utils.log('Restoring DB from backup at %s' % (self.mig_path), xbmc.LOGDEBUG)
             self.import_into_db(self.mig_path)
-            log_utils.log('DB restored from %s' % (self.mig_path))
+            utils.log('DB restored from %s' % (self.mig_path))
 
         sql = 'REPLACE INTO db_info (setting, value) VALUES(?,?)'
         self.__execute(sql, ('version', _1CH.get_version()))
@@ -432,7 +431,7 @@ class DB_Connection():
         rows=None
         sql=self.__format(sql)
         cur = self.db.cursor()
-        log_utils.log('Running: %s with %s' % (sql, params), xbmc.LOGDEBUG)
+        utils.log('Running: %s with %s' % (sql, params), xbmc.LOGDEBUG)
         cur.execute(sql, params)
         if sql[:6].upper() == 'SELECT' or sql[:4].upper() == 'SHOW':
             rows=cur.fetchall()
@@ -456,11 +455,11 @@ class DB_Connection():
     # purpose is to save the current db with an export, drop the db, recreate it, then connect to it
     def __prep_for_reinit(self):
         self.mig_path = xbmc.translatePath("special://database") + 'mig_export_%s.csv' % (int(time.time()))
-        log_utils.log('Backing up DB to %s' % (self.mig_path), xbmc.LOGDEBUG)
+        utils.log('Backing up DB to %s' % (self.mig_path), xbmc.LOGDEBUG)
         self.export_from_db(self.mig_path)
-        log_utils.log('Backup export of DB created at %s' % (self.mig_path))
+        utils.log('Backup export of DB created at %s' % (self.mig_path))
         self.__drop_all()
-        log_utils.log('DB Objects Dropped', xbmc.LOGDEBUG)
+        utils.log('DB Objects Dropped', xbmc.LOGDEBUG)
         
     def __create_sqlite_db(self):
         if not xbmcvfs.exists(os.path.dirname(self.db_path)): 

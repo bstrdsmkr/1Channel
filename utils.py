@@ -1,3 +1,20 @@
+"""
+    1Channel XBMC Addon
+    Copyright (C) 2014 Bstrdsmkr, tknorris
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import os
 import re
 import sys
@@ -9,18 +26,11 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from addon.common.addon import Addon
-from db_utils import DB_Connection
-from pw_scraper import PW_Scraper
-import log_utils
-# from functools import wraps
-
-db_connection = DB_Connection()
 
 DAY_NUMS = list('0123456')
 DAY_CODES = ['M', 'T', 'W', 'H', 'F', 'Sa', 'Su']
 
 _1CH = Addon('plugin.video.1channel')
-pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 
 def enum(**enums):
     return type('Enum', (), enums)
@@ -202,7 +212,7 @@ def has_upgraded():
     current_oct = 0
     for octant in old_version:
         if int(new_version[current_oct]) > int(octant):
-            log_utils.log('New version found')
+            log('New version found')
             return True
         current_oct += 1
     return False
@@ -218,17 +228,6 @@ def filename_from_title(title, video_type):
     filename = re.sub(r'(?!%s)[^\w\-_\. ]', '_', filename)
     xbmc.makeLegalFilename(filename)
     return filename
-
-
-def flush_cache():
-        dlg = xbmcgui.Dialog()
-        ln1 = 'Are you sure you want to '
-        ln2 = 'delete the url cache?'
-        ln3 = 'This will slow things down until rebuilt'
-        yes = 'Keep'
-        no = 'Delete'
-        if dlg.yesno('Flush web cache', ln1, ln2, ln3, yes, no):
-            db_connection.flush_cache()
 
 class TextBox:
     # constants
@@ -269,52 +268,6 @@ def using_pl_subs():
 def get_subs_pl_url():
     return '/playlists.php?id=%s' % (_1CH.get_setting('playlist-sub'))
 
-def get_subscriptions(day=None, order_matters=False):
-    if using_pl_subs():
-        def_days=get_default_days()
-        items=pw_scraper.show_playlist(get_subs_pl_url(), False)
-        ext_subs = db_connection.get_external_subs(SUB_TYPES.PW_PL)
-        subs=[]
-        for item in items:
-            if item['video_type']=='tvshow':
-                for i, sub in enumerate(ext_subs):
-                    if item['url']==sub[1]:
-                        item['days']=sub[3]
-                        del ext_subs[i]
-                        break
-                else:
-                    # add the item to ext_subs with default days
-                    db_connection.add_ext_sub(SUB_TYPES.PW_PL, item['url'], '', def_days)
-                    item['days']=def_days
-
-                # only add this item to the list if we are pulling all days or a day that this item runs on
-                if day is None or str(day) in item['days']:
-                    subs.append((item['url'], item['title'], item['img'], item['year'], '', item['days']))
-                
-                if order_matters:
-                    subs.sort(cmp=days_cmp, key=lambda k:k[5].ljust(7)+k[1])
-    else:
-        subs=db_connection.get_subscriptions(day, order_matters)
-    return subs
-
-# "all days" goes to the top, "no days" goes to the bottom, everything else is sorted lexicographically
-def days_cmp(x,y):
-    xdays, xtitle=x[:7], x[7:]
-    ydays, ytitle=y[:7], y[7:]
-    #print 'xdays,xtitle,ydays,ytitle: |%s|%s|%s|%s|' % (xdays,xtitle,ydays,ytitle)
-    if xdays==ydays:
-        return cmp(xtitle,ytitle)
-    elif xdays =='0123456':
-        return -1
-    elif ydays =='0123456':
-        return 1
-    elif xdays==' '*7:
-        return 1
-    elif ydays==' '*7:
-        return -1
-    else:
-        return cmp(x,y)
-
 def rank_host(source):
     host = source['host']
     ranking = _1CH.get_setting('host-rank').split(',')
@@ -324,7 +277,6 @@ def rank_host(source):
         if host in tier.split('|'):
             return ranking.index(tier) + 1
     return 1000
-
 
 def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
     from metahandler import metahandlers
@@ -340,7 +292,7 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
 
     else:
         search_meta = __metaget__.search_movies(search_title)
-    log_utils.log('search_meta: %s' % search_meta, xbmc.LOGDEBUG)
+    log('search_meta: %s' % search_meta, xbmc.LOGDEBUG)
 
     option_list = ['Manual Search...']
     if search_meta:
@@ -365,7 +317,7 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
         #Error attempting to delete from cache table: no such column: year
         if video_type == 'tvshow': year = ''
 
-        log_utils.log(search_meta[index - 1], xbmc.LOGDEBUG)
+        log(search_meta[index - 1], xbmc.LOGDEBUG)
         __metaget__.update_meta(video_type, old_title, imdb, year=year, new_imdb_id=new_imdb_id, new_tmdb_id=new_tmdb_id)
         xbmc.executebuiltin('Container.Refresh')
 
@@ -420,35 +372,6 @@ def format_eta(seconds):
         return "ETA: %02d:%02d:%02d " % (hours, minutes, seconds)
     else:
         return "ETA: %02d:%02d " % (minutes, seconds)
-
-# returns true if user chooses to resume, else false
-def get_resume_choice(url):
-    question = 'Resume from %s' % (format_time(db_connection.get_bookmark(url)))
-    return xbmcgui.Dialog().yesno('Resume?', question, '', '', 'Start from beginning', 'Resume')==1
-
-# simple wrapper to avoid instantiating a db_connection in pw_scraper
-def get_cached_url(url, cache_limit):
-    return db_connection.get_cached_url(url, cache_limit)
-
-# simple wrapper to avoid instantiating a db_connection in pw_scraper
-def cache_url(url, body):
-    return db_connection.cache_url(url,body)
-    
-def get_fav_urls(fav_type=None):
-    if website_is_integrated():
-        if fav_type is None:
-            favs=pw_scraper.get_favorites('movies')
-            fav_urls=[fav['url'] for fav in favs]
-            favs=pw_scraper.get_favorites('tv')
-            fav_urls += [fav['url'] for fav in favs]
-        else:
-            favs=pw_scraper.get_favorites(fav_type)
-            fav_urls=[fav['url'] for fav in favs]
-    else:
-        favs=db_connection.get_favorites(fav_type)
-        fav_urls=[fav[2] for fav in favs]
-    return fav_urls
-    
 
 def format_time(seconds):
     minutes, seconds = divmod(seconds, 60)
@@ -506,14 +429,14 @@ def get_xbmc_favs():
             for fav in result['result']['favourites']:
                 favs.append(fav)
     else:
-        log_utils.log('Failed to get XBMC Favourites: %s' % (result['error']['message']), xbmc.LOGERROR)
+        log('Failed to get XBMC Favourites: %s' % (result['error']['message']), xbmc.LOGERROR)
     return favs
 
 # Run a task on startup. Settings and mode values must match task name
 def do_startup_task(task):
     run_on_startup=_1CH.get_setting('auto-%s' % task)=='true' and _1CH.get_setting('%s-during-startup' % task) == 'true' 
     if run_on_startup and not xbmc.abortRequested:
-        log_utils.log('Service: Running startup task [%s]' % (task))
+        log('Service: Running startup task [%s]' % (task))
         now = datetime.datetime.now()
         xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task))
         _1CH.set_setting('%s-last_run' % (task), now.strftime("%Y-%m-%d %H:%M:%S.%f"))
@@ -523,20 +446,20 @@ def do_scheduled_task(task, isPlaying):
     now = datetime.datetime.now()
     if _1CH.get_setting('auto-%s' % task) == 'true':
         next_run=get_next_run(task)
-        #log_utils.log("Update Status on [%s]: Currently: %s Will Run: %s" % (task, now, next_run))
+        #log("Update Status on [%s]: Currently: %s Will Run: %s" % (task, now, next_run))
         if now >= next_run:
             is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
             if not is_scanning:
                 during_playback = _1CH.get_setting('%s-during-playback' % (task))=='true'
                 if during_playback or not isPlaying:
-                    log_utils.log('Service: Running Scheduled Task: [%s]' % (task))
+                    log('Service: Running Scheduled Task: [%s]' % (task))
                     builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task)
                     xbmc.executebuiltin(builtin)
                     _1CH.set_setting('%s-last_run' % task, now.strftime("%Y-%m-%d %H:%M:%S.%f"))
                 else:
-                    log_utils.log('Service: Playing... Busy... Postponing [%s]' % (task), xbmc.LOGDEBUG)
+                    log('Service: Playing... Busy... Postponing [%s]' % (task), xbmc.LOGDEBUG)
             else:
-                log_utils.log('Service: Scanning... Busy... Postponing [%s]' % (task), xbmc.LOGDEBUG)
+                log('Service: Scanning... Busy... Postponing [%s]' % (task), xbmc.LOGDEBUG)
 
 def get_next_run(task):
     # strptime mysteriously fails sometimes with TypeError; this is a hacky workaround
@@ -548,238 +471,13 @@ def get_next_run(task):
     interval=datetime.timedelta(hours=hours_list[MODES.UPD_SUBS][int(_1CH.get_setting(task+'-interval'))])
     return (last_run+interval)
     
-def get_adv_search_query(section):
-    if section=='tv':
-        header_text='Advanced TV Show Search'
-    else:
-        header_text='Advanced Movie Search'
-    SEARCH_BUTTON = 200
-    CANCEL_BUTTON = 201
-    HEADER_LABEL=100
-    ACTION_PREVIOUS_MENU = 10
-    ACTION_BACK = 92
-    CENTER_Y=6
-    CENTER_X=2
-    now = datetime.datetime.now()
-    # allowed values have to be list of strings
-    allowed_values={}
-    allowed_values['month'] = [''] + [str(month) for month in xrange(1,13)]
-    allowed_values['year'] = [''] +  [str(year) for year in xrange(1900,now.year+1)]
-    allowed_values['decade'] =[''] + [str(decade) for decade in xrange(1900, now.year+1, 10)]
-    allowed_values['genre'] = [''] + pw_scraper.get_genres()
-    class AdvSearchDialog(xbmcgui.WindowXMLDialog):
-        ypos=85
-        gap=55
-        params=[
-                ('title', 30, ypos, 30, 450),
-                ('tag', 30, ypos+gap, 30, 450),
-                ('actor', 30, ypos+gap*2, 30, 450),
-                ('director', 30, ypos+gap*3, 30, 450),
-                ('country', 30, ypos+gap*4, 30, 450),
-                ('genre', 30, ypos+gap*5, 30, 450),
-                ('month', 30, ypos+gap*6, 30, 140),
-                ('year', 185, ypos+gap*6, 30, 140),
-                ('decade', 340, ypos+gap*6, 30, 140)]
-        def onInit(self):
-            self.query_controls=[]
-            # add edits for title, tag, actor and director
-            for i in xrange(9):
-                self.query_controls.append(self.__add_editcontrol(self.params[i][1], self.params[i][2], self.params[i][3], self.params[i][4]))
-                if i>0:
-                    self.query_controls[i].controlUp(self.query_controls[i-1])
-                    self.query_controls[i].controlLeft(self.query_controls[i-1])
-                if i<9:
-                    self.query_controls[i-1].controlDown(self.query_controls[i])
-                    self.query_controls[i-1].controlRight(self.query_controls[i])
-            
-            search=self.getControl(SEARCH_BUTTON)
-            cancel=self.getControl(CANCEL_BUTTON)
-            self.query_controls[0].controlUp(cancel)
-            self.query_controls[0].controlLeft(cancel)
-            self.query_controls[-1].controlDown(search)
-            self.query_controls[-1].controlRight(search)
-            search.controlUp(self.query_controls[-1])
-            search.controlLeft(self.query_controls[-1])
-            cancel.controlDown(self.query_controls[0])
-            cancel.controlRight(self.query_controls[0])
-            header=self.getControl(HEADER_LABEL)
-            header.setLabel(header_text)
+def log(msg, level=xbmc.LOGNOTICE):
+    # override message level to force logging when addon logging turned on
+    if _1CH.get_setting('addon_debug')=='true' and level==xbmc.LOGDEBUG:
+        level=xbmc.LOGNOTICE
         
-        def onAction(self,action):
-            #print 'Action: %s' %(action.getId())
-            if action==ACTION_PREVIOUS_MENU or action==ACTION_BACK:
-                self.close()
+    try: _1CH.log(msg, level)
+    except: 
+        try: xbmc.log('Logging Failure', level)
+        except: pass # just give up
 
-        def onControl(self,control):
-            #print 'onControl: %s' % (control)
-            pass
-            
-        def onFocus(self,control):
-            #print 'onFocus: %s' % (control)
-            pass
-            
-        def onClick(self, control):
-            #print 'onClick: %s' %(control)
-            if control==SEARCH_BUTTON:
-                if not self.__validateFields():
-                    return
-                
-                self.search=True
-            if control==CANCEL_BUTTON:
-                self.search=False
-                
-            if control==SEARCH_BUTTON or control==CANCEL_BUTTON:
-                self.close()
-                
-        def get_result(self):
-            return self.search
-        
-        def get_query(self):
-            texts=[]
-            for control in self.query_controls:
-                if isinstance(control,xbmcgui.ControlEdit):
-                    texts.append(control.getText())
-                elif isinstance(control,xbmcgui.ControlList):
-                    texts.append(control.getSelectedItem().getLabel())
-                    
-            params=[param[0] for param in self.params]
-            query=dict(zip(params, texts))
-            return query
-        
-        # returns True if everything validates, false otherwise
-        def __validateFields(self):
-            error=False
-            all_values = ''.join([control.getText().strip() for control in self.query_controls])
-            if all_values == '':
-                error_string = 'Enter at least one criteria to search on.'
-                error=True
-            else:                
-                # validate fields with allowed values
-                valid_fields=['genre', 'month', 'year', 'decade']
-                field_names=[param[0] for param in self.params]
-                for field in valid_fields:
-                    field_value=self.query_controls[field_names.index(field)].getText()
-                    if field_value != '':
-                        if field_value not in allowed_values[field]:
-                            error_string = '%s must be one of: %s' % (field.capitalize(), str(allowed_values[field][1:]).replace("'",""))
-                            # override error string on year
-                            if field == 'year':
-                                error_string = 'Year must be a 4 digit number between %s and %s.' % (allowed_values[field][1], allowed_values[field][-1])
-                            error=True
-                            break
-                        
-            if error:
-                _1CH.show_ok_dialog([error_string], title='PrimeWire')
-            return not error
-        
-        # have to add edit controls programatically because getControl() (hard) crashes XBMC on them 
-        def __add_editcontrol(self,x, y, height, width):
-            temp=xbmcgui.ControlEdit(0,0,0,0,'', font='font12', textColor='0xFFFFFFFF', focusTexture='button-focus2.png', noFocusTexture='button-nofocus.png', _alignment=CENTER_Y|CENTER_X)
-            temp.setPosition(x, y)
-            temp.setHeight(height)
-            temp.setWidth(width)
-            self.addControl(temp)
-            return temp
-
-    dialog=AdvSearchDialog('AdvSearchDialog.xml', _1CH.get_path())
-    dialog.doModal()
-    if dialog.get_result():
-        query=dialog.get_query()
-        del dialog
-        log_utils.log('Returning query of: %s' % (query), xbmc.LOGDEBUG) 
-        return query
-    else:
-        del dialog
-        raise
-
-def days_select(days):
-    OK_BUTTON = 200
-    CANCEL_BUTTON = 201
-    SEL_ALL_BUTTON = 99
-    MONDAY_BUTTON=77770
-    ACTION_PREVIOUS_MENU = 10
-    ACTION_BACK = 92
-    class EditDaysDialog(xbmcgui.WindowXMLDialog):
-        ystart=0
-        ygap=35
-        def onInit(self):
-            fdow=int(_1CH.get_setting('first-dow'))
-            adj_day_range=range(fdow,7) + range(0,fdow)
-            ypos=self.ystart
-            last_control=self.getControl(CANCEL_BUTTON)
-            for i in adj_day_range:
-                control=self.getControl(MONDAY_BUTTON+i)
-
-                # move the day control to it's position based on fdow
-                control.setPosition(0,ypos)
-                if str(i) in days:
-                    control.setSelected(True)
-                
-                # set up, down, left, right for each control
-                control.controlUp(last_control)
-                control.controlLeft(last_control)
-                last_control.controlDown(control)
-                last_control.controlRight(control)
-
-                ypos = ypos + self.ygap
-                last_control=control
-                
-            # select_all goes up to last control and last control goes down to select_all
-            select_all=self.getControl(SEL_ALL_BUTTON)
-            select_all.controlUp(control)
-            select_all.controlLeft(control)
-            control.controlDown(select_all)
-            control.controlRight(select_all)
-            
-            if days=='0123456':
-                self.getControl(SEL_ALL_BUTTON).setSelected(True)
-        
-        def onAction(self,action):
-            #print 'Action: %s' %(action.getId())
-            if action==ACTION_PREVIOUS_MENU or action==ACTION_BACK:
-                self.close()
-
-        def onControl(self,control):
-            #print 'onControl: %s' % (control)
-            pass
-            
-        def onFocus(self,control):
-            #print 'onFocus: %s' % (control)
-            pass
-            
-        def onClick(self, control):
-            #print 'onClick: %s' %(control)
-            if control==SEL_ALL_BUTTON:
-                all_status=self.getControl(control).isSelected()
-                for control_id in xrange(MONDAY_BUTTON,MONDAY_BUTTON+7):
-                    self.getControl(control_id).setSelected(all_status)
-                return
-            
-            if control==OK_BUTTON:
-                self.OK=True
-            if control==CANCEL_BUTTON:
-                self.OK=False
-                
-            if control==OK_BUTTON or control==CANCEL_BUTTON:
-                self.close()
-        
-        def clicked_OK(self):
-            return self.OK
-        
-        def get_days(self):
-            days=''
-            for i in xrange(0,7):
-                if self.getControl(MONDAY_BUTTON+i).isSelected():
-                    days += str(i)
-            return days
-                
-    dialog=EditDaysDialog('EditDaysDialog.xml', _1CH.get_path())
-    dialog.doModal()
-    if dialog.clicked_OK():
-        days=dialog.get_days()
-        log_utils.log('Returning days: %s' % (days), xbmc.LOGDEBUG)
-        del dialog
-        return days
-    else:
-        del dialog
-        raise
