@@ -40,6 +40,21 @@ ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 MAX_RETRIES=2
 TEMP_ERRORS=[500, 502, 503, 504]
 
+class MyHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        _1CH.log_debug('Using Custom Redirect: |%s|%s|%s|%s|%s|' % (req.header_items(),code, msg, headers, newurl))
+        request=urllib2.HTTPRedirectHandler.redirect_request(self, req, fp, code, msg, headers, newurl)
+        if request:
+            host = request.get_host()
+            request.add_header('User-Agent', USER_AGENT)
+            request.add_header('Host', host)
+            request.add_header('Referer', newurl)
+            _1CH.log('Setting Custom Redirect Headers: |%s|' % (request.header_items()))
+        return request
+    
+opener = urllib2.build_opener(MyHTTPRedirectHandler)
+urllib2.install_opener(opener)
+
 class PW_Scraper():
     ITEMS_PER_PAGE = 24
     ITEMS_PER_PAGE2 = 40
