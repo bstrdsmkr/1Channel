@@ -539,10 +539,10 @@ class PW_Scraper():
             body = unicode(body, 'windows-1252')
             parser = HTMLParser.HTMLParser()
             body = parser.unescape(body)
-        except:
+        except Exception as e:
             dialog = xbmcgui.Dialog()
             dialog.ok("Connection failed", "Failed to connect to url", url)
-            _1CH.log('Failed to connect to URL %s' % url)
+            _1CH.log('Failed to connect to URL %s: %s' % (url, str(e)))
             return ''
         
         utils.cache_url(url, body)
