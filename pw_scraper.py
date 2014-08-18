@@ -46,10 +46,9 @@ class MyHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
         request=urllib2.HTTPRedirectHandler.redirect_request(self, req, fp, code, msg, headers, newurl)
         if request:
             host = request.get_host()
-            request.add_header('User-Agent', USER_AGENT)
             request.add_header('Host', host)
             request.add_header('Referer', newurl)
-            _1CH.log('Setting Custom Redirect Headers: |%s|' % (request.header_items()))
+            _1CH.log_debug('Setting Custom Redirect Headers: |%s|' % (request.header_items()))
         return request
     
 opener = urllib2.build_opener(MyHTTPRedirectHandler)
@@ -498,8 +497,8 @@ class PW_Scraper():
     
         host = re.sub('http://', '', self.base_url)
         req.add_header('User-Agent', USER_AGENT)
-        req.add_header('Host', host)
-        req.add_header('Referer', self.base_url)
+        req.add_unredirected_header('Host', host)
+        req.add_unredirected_header('Referer', self.base_url)
     
         try:
             body = self.__http_get_with_retry_2(url, req)
