@@ -1287,7 +1287,8 @@ def browse_towatch_website(section, page=None):
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 def create_meta(video_type, title, year):
-    _1CH.log_debug('Calling Create Meta: %s, %s, %s' % (video_type, title, year))
+    try: _1CH.log_debug('Calling Create Meta: %s, %s, %s' % (video_type, title, year))
+    except: pass
     meta = {'title': title, 'year': year, 'imdb_id': '', 'overlay': ''}
     if META_ON:
         try:
@@ -1308,16 +1309,23 @@ def create_meta(video_type, title, year):
 
 def make_art(video_type, meta, pw_img):
     _1CH.log_debug('Making Art: %s, %s, %s' % (video_type, meta, pw_img))
-    art={'thumb': '', 'poster': '', 'fanart': '', 'banner': ''}
-    art['thumb']=meta['cover_url']
-    art['poster']=meta['cover_url']
-    if POSTERS_FALLBACK and meta['cover_url'] in ('/images/noposter.jpg', ''):
-        art['thumb']=pw_img
-        art['poster']=pw_img
+    # default fanart to theme fanart
+    art_dict={'thumb': '', 'poster': '', 'fanart': art('fanart.png'), 'banner': ''}
 
-    if FANART_ON: art['fanart']=meta['backdrop_url']
-    if 'banner_url' in meta: art['banner']=meta['banner_url']
-    return art
+    # set the thumb & cover to the poster if it exists
+    if 'cover_url' in meta:
+        art_dict['thumb']=meta['cover_url']
+        art_dict['poster']=meta['cover_url']
+
+    # set the thumb to the PW image if fallback is on and there is no cover art
+    if POSTERS_FALLBACK and art_dict['thumb'] in ('/images/noposter.jpg', ''):
+        art_dict['thumb']=pw_img
+        art_dict['poster']=pw_img
+
+    # override the fanart with metadata if fanart is on and it exists and isn't blank
+    if FANART_ON and 'backdrop_url' in meta and meta['backdrop_url']: art_dict['fanart']=meta['backdrop_url']
+    if 'banner_url' in meta: art_dict['banner']=meta['banner_url']
+    return art_dict
 
 def repair_missing_images():
     _1CH.log("Repairing Metadata Images")
