@@ -11,6 +11,7 @@ import xbmcplugin
 from addon.common.addon import Addon
 from db_utils import DB_Connection
 from pw_scraper import PW_Scraper
+import log_utils
 # from functools import wraps
 
 db_connection = DB_Connection()
@@ -201,7 +202,7 @@ def has_upgraded():
     current_oct = 0
     for octant in old_version:
         if int(new_version[current_oct]) > int(octant):
-            _1CH.log('New version found')
+            log_utils.log('New version found')
             return True
         current_oct += 1
     return False
@@ -339,7 +340,7 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
 
     else:
         search_meta = __metaget__.search_movies(search_title)
-    _1CH.log('search_meta: %s' % search_meta)
+    log_utils.log('search_meta: %s' % search_meta, xbmc.LOGDEBUG)
 
     option_list = ['Manual Search...']
     if search_meta:
@@ -364,7 +365,7 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
         #Error attempting to delete from cache table: no such column: year
         if video_type == 'tvshow': year = ''
 
-        _1CH.log(search_meta[index - 1])
+        log_utils.log(search_meta[index - 1], xbmc.LOGDEBUG)
         __metaget__.update_meta(video_type, old_title, imdb, year=year, new_imdb_id=new_imdb_id, new_tmdb_id=new_tmdb_id)
         xbmc.executebuiltin('Container.Refresh')
 
@@ -505,14 +506,14 @@ def get_xbmc_favs():
             for fav in result['result']['favourites']:
                 favs.append(fav)
     else:
-        _1CH.log('Failed to get XBMC Favourites: %s' % (result['error']['message']))
+        log_utils.log('Failed to get XBMC Favourites: %s' % (result['error']['message']), xbmc.LOGERROR)
     return favs
 
 # Run a task on startup. Settings and mode values must match task name
 def do_startup_task(task):
     run_on_startup=_1CH.get_setting('auto-%s' % task)=='true' and _1CH.get_setting('%s-during-startup' % task) == 'true' 
     if run_on_startup and not xbmc.abortRequested:
-        _1CH.log('Service: Running startup task [%s]' % (task))
+        log_utils.log('Service: Running startup task [%s]' % (task))
         now = datetime.datetime.now()
         xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task))
         _1CH.set_setting('%s-last_run' % (task), now.strftime("%Y-%m-%d %H:%M:%S.%f"))
@@ -522,20 +523,20 @@ def do_scheduled_task(task, isPlaying):
     now = datetime.datetime.now()
     if _1CH.get_setting('auto-%s' % task) == 'true':
         next_run=get_next_run(task)
-        #_1CH.log("Update Status on [%s]: Currently: %s Will Run: %s" % (task, now, next_run))
+        #log_utils.log("Update Status on [%s]: Currently: %s Will Run: %s" % (task, now, next_run))
         if now >= next_run:
             is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
             if not is_scanning:
                 during_playback = _1CH.get_setting('%s-during-playback' % (task))=='true'
                 if during_playback or not isPlaying:
-                    _1CH.log('Service: Running Scheduled Task: [%s]' % (task))
+                    log_utils.log('Service: Running Scheduled Task: [%s]' % (task))
                     builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task)
                     xbmc.executebuiltin(builtin)
                     _1CH.set_setting('%s-last_run' % task, now.strftime("%Y-%m-%d %H:%M:%S.%f"))
                 else:
-                    _1CH.log('Service: Playing... Busy... Postponing [%s]' % (task))
+                    log_utils.log('Service: Playing... Busy... Postponing [%s]' % (task), xbmc.LOGDEBUG)
             else:
-                _1CH.log('Service: Scanning... Busy... Postponing [%s]' % (task))
+                log_utils.log('Service: Scanning... Busy... Postponing [%s]' % (task), xbmc.LOGDEBUG)
 
 def get_next_run(task):
     # strptime mysteriously fails sometimes with TypeError; this is a hacky workaround
@@ -685,7 +686,7 @@ def get_adv_search_query(section):
     if dialog.get_result():
         query=dialog.get_query()
         del dialog
-        _1CH.log('Returning query of: %s' % (query)) 
+        log_utils.log('Returning query of: %s' % (query), xbmc.LOGDEBUG) 
         return query
     else:
         del dialog
@@ -776,7 +777,7 @@ def days_select(days):
     dialog.doModal()
     if dialog.clicked_OK():
         days=dialog.get_days()
-        _1CH.log('Returning days: %s' % (days))
+        log_utils.log('Returning days: %s' % (days), xbmc.LOGDEBUG)
         del dialog
         return days
     else:

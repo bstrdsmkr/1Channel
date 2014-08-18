@@ -1,6 +1,6 @@
-from addon.common.addon import Addon
+import xbmc
+import log_utils
 
-_1CH = Addon('plugin.video.1channel')
 class PW_Dispatcher:
     def __init__(self):
         self.func_registry={}
@@ -28,14 +28,14 @@ class PW_Dispatcher:
         def decorator(f):
             if mode in self.func_registry:
                 message='Error: %s already registered as %s' % (str(f), mode)
-                _1CH.log_error(message)
+                log_utils.log(message, xbmc.LOGERROR)
                 raise Exception(message)
 
-            _1CH.log_debug('registering function: |%s|->|%s|' % (mode,str(f)))
+            log_utils.log('registering function: |%s|->|%s|' % (mode,str(f)), xbmc.LOGDEBUG)
             self.func_registry[mode.strip()]=f
             self.args_registry[mode]=args
             self.kwargs_registry[mode]=kwargs
-            _1CH.log_debug('registering args: |%s|-->(%s) and {%s}' % (mode, args, kwargs)) 
+            log_utils.log('registering args: |%s|-->(%s) and {%s}' % (mode, args, kwargs), xbmc.LOGDEBUG) 
             
             return f
         return decorator
@@ -49,7 +49,7 @@ class PW_Dispatcher:
         """
         if mode not in self.func_registry:
             message='Error: Attempt to invoke unregistered mode |%s|' % (mode)
-            _1CH.log_error(message)
+            log_utils.log(message, xbmc.LOGERROR)
             raise Exception(message)
 
         args=[]
@@ -64,7 +64,7 @@ class PW_Dispatcher:
                     del unused_args[arg]
                 else:
                     message='Error: mode |%s| requested argument |%s| but it was not provided.' % (mode, arg)
-                    _1CH.log_error(message)
+                    log_utils.log(message, xbmc.LOGERROR)
                     raise Exception(message)
             
         if self.kwargs_registry[mode]:
@@ -76,8 +76,8 @@ class PW_Dispatcher:
                     del unused_args[arg]
         
         if 'mode' in unused_args: del unused_args['mode'] # delete mode last in case it's used by the target function
-        _1CH.log('Calling |%s| for mode |%s| with pos args |%s| and kwargs |%s|' % (self.func_registry[mode].__name__, mode, args,  kwargs))
-        if unused_args:_1CH.log('Warning: Arguments |%s| were passed but unused by |%s| for mode |%s|' % (unused_args, self.func_registry[mode].__name__, mode))
+        log_utils.log('Calling |%s| for mode |%s| with pos args |%s| and kwargs |%s|' % (self.func_registry[mode].__name__, mode, args,  kwargs), xbmc.LOGDEBUG)
+        if unused_args: log_utils.log('Warning: Arguments |%s| were passed but unused by |%s| for mode |%s|' % (unused_args, self.func_registry[mode].__name__, mode), xbmc.LOGWARNING)
         self.func_registry[mode](*args, **kwargs)
 
     # since all params are passed as strings, do any conversions necessary to get good types (e.g. boolean)

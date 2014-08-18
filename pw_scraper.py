@@ -29,6 +29,7 @@ import socket
 from operator import itemgetter
 from addon.common.net import Net
 from addon.common.addon import Addon
+import log_utils
 
 USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
               "AppleWebKit/537.17 (KHTML, like Gecko)"
@@ -42,13 +43,13 @@ TEMP_ERRORS=[500, 502, 503, 504]
 
 class MyHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        _1CH.log_debug('Using Custom Redirect: |%s|%s|%s|%s|%s|' % (req.header_items(),code, msg, headers, newurl))
+        log_utils.log('Using Custom Redirect: |%s|%s|%s|%s|%s|' % (req.header_items(),code, msg, headers, newurl), xbmc.LOGDEBUG)
         request=urllib2.HTTPRedirectHandler.redirect_request(self, req, fp, code, msg, headers, newurl)
         if request:
             host = request.get_host()
             request.add_header('Host', host)
             request.add_header('Referer', newurl)
-            _1CH.log_debug('Setting Custom Redirect Headers: |%s|' % (request.header_items()))
+            log_utils.log('Setting Custom Redirect Headers: |%s|' % (request.header_items()), xbmc.LOGDEBUG)
         return request
     
 opener = urllib2.build_opener(MyHTTPRedirectHandler)
@@ -70,12 +71,12 @@ class PW_Scraper():
         self.imdb_num = ''
     
     def add_favorite(self, url):
-        _1CH.log('Saving favorite to website: %s' % (url))
+        log_utils.log('Saving favorite to website: %s' % (url), xbmc.LOGDEBUG)
         id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
         if id_num:
             save_url = "%s/addtofavs.php?id=%s&whattodo=add"
             save_url = save_url % (self.base_url, id_num.group(1))
-            _1CH.log('Save URL: %s' % (save_url))
+            log_utils.log('Save URL: %s' % (save_url), xbmc.LOGDEBUG)
             html = self.__get_url(save_url, login=True)
             ok_message = "<div class='ok_message'>Movie added to favorites"
             error_message = "<div class='error_message'>This video is already"
@@ -84,21 +85,21 @@ class PW_Scraper():
             elif error_message in html:
                 raise
             else:
-                _1CH.log('Unable to confirm success')
-                _1CH.log(html)
+                log_utils.log('Unable to confirm success', xbmc.LOGWARNING)
+                log_utils.log(html, xbmc.LOGDEBUG)
     
     def delete_favorite(self, url):
-        _1CH.log('Deleting favorite from website')
+        log_utils.log('Deleting favorite from website', xbmc.LOGDEBUG)
         id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', url)
         if id_num:
             del_url = "%s/addtofavs.php?id=%s&whattodo=delete"
             del_url = del_url % (self.base_url, id_num.group(1))
-            _1CH.log('Delete URL: %s' % (del_url))
+            log_utils.log('Delete URL: %s' % (del_url), xbmc.LOGDEBUG)
             self.__get_url(del_url, login=True)
     
     def get_favorites(self, section, page=None, paginate=False):
         if section!='tv': section='movies' # force section to be movies if it's not TV
-        _1CH.log('Getting %s favorite from website' % (section))
+        log_utils.log('Getting %s favorite from website' % (section), xbmc.LOGDEBUG)
         fav_url = '/profile.php?user=%s&fav&show=%s'
         if page: fav_url += '&page=%s' % (page)
         url = self.base_url + fav_url % (self.username, section)
@@ -119,7 +120,7 @@ class PW_Scraper():
         return fav
     
     def get_watched(self, section, page=None, paginate=False):
-        _1CH.log('Getting %s Watched list from website' % (section))
+        log_utils.log('Getting %s Watched list from website' % (section), xbmc.LOGDEBUG)
         url = '/profile.php?user=%s&watched&show=%s'
         if page: url += '&page=%s' % (page)
         url = self.base_url + url % (self.username, section)
@@ -131,7 +132,7 @@ class PW_Scraper():
         return self.__get_results_gen(html, url, page, paginate, pattern, self.__set_watched_result)   
     
     def get_towatch(self, section, page=None, paginate=False):
-        _1CH.log('Getting %s ToWatch list from website' % (section))
+        log_utils.log('Getting %s ToWatch list from website' % (section), xbmc.LOGDEBUG)
         url = '/profile.php?user=%s&towatch&show=%s'
         if page: url += '&page=%s' % (page)
         url = self.base_url + url % (self.username, section)
@@ -188,7 +189,7 @@ class PW_Scraper():
         search_url += '&key=' + r
         if section == 'tv': search_url += '&search_section=2'
         if page: search_url += '&page=%s' % (page)
-        _1CH.log('Issuing search: %s' % (search_url))
+        log_utils.log('Issuing search: %s' % (search_url), xbmc.LOGDEBUG)
 
         html = self.__get_cached_url(search_url, cache_limit=0)
         r = re.search('number_movies_result">([0-9,]+)', html)
@@ -213,7 +214,7 @@ class PW_Scraper():
         if letter:  pageurl += '&letter=' + letter
         if sort:     pageurl += '&sort=' + sort
         if page:   pageurl += '&page=%s' % page
-        _1CH.log('Getting filtered results: %s' % (pageurl))
+        log_utils.log('Getting filtered results: %s' % (pageurl), xbmc.LOGDEBUG)
     
         html = self.__get_cached_url(pageurl)
     
@@ -286,11 +287,11 @@ class PW_Scraper():
         return result
     
     def remove_from_playlist(self, playlist_url, item_url):
-        _1CH.log('Removing item: %s from playlist %s' % (item_url, playlist_url))
+        log_utils.log('Removing item: %s from playlist %s' % (item_url, playlist_url), xbmc.LOGDEBUG)
         return self.__manage_playlist(playlist_url, item_url, 'remove_existing')
         
     def add_to_playlist(self, playlist_url, item_url):
-        _1CH.log('Adding item %s to playlist %s' % (item_url, playlist_url))
+        log_utils.log('Adding item %s to playlist %s' % (item_url, playlist_url), xbmc.LOGDEBUG)
         return self.__manage_playlist(playlist_url, item_url, 'add_existing')
     
     def __manage_playlist(self, playlist_url, item_url, action):
@@ -358,7 +359,7 @@ class PW_Scraper():
         adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
         adult = re.search(adultregex, html, re.DOTALL)
         if adult:
-            _1CH.log('Adult content url detected')
+            log_utils.log('Adult content url detected')
             adulturl = self.base_url + adult.group(1)
             headers = {'Referer': url}
             html = self.__get_url(adulturl, headers=headers, login=True)
@@ -409,7 +410,7 @@ class PW_Scraper():
         return hosters
                     
     def get_season_list(self, url, cached=True):
-        _1CH.log_debug('Getting season list (%s): %s' % (cached, url))
+        log_utils.log('Getting season list (%s): %s' % (cached, url), xbmc.LOGDEBUG)
         if cached:
             html = self.__get_cached_url(self.base_url + url)
         else:
@@ -418,7 +419,7 @@ class PW_Scraper():
         adultregex = '<div class="offensive_material">.+<a href="(.+)">I understand'
         r = re.search(adultregex, html, re.DOTALL)
         if r:
-            _1CH.log('Adult content url detected')
+            log_utils.log('Adult content url detected')
             adulturl = self.base_url + r.group(1)
             headers = {'Referer': url}
             html = self.__get_url(adulturl, headers=headers, login=True)
@@ -430,15 +431,15 @@ class PW_Scraper():
     def change_watched(self, primewire_url, action, whattodo):
         if not utils.website_is_integrated(): return
         
-        _1CH.log("Update Website %s List" % action.capitalize() )
+        log_utils.log("Update Website %s List" % action.capitalize(), xbmc.LOGDEBUG)
         id_num = re.search(r'.+(?:watch|tv)-([\d]+)-', primewire_url)
         if id_num:
             change_url = '%s/addtowatched.php?id=%s&action=%s&whattodo=%s'            
             change_url = change_url % (self.base_url, id_num.group(1), action.lower(), whattodo.lower())
-            _1CH.log('%s %s URL: %s' %(whattodo.capitalize(), action.capitalize(), change_url))
+            log_utils.log('%s %s URL: %s' %(whattodo.capitalize(), action.capitalize(), change_url), xbmc.LOGDEBUG)
             self.__get_url(change_url,login=True)       
         else:
-            _1CH.log("pw.scraper.change_watched() couldn't scrape primewire ID")
+            log_utils.log("pw.scraper.change_watched() couldn't scrape primewire ID", xbmc.LOGWARNING)
 
     def __set_totals(self, r, items_per_page):
         if r:
@@ -466,12 +467,12 @@ class PW_Scraper():
         before = time.time()
         html = self.__http_get_with_retry_1(url, headers)  
         if login and not '<a href="/logout.php">[ Logout ]</a>' in html:
-            _1CH.log('Logging in for url %s' % url)
+            log_utils.log('Logging in for url %s' % url, xbmc.LOGDEBUG)
             if self.__login(self.base_url):
                 html = self.__http_get_with_retry_1(url, headers)
             else:
                 html = None
-                _1CH.log("Login failed for %s getting: %s" % (self.username, url))
+                log_utils.log("Login failed for %s getting: %s" % (self.username, url), xbmc.LOGERROR)
 
         # addon.net tries to use page's Content Type to convert to unicode
         # if it fails (usually because the data in the page doesn't match the Content Type), then the page encoding is left as-is
@@ -480,19 +481,19 @@ class PW_Scraper():
             html = unicode(html, 'windows-1252')
             
         after = time.time()
-        _1CH.log_debug('Url Fetch took: %.2f secs' % (after - before))
+        log_utils.log('Url Fetch took: %.2f secs' % (after - before), xbmc.LOGDEBUG)
         return html
 
     def __get_cached_url(self, url, cache_limit=8):
-        _1CH.log_debug('Fetching Cached URL: %s' % url)
+        log_utils.log('Fetching Cached URL: %s' % url, xbmc.LOGDEBUG)
         before = time.time()
         
         html = utils.get_cached_url(url, cache_limit)
         if html:
-            _1CH.log_debug('Returning cached result for: %s' % (url))
+            log_utils.log('Returning cached result for: %s' % (url), xbmc.LOGDEBUG)
             return html
         
-        _1CH.log_debug('No cached url found for: %s' % url)
+        log_utils.log('No cached url found for: %s' % url, xbmc.LOGDEBUG)
         req = urllib2.Request(url)
     
         host = re.sub('http://', '', self.base_url)
@@ -503,7 +504,7 @@ class PW_Scraper():
         try:
             body = self.__http_get_with_retry_2(url, req)
             if '<title>Are You a Robot?</title>' in body:
-                _1CH.log('bot detection')
+                log_utils.log('bot detection')
     
                 # download the captcha image and save it to a file for use later
                 captchaimgurl = 'http://' + host + '/CaptchaSecurityImages.php'
@@ -556,12 +557,12 @@ class PW_Scraper():
         except Exception as e:
             dialog = xbmcgui.Dialog()
             dialog.ok("Connection failed", "Failed to connect to url", url)
-            _1CH.log('Failed to connect to URL %s: %s' % (url, str(e)))
+            log_utils.log('Failed to connect to URL %s: %s' % (url, str(e)), xbmc.LOGERROR)
             return ''
         
         utils.cache_url(url, body)
         after = time.time()
-        _1CH.log_debug('Cached Url Fetch took: %.2f secs' % (after - before))
+        log_utils.log('Cached Url Fetch took: %.2f secs' % (after - before), xbmc.LOGDEBUG)
         return body
     
     def __login(self,redirect):
@@ -580,7 +581,7 @@ class PW_Scraper():
             return False
 
     def __http_get_with_retry_1(self, url, headers):
-        _1CH.log('Fetching URL: %s' % url)
+        log_utils.log('Fetching URL: %s' % url, xbmc.LOGDEBUG)
         net = Net()
         cookiejar = _1CH.get_profile()
         cookiejar = os.path.join(cookiejar, 'cookies')
@@ -596,7 +597,7 @@ class PW_Scraper():
                 # if it's a temporary code, retry
                 if e.code in TEMP_ERRORS:
                     retries += 1
-                    _1CH.log('Retry #%s for URL %s because of HTTP Error %s' % (retries, url, e.code))
+                    log_utils.log('Retry #%s for URL %s because of HTTP Error %s' % (retries, url, e.code), xbmc.LOGWARNING)
                     continue
                 # if it's not pass it back up the stack
                 else:
@@ -607,7 +608,7 @@ class PW_Scraper():
         return html
          
     def __http_get_with_retry_2(self, url, request):
-        _1CH.log('Fetching URL: %s' % request.get_full_url())
+        log_utils.log('Fetching URL: %s' % request.get_full_url(), xbmc.LOGDEBUG)
         retries=0
         html=None
         while retries<=MAX_RETRIES:
@@ -618,13 +619,13 @@ class PW_Scraper():
                 break
             except socket.timeout:
                 retries += 1
-                _1CH.log('Retry #%s for URL %s because of timeout' % (retries, url))
+                log_utils.log('Retry #%s for URL %s because of timeout' % (retries, url), xbmc.LOGWARNING)
                 continue
             except urllib2.HTTPError as e:
                 # if it's a temporary code, retry
                 if e.code in TEMP_ERRORS:
                     retries += 1
-                    _1CH.log('Retry #%s for URL %s because of HTTP Error %s' % (retries, url, e.code))
+                    log_utils.log('Retry #%s for URL %s because of HTTP Error %s' % (retries, url, e.code), xbmc.LOGWARNING)
                     continue
                 # if it's not pass it back up the stack
                 else:
