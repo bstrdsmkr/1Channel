@@ -51,9 +51,6 @@ class MyHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
             request.add_header('Referer', newurl)
             utils.log('Setting Custom Redirect Headers: |%s|' % (request.header_items()), xbmc.LOGDEBUG)
         return request
-    
-opener = urllib2.build_opener(MyHTTPRedirectHandler)
-urllib2.install_opener(opener)
 
 class PW_Scraper():
     ITEMS_PER_PAGE = 24
@@ -485,6 +482,7 @@ class PW_Scraper():
         return html
 
     def __get_cached_url(self, url, cache_limit=8):
+            
         utils.log('Fetching Cached URL: %s' % url, xbmc.LOGDEBUG)
         before = time.time()
         
@@ -614,6 +612,8 @@ class PW_Scraper():
         html=None
         while retries<=MAX_RETRIES:
             try:
+                opener = urllib2.build_opener(MyHTTPRedirectHandler)
+                urllib2.install_opener(opener)
                 response = urllib2.urlopen(request, timeout=10)
                 html=response.read()
                 # if no exception, jump out of the loop
