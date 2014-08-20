@@ -309,19 +309,16 @@ def PlaySource(url, title, imdbnum, video_type, primewire_url, resume, year='', 
                 meta = __metaget__.get_episode_meta(title, imdbnum, season, episode)
                 meta['TVShowTitle'] = title
                 meta['title'] = utils.format_tvshow_episode(meta)
-                poster = meta['cover_url']
             elif video_type == 'movie':
                 meta = __metaget__.get_meta('movie', title, year=year)
                 meta['title'] = utils.format_label_movie(meta)
-                poster = meta['cover_url']
     else: #metadata is not enabled
         meta = {'label' : title, 'title' : title}
-        poster = ''
 
     if dbid and int(dbid) > 0:
         #we're playing from a library item
         if video_type == 'episode':
-            cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "firstaired", "playcount", "runtime", "director", "productioncode", "season", "episode", "originaltitle", "showtitle", "lastplayed", "fanart", "thumbnail", "dateadded"]}, "id": 1}'
+            cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodeDetails", "params": {"episodeid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "firstaired", "playcount", "runtime", "director", "productioncode", "season", "episode", "originaltitle", "showtitle", "lastplayed", "fanart", "thumbnail", "dateadded", "art"]}, "id": 1}'
             cmd = cmd %(dbid)
             meta = xbmc.executeJSONRPC(cmd)
             meta = json.loads(meta)
@@ -329,8 +326,12 @@ def PlaySource(url, title, imdbnum, video_type, primewire_url, resume, year='', 
             meta['TVShowTitle'] = meta['showtitle']
             meta['duration'] = meta['runtime']
             meta['premiered'] = meta['firstaired']
-            poster = meta['thumbnail']
             meta['DBID']=dbid
+            meta['backdrop_url']=meta['fanart']
+            meta['cover_url']=meta['thumbnail']
+            if 'art' in meta:
+                meta['banner_url']=meta['art']['tvshow.banner']
+                del meta['art']
             
         if video_type == 'movie':
             cmd = '{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": {"movieid" : %s, "properties" : ["title", "plot", "votes", "rating", "writer", "playcount", "runtime", "director", "originaltitle", "lastplayed", "fanart", "thumbnail", "file", "year", "dateadded"]}, "id": 1}'
@@ -339,13 +340,18 @@ def PlaySource(url, title, imdbnum, video_type, primewire_url, resume, year='', 
             meta = json.loads(meta)
             meta = meta['result']['moviedetails']
             meta['duration'] = meta['runtime']
-            poster = meta['thumbnail']
             meta['DBID']=dbid
+            meta['backdrop_url']=meta['fanart']
+            meta['cover_url']=meta['thumbnail']
     
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing', json.dumps(meta))
     
-    listitem = xbmcgui.ListItem(path=url, iconImage="DefaultVideo.png", thumbnailImage=poster)
+    art=make_art(video_type, meta)
+    listitem = xbmcgui.ListItem(path=url, iconImage=art['thumb'], thumbnailImage=art['thumb'])
+    listitem.setProperty('fanart_image', art['fanart'])
+    try: listitem.setArt(art)
+    except: pass # method doesn't exist in Frodo       
     
     resume_point=0
     if resume: 
@@ -1036,28 +1042,25 @@ def TVShowSeasonList(url, title, year='', old_imdb='', tvdbnum=''):
         season_nums = [season[0] for season in seasons]
         season_meta = __metaget__.get_seasons(title, imdbnum, season_nums)
         
-    fanart = ''
     num = 0
     seasons_found=False
     for season in seasons:
         seasons_found=True
         season_num,season_html = season
-        temp = {'cover_url': ''}
 
         if META_ON:
-            temp = season_meta[num]
-            if FANART_ON:
-                try:
-                    fanart = temp['backdrop_url']
-                except:
-                    pass
+            meta = season_meta[num]
+        else:
+            meta={}
 
         label = 'Season %s' % season_num
         db_connection.cache_season(season_num, season_html)
-        listitem = xbmcgui.ListItem(label, iconImage=temp['cover_url'],
-                                    thumbnailImage=temp['cover_url'])
-        listitem.setInfo('video', temp)
-        listitem.setProperty('fanart_image', fanart)
+        art=make_art('tvshow', meta)
+        listitem = xbmcgui.ListItem(label, iconImage=art['thumb'],thumbnailImage=art['thumb'])
+        listitem.setInfo('video', meta)
+        listitem.setProperty('fanart_image', art['fanart'])
+        try: listitem.setArt(art)
+        except: pass # method doesn't exist in Frodo
         listitem.addContextMenuItems([], replaceItems=True)
         queries = {'mode': MODES.EPISODE_LIST, 'season': season_num, 'year': year,
                    'imdbnum': imdbnum, 'title': title}
@@ -1323,7 +1326,7 @@ def create_meta(video_type, title, year):
             utils.log('Error (%s) assigning meta data for %s %s %s' % (str(e),video_type, title, year), xbmc.LOGERROR)
     return meta
 
-def make_art(video_type, meta, pw_img):
+def make_art(video_type, meta, pw_img=''):
     utils.log('Making Art: %s, %s, %s' % (video_type, meta, pw_img), xbmc.LOGDEBUG)
     # default fanart to theme fanart
     art_dict={'thumb': '', 'poster': '', 'fanart': art('fanart.png'), 'banner': ''}
