@@ -222,7 +222,8 @@ class DB_Connection():
         return season_html
     
     def export_from_db(self, full_path):
-        with open(full_path, 'w') as f:
+        temp_path = xbmc.translatePath("special://temp") + 'temp_export_%s.csv' % (int(time.time()))
+        with open(temp_path, 'w') as f:
             writer=csv.writer(f)
             f.write('***VERSION: %s***\n' % self.__get_db_version())
             if self.__table_exists('favorites'):
@@ -241,30 +242,39 @@ class DB_Connection():
                 f.write(CSV_MARKERS.EXT_SUBS+'\n')
                 for sub in self.get_external_subs():
                     writer.writerow(sub)
+        utils.log('Copying export file from: |%s| to |%s|' %(temp_path, full_path), xbmc.LOGDEBUG)
+        xbmcvfs.copy(temp_path, full_path)
+        xbmcvfs.delete(temp_path)
     
     def import_into_db(self, full_path):
-        with open(full_path,'r') as f:
-            reader=csv.reader(f)
-            mode=''
-            _=f.readline() #read header
-            for line in reader:
-                if CSV_MARKERS.FAVORITES in line[0] or CSV_MARKERS.SUBSCRIPTIONS in line[0] or CSV_MARKERS.BOOKMARKS in line[0] or CSV_MARKERS.EXT_SUBS in line[0]:
-                    mode=line[0]
-                    continue
-                elif mode==CSV_MARKERS.FAVORITES:
-                    try:
-                        self.save_favorite(line[0], line[1], line[2], line[3])
-                    except: pass # save_favorite throws exception on dupe
-                elif mode==CSV_MARKERS.SUBSCRIPTIONS:
-                    # don't allow import of days with values other than 0-6
-                    if line[5].translate(None,'0123456'): line[5] = '0123456' 
-                    self.add_subscription(line[0], line[1], line[2], line[3], line[4], line[5])
-                elif mode==CSV_MARKERS.BOOKMARKS:
-                    self.set_bookmark(line[0], line[1])
-                elif mode==CSV_MARKERS.EXT_SUBS:
-                    self.add_ext_sub(line[0], line[1], line[2], line[3])
-                else:
-                    raise Exception('CSV line found while in no mode')
+        temp_path = xbmc.translatePath("special://temp") + 'temp_import_%s.csv' % (int(time.time()))
+        utils.log('Copying import file from: |%s| to |%s|' %(full_path, temp_path), xbmc.LOGDEBUG)
+        xbmcvfs.copy(full_path, temp_path)
+        try:
+            with open(temp_path,'r') as f:
+                    reader=csv.reader(f)
+                    mode=''
+                    _=f.readline() #read header
+                    for line in reader:
+                        if CSV_MARKERS.FAVORITES in line[0] or CSV_MARKERS.SUBSCRIPTIONS in line[0] or CSV_MARKERS.BOOKMARKS in line[0] or CSV_MARKERS.EXT_SUBS in line[0]:
+                            mode=line[0]
+                            continue
+                        elif mode==CSV_MARKERS.FAVORITES:
+                            try:
+                                self.save_favorite(line[0], line[1], line[2], line[3])
+                            except: pass # save_favorite throws exception on dupe
+                        elif mode==CSV_MARKERS.SUBSCRIPTIONS:
+                            # don't allow import of days with values other than 0-6
+                            if line[5].translate(None,'0123456'): line[5] = '0123456' 
+                            self.add_subscription(line[0], line[1], line[2], line[3], line[4], line[5])
+                        elif mode==CSV_MARKERS.BOOKMARKS:
+                            self.set_bookmark(line[0], line[1])
+                        elif mode==CSV_MARKERS.EXT_SUBS:
+                            self.add_ext_sub(line[0], line[1], line[2], line[3])
+                        else:
+                            raise Exception('CSV line found while in no mode')
+        finally:
+            xbmcvfs.delete(temp_path)
     
     def execute_sql(self, sql):
         self.__execute(sql)
