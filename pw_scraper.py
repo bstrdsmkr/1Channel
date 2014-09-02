@@ -592,6 +592,10 @@ class PW_Scraper():
                 html = net.http_GET(url, headers=headers).content
                 # if no exception, jump out of the loop
                 break
+            except socket.timeout:
+                retries += 1
+                utils.log('Retry #%s for URL %s because of timeout' % (retries, url), xbmc.LOGWARNING)
+                continue
             except urllib2.HTTPError as e:
                 # if it's a temporary code, retry
                 if e.code in TEMP_ERRORS:
