@@ -222,7 +222,7 @@ class DB_Connection():
         return season_html
     
     def export_from_db(self, full_path):
-        temp_path = xbmc.translatePath("special://temp") + 'temp_export_%s.csv' % (int(time.time()))
+        temp_path = os.path.join(xbmc.translatePath("special://profile"),'temp_export_%s.csv' % (int(time.time())))
         with open(temp_path, 'w') as f:
             writer=csv.writer(f)
             f.write('***VERSION: %s***\n' % self.__get_db_version())
@@ -242,14 +242,20 @@ class DB_Connection():
                 f.write(CSV_MARKERS.EXT_SUBS+'\n')
                 for sub in self.get_external_subs():
                     writer.writerow(sub)
+        
         utils.log('Copying export file from: |%s| to |%s|' %(temp_path, full_path), xbmc.LOGDEBUG)
-        xbmcvfs.copy(temp_path, full_path)
-        xbmcvfs.delete(temp_path)
+        if not xbmcvfs.copy(temp_path, full_path):
+            raise Exception('Export: Copy from |%s| to |%s| failed' % (temp_path, full_path))
+          
+        if not xbmcvfs.delete(temp_path):
+            raise Exception('Export: Delete of %s failed.' % (temp_path))
     
     def import_into_db(self, full_path):
-        temp_path = xbmc.translatePath("special://temp") + 'temp_import_%s.csv' % (int(time.time()))
+        temp_path = os.path.join(xbmc.translatePath("special://profile"), 'temp_import_%s.csv' % (int(time.time())))
         utils.log('Copying import file from: |%s| to |%s|' %(full_path, temp_path), xbmc.LOGDEBUG)
-        xbmcvfs.copy(full_path, temp_path)
+        if not xbmcvfs.copy(full_path, temp_path):
+            raise Exception('Import: Copy from |%s| to |%s| failed' % (full_path, temp_path))
+        
         try:
             with open(temp_path,'r') as f:
                     reader=csv.reader(f)
@@ -274,7 +280,8 @@ class DB_Connection():
                         else:
                             raise Exception('CSV line found while in no mode')
         finally:
-            xbmcvfs.delete(temp_path)
+            if not xbmcvfs.delete(temp_path):
+                raise Exception('Import: Delete of %s failed.' % (temp_path))
     
     def execute_sql(self, sql):
         self.__execute(sql)
@@ -464,7 +471,7 @@ class DB_Connection():
     
     # purpose is to save the current db with an export, drop the db, recreate it, then connect to it
     def __prep_for_reinit(self):
-        self.mig_path = xbmc.translatePath("special://database") + 'mig_export_%s.csv' % (int(time.time()))
+        self.mig_path = os.path.join(xbmc.translatePath("special://database"), 'mig_export_%s.csv' % (int(time.time())))
         utils.log('Backing up DB to %s' % (self.mig_path), xbmc.LOGDEBUG)
         self.export_from_db(self.mig_path)
         utils.log('Backup export of DB created at %s' % (self.mig_path))
