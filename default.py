@@ -960,8 +960,8 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
         # set tvshow episode counts
         if section_params['video_type']== 'tvshow':
             total_episodes=meta['episode']
-            watched_episodes=total_episodes - playcount
-            unwatched_episodes = total_episodes - watched_episodes
+            unwatched_episodes=total_episodes - playcount
+            watched_episodes = total_episodes - unwatched_episodes
             listitem.setProperty('TotalEpisodes', str(total_episodes))
             listitem.setProperty('WatchedEpisodes', str(watched_episodes))
             listitem.setProperty('UnWatchedEpisodes', str(unwatched_episodes))
