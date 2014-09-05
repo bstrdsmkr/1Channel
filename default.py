@@ -938,6 +938,11 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
                 meta['title'] = utils.format_label_sub(meta)
             else:
                 meta['title'] = utils.format_label_tvshow(meta)
+
+            # save the playcount for ep counts; delete it to prevent tvshow being marked as watched
+            if 'playcount' in meta:
+                playcount=meta['playcount']
+                del meta['playcount']
         elif section_params['video_type'] == 'episode':
             meta['title'] = utils.format_tvshow_episode(meta)
         else:
@@ -947,10 +952,20 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
         listitem=xbmcgui.ListItem(meta['title'], iconImage=art['thumb'], thumbnailImage=art['thumb'])
         listitem.setProperty('fanart_image', art['fanart'])
         try: listitem.setArt(art)
-        except: pass # method doesn't exist in Frodo        
+        except: pass # method doesn't exist in Frodo
         listitem.setInfo('video', meta)
         listitem.setProperty('imdb', meta['imdb_id'])
         listitem.setProperty('img', img)
+        
+        # set tvshow episode counts
+        if section_params['video_type']== 'tvshow':
+            total_episodes=meta['episode']
+            watched_episodes=total_episodes - playcount
+            unwatched_episodes = total_episodes - watched_episodes
+            listitem.setProperty('TotalEpisodes', str(total_episodes))
+            listitem.setProperty('WatchedEpisodes', str(watched_episodes))
+            listitem.setProperty('UnWatchedEpisodes', str(unwatched_episodes))
+            
     else:  # Metadata off
         if section_params['video_type'] == 'episode':
             disp_title = '%sx%s' % (season, episode)
