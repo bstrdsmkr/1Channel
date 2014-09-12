@@ -76,7 +76,7 @@ A lot of new features have been added to 1Channel recently, most importantly the
         - To give two hosts equal preference, separate them with the | character:
            For example:
             
-                putlocker.com|sockshare.com, vidxden.com, nowvideo.eu
+                putlocker.com|sockshare.com,vidxden.com,nowvideo.eu
  
         - Any hosts not listed will be given an equal ranking lower than all listed hosts.
         - Enabling Reverse Sort after a sorting option will sort them appropriately, then reverse the list
