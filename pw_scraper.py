@@ -618,7 +618,7 @@ class PW_Scraper():
             try:
                 opener = urllib2.build_opener(MyHTTPRedirectHandler)
                 urllib2.install_opener(opener)
-                response = urllib2.urlopen(request, timeout=10)
+                response = urllib2.urlopen(request, timeout=30)
                 html=response.read()
                 # if no exception, jump out of the loop
                 break
