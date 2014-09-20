@@ -284,8 +284,8 @@ def auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, epi
             _1CH.show_ok_dialog(['All Sources Failed to Play'], title='PrimeWire')
             break
 
-@pw_dispatcher.register(MODES.PLAY_SOURCE,  ['url', ' title', 'imdbnum', 'video_type', 'primewire_url', 'resume'], ['year', 'season', 'episode'])    
-def PlaySource(url, title, imdbnum, video_type, primewire_url, resume, year='', season='', episode='', dbid=None):
+@pw_dispatcher.register(MODES.PLAY_SOURCE,  ['url', ' title', 'video_type', 'primewire_url', 'resume'], ['imdbnum', 'year', 'season', 'episode'])    
+def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='', season='', episode='', dbid=None):
     utils.log('Attempting to play url: %s' % url)
     stream_url = urlresolver.HostedMediaFile(url=url).resolve()
 
@@ -557,10 +557,19 @@ def AddonMenu():  # homescreen
                        fanart=art('fanart.png'))
     _1CH.add_directory({'mode': MODES.PLAYLISTS_MENU, 'section': 'playlist'}, {'title': 'Playlists'}, img=art('playlists.png'),
                        fanart=art('fanart.png'))
+
+    if _1CH.get_setting('h99_hidden')=='true':
+        _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'tv', 'sort': 'date'}, {'title': 'TV - Date added'},img=art('date_added.png'), fanart=art('fanart.png'))
+        _1CH.add_directory({'mode': MODES.MANAGE_SUBS}, {'title': 'TV - Subscriptions'}, img=art('subscriptions.png'),fanart=art('fanart.png'))
+        _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'movie', 'sort': 'date'}, {'title': 'Movies - Date added'},img=art('date_added.png'), fanart=art('fanart.png'))
+        _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'movie', 'sort': 'featured'}, {'title': 'Movies - Featured'},img=art('featured.png'), fanart=art('fanart.png'))
+        _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'movie', 'sort': 'views'}, {'title': 'Movies - Most Popular'},img=art('most_popular.png'), fanart=art('fanart.png'))
+
     _1CH.add_directory({'mode': MODES.RES_SETTINGS}, {'title': 'Resolver Settings'}, img=art('settings.png'),
                        fanart=art('fanart.png'))
     _1CH.add_directory({'mode': MODES.HELP}, {'title': 'Help'}, img=art('help.png'), fanart=art('fanart.png'))
     # _1CH.add_directory({'mode': 'test'},   {'title':  'Test'}, img=art('settings.png'), fanart=art('fanart.png'))
+    
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 @pw_dispatcher.register(MODES.LIST_MENU, ['section'])
