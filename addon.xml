@@ -16,8 +16,10 @@
     <extension point="xbmc.addon.metadata">
         <summary>Browse 1channel.ch</summary>
         <description>Play a wide selection of movies and TV shows from PrimeWire.ag.
-***This addon is supported at [COLOR blue]www.XBMCHub.com[/COLOR], [COLOR white][B]NOT[/B][/COLOR] [COLOR red]xbmc.org[/COLOR]. ***
+***This addon is supported at [COLOR blue]www.tvaddons.ag[/COLOR], [COLOR white][B]NOT[/B][/COLOR] [COLOR red]xbmc.org[/COLOR]. ***
         </description>
         <platform>all</platform>
+        <website>http://tvaddons.ag/</website>
+		<forum>http://forums.tvaddons.ag/forums/32-BSTRDSMKR-S-REPOSITORY</forum>
     </extension>
 </addon>
