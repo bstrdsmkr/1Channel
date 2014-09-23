@@ -1406,7 +1406,7 @@ def add_to_library(video_type, url, title, img, year, imdbnum):
 
                 filename = utils.filename_from_title(show_title, video_type)
                 filename = filename % (season_num, epnum)
-                show_title = re.sub(r'[^\w\-_\. ]', '_', show_title)
+                show_title = re.sub(r'([^\w\-_\. ]|\.$)', '_', show_title)
                 final_path = os.path.join(save_path, show_title, 'Season '+season_num, filename)
                 queries = {'mode': MODES.GET_SOURCES, 'url': epurl, 'imdbnum': '', 'title': show_title, 'img': '',
                            'dialog': 1, 'video_type': 'episode'}
