@@ -406,6 +406,8 @@ def get_xbmc_fav_urls():
             fav_url=fav['path']
         elif 'windowparameter' in fav:
             fav_url=fav['windowparameter']
+        else:
+            continue
 
         fav_urls.append(fav_url)
     return fav_urls
