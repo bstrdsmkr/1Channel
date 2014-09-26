@@ -41,6 +41,10 @@ ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
 MAX_RETRIES=2
 TEMP_ERRORS=[500, 502, 503, 504]
 
+class PW_Error(Exception):
+    pass
+
+
 class MyHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         utils.log('Using Custom Redirect: |%s|%s|%s|%s|%s|' % (req.header_items(),code, msg, headers, newurl), xbmc.LOGDEBUG)
@@ -182,8 +186,12 @@ class PW_Scraper():
         search_url = self.base_url + '/index.php?search_keywords='
         search_url += keywords
         html = self. __get_cached_url(self.base_url, cache_limit=0)
-        r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html).group(1)
-        search_url += '&key=' + r
+        r = re.search('input type="hidden" name="key" value="([0-9a-f]*)"', html)
+        if not r:
+            raise PW_Error('Unable to locate key. Site Blocked?')
+        
+        key = r.group(1)
+        search_url += '&key=' + key
         if section == 'tv': search_url += '&search_section=2'
         if page: search_url += '&page=%s' % (page)
         utils.log('Issuing search: %s' % (search_url), xbmc.LOGDEBUG)

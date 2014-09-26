@@ -36,7 +36,7 @@ try: from metahandler import metahandlers
 except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','metahandler')); pass
 import utils
 from urllib2 import HTTPError
-from pw_scraper import PW_Scraper
+from pw_scraper import PW_Scraper, PW_Error
 from db_utils import DB_Connection
 from pw_dispatcher import PW_Dispatcher
 from utils import MODES
@@ -377,7 +377,6 @@ def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='
         except:
             message='Axel [COLOR blue]ENABLED[/COLOR] but [COLOR red]NOT INSTALLED[/COLOR]'
             xbmc.executebuiltin("XBMC.Notification(%s,%s,10000, %s)" % ('Axel Downloader',message, ICON_PATH))
-            pass
 
     listitem.setPath(stream_url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, listitem)
@@ -502,14 +501,20 @@ def Search(mode, section, query, page=None):
     section_params = get_section_params(section)
     paginate=(_1CH.get_setting('paginate-search')=='true' and _1CH.get_setting('paginate')=='true')
     
-    if mode==MODES.SEARCH:
-        results=pw_scraper.search(section,query, page, paginate)
-    elif mode==MODES.SEARCH_DESC:
-        results=pw_scraper.search_desc(section,query, page, paginate)
-    elif mode==MODES.SEARCH_ADV:
-        criteria = utils.unpack_query(query)
-        results=pw_scraper.search_advanced(section, criteria['title'], criteria['tag'], False, criteria['country'], criteria['genre'],
-                                           criteria['actor'], criteria['director'], criteria['year'], criteria['month'], criteria['decade'], page=page, paginate=paginate)
+    try:
+        if mode==MODES.SEARCH:
+            results=pw_scraper.search(section,query, page, paginate)
+        elif mode==MODES.SEARCH_DESC:
+            results=pw_scraper.search_desc(section,query, page, paginate)
+        elif mode==MODES.SEARCH_ADV:
+            criteria = utils.unpack_query(query)
+            results=pw_scraper.search_advanced(section, criteria['title'], criteria['tag'], False, criteria['country'], criteria['genre'],
+                                               criteria['actor'], criteria['director'], criteria['year'], criteria['month'], criteria['decade'], page=page, paginate=paginate)
+    except PW_Error:
+        message='Site Blocked? Unexpected page received.'
+        xbmc.executebuiltin("XBMC.Notification(%s,%s,10000, %s)" % ('PrimeWire',message, ICON_PATH))
+        return
+        
         
     total_pages = pw_scraper.get_last_res_pages()
     total=pw_scraper.get_last_res_total()
