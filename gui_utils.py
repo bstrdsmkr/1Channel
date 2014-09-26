@@ -18,6 +18,7 @@
 import datetime
 import xbmcgui
 import xbmc
+import time
 from pw_scraper import PW_Scraper
 from addon.common.addon import Addon
 import utils
@@ -260,3 +261,40 @@ def days_select(days):
     else:
         del dialog
         raise
+
+class MyWindowCountDownWithText(xbmcgui.WindowDialog):
+    scr={}; #scr['L']=0; scr['T']=0; scr['W']=1280; scr['H']=720; 
+    def __init__(self,msg='',bgArt='',L=0,T=0,W=1280,H=720,TxtColor='0xFFFFFFFF',Font='font14',BorderWidth=10):
+        self.background=bgArt; self.scr['L']=L; self.scr['T']=T; self.scr['W']=W; self.scr['H']=H; 
+        self.border = xbmcgui.ControlImage(self.scr['L'],self.scr['T'],self.scr['W'],self.scr['H'],'DialogBack2.png')
+        self.addControl(self.border); 
+        self.BG=xbmcgui.ControlImage(self.scr['L']+40,self.scr['T']+40,self.scr['W']-80,self.scr['H']-80,self.background,aspectRatio=0, colorDiffuse='0x1FFFFFFF')
+        self.addControl(self.BG); 
+        self.TxtMessage=xbmcgui.ControlTextBox(self.scr['L']+BorderWidth,self.scr['T']+BorderWidth,self.scr['W']-(BorderWidth*2),self.scr['H']-(BorderWidth*2),font=Font,textColor=TxtColor); 
+        self.addControl(self.TxtMessage); 
+        self.TxtMessage.setText(msg);
+        self.counter=xbmcgui.ControlTextBox(L+(W-245)/2,T+H-30-BorderWidth,245,30,font=Font,textColor=TxtColor); 
+        self.addControl(self.counter); 
+    def see(self): self.show(); 
+    def updateBG(self,bgArt=''): self.background=bgArt; self.setImage(self.background); 
+    def updateY(self,x,y): self.BG.setPosition(x,y); self.scr['L']=x; self.scr['T']=y; 
+    def updateSize(self,w,h): self.BG.setWidth(w); self.BG.setHeight(h); self.scr['W']=w; self.scr['H']=h; 
+    def updateW(self,w): self.BG.setWidth(w); self.scr['W']=w; 
+    def updateH(self,h): self.BG.setHeight(h); self.scr['H']=h; 
+    #def onInit(self): 
+    #def onClick(self,control): 
+    #def onControl(self,control): 
+    #def onFocus(self,control): 
+    #def onAction(self,action): 
+
+def do_My_TextSplash(msg='',img='http://www.tvaddons.ag/wp-content/uploads/2014/08/tvaddons_logo.png',HowLong=10,resize=False,L=0,T=0,W=1280,H=720,TxtColor='0xFFFFFFFF',Font='font14',BorderWidth=10): #HowLong in seconds.
+    if resize==False: maxW=1280; maxH=720; W=maxW/2; H=maxH/2; L=maxW/4; T=maxH/4; 
+    TempWindow2=MyWindowCountDownWithText(msg=msg,bgArt=img,L=L,T=T,W=W,H=H,TxtColor=TxtColor,Font=Font,BorderWidth=BorderWidth); 
+    StartTime=time.time(); 
+    while (time.time()-StartTime) <= HowLong:
+        wait = HowLong - (time.time() - StartTime)
+        TempWindow2.counter.setText('Continuing in %d seconds' % (wait))
+        TempWindow2.show()
+        xbmc.sleep(500)
+    try: del self.TempWindow2; 
+    except: pass
