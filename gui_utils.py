@@ -291,7 +291,7 @@ def do_My_TextSplash(msg='',img='http://www.tvaddons.ag/wp-content/uploads/2014/
         #def onAction(self,action): 
 
     if resize==False: maxW=1280; maxH=720; W=maxW/2; H=maxH/2; L=maxW/4; T=maxH/4; 
-    continue_msg = 'Continuing in %d seconds'
+    continue_msg = 'Continuing in %d seconds...'
     TempWindow2=MyWindowCountDownWithText(msg=msg,bgArt=img,L=L,T=T,W=W,H=H,TxtColor=TxtColor,Font=Font,BorderWidth=BorderWidth); 
     StartTime=time.time(); 
     while (time.time()-StartTime) <= HowLong:
