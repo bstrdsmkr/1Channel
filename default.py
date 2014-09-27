@@ -549,13 +549,14 @@ def Search(mode, section, query, page=None):
 @pw_dispatcher.register(MODES.MAIN)
 def AddonMenu():  # homescreen
     utils.log('Main Menu')
-    msg = ('The 1Channel (a.k.a. PrimeWire) addon is developed and supported by the team at http://tvaddons.ag.\n\n'
-    'If you are having issues, visit our forums at http://forums.tvaddons.ag for help. \n\n'
-    '([I]This message is ONLY shown when the 1CH addon is upgraded to a new version.[/I])')
-    gui_utils.do_My_TextSplash(msg, TxtColor='0xFF00FF00', BorderWidth=45)
     db_connection.init_database()
     if utils.has_upgraded():
         utils.log('Showing update popup', xbmc.LOGDEBUG)
+        if _1CH.get_setting('show_splash')=='true':
+            msg = ('The 1Channel (a.k.a. PrimeWire) addon is developed and supported by the team at http://tvaddons.ag.\n\n'
+            'If you are having issues with the 1Channel addon, visit our forums at http://forums.tvaddons.ag for help. \n\n'
+            '([I]FYI, This message is ONLY shown when the 1Channel addon is upgraded to a new version.[/I])')
+            gui_utils.do_My_TextSplash(msg, TxtColor='0xFF00FF00', BorderWidth=45)
         utils.TextBox()
         adn = xbmcaddon.Addon('plugin.video.1channel')
         adn.setSetting('domain', 'http://www.primewire.ag')

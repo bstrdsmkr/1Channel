@@ -12,6 +12,7 @@
 		<setting id="playlist-sub" type="number" label="    Subscription Playlist ID" enable="eq(-3,true)" default=""/>
         <setting id="old_version" type="text" visible="False" default="0.0.0.0"/>
         <setting id="h99_hidden" type="bool" label="H99's Hidden Menu" visible="false" default="false"/>
+        <setting id="show_splash" type="bool" label="Show Upgrade Splash" visible="false" default="true"/>
 	</category>
 
 	<category label="User Interface">
