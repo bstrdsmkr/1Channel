@@ -383,8 +383,8 @@ def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='
 
     return True
 
-@pw_dispatcher.register(MODES.CH_WATCH, ['imdbnum', 'video_type', 'title', 'primewire_url', 'watched'], ['season', 'episode', 'year', 'dbid'])
-def change_watched(imdbnum, video_type, title, primewire_url , watched, season='', episode='', year='', dbid=None):
+@pw_dispatcher.register(MODES.CH_WATCH, ['video_type', 'title', 'primewire_url', 'watched'], ['imdbnum', 'season', 'episode', 'year', 'dbid'])
+def change_watched(video_type, title, primewire_url , watched, imdbnum='', season='', episode='', year='', dbid=None):
     if watched==True:
         overlay=7
         whattodo='add'
