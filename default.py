@@ -149,6 +149,7 @@ def get_sources(url, title, year='', img='', imdbnum='', dialog=None, respect_au
     
     if not hosters:
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
+        return
 
     # auto play is on
     if respect_auto and _1CH.get_setting('auto-play')=='true':
