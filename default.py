@@ -1821,8 +1821,8 @@ def movie_update(section, genre, letter, sort, page):
     section = 'movies'
     GetFilteredResults(section, genre, letter, sort, page, paginate=True)
 
-@pw_dispatcher.register(MODES.SELECT_SOURCES, ['url', 'title', 'year'], ['imdbnum', 'img'])
-def select_sources(url, title, year, img='', imdbnum=''):
+@pw_dispatcher.register(MODES.SELECT_SOURCES, ['url', 'title'], ['year', 'imdbnum', 'img'])
+def select_sources(url, title, year='', img='', imdbnum=''):
     get_sources(url, title, year=year, img=img, imdbnum=imdbnum, respect_auto=False)
 
 @pw_dispatcher.register(MODES.REFRESH_META, ['video_type', 'title', 'alt_id'], ['imdbnum', 'year'])
