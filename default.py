@@ -554,10 +554,10 @@ def AddonMenu():  # homescreen
     if utils.has_upgraded():
         utils.log('Showing update popup', xbmc.LOGDEBUG)
         if _1CH.get_setting('show_splash')=='true':
-            msg = ('The 1Channel (a.k.a. PrimeWire) addon is developed and supported by the team at http://tvaddons.ag.\n\n'
-            'If you are having issues with the 1Channel addon, visit our forums at http://forums.tvaddons.ag for help. \n\n'
-            '[I](FYI, This message is ONLY shown when the 1Channel addon is upgraded to a new version.)[/I]')
-            gui_utils.do_My_TextSplash(msg, TxtColor='0xFF00FF00', BorderWidth=45)
+            msg = ('The 1Channel/PrimeWire addon is developed and supported by the team at [COLOR white]www.tvaddons.ag[/COLOR]\n\n'
+            'If you are having issues with the addon, visit our Forums for help. We also invite you to visit us regularly to show your support.\n\n'
+            '[I](This message is [B]only[/B] shown when the 1Channel addon is first installed or updated.)[/I]')
+            gui_utils.do_My_TextSplash(msg, HowLong=20, TxtColor='0xFF00FF00', BorderWidth=45)
         utils.TextBox()
         adn = xbmcaddon.Addon('plugin.video.1channel')
         adn.setSetting('domain', 'http://www.primewire.ag')
