@@ -1,4 +1,4 @@
-[B]Version 2.5.0[/B]
+[B]Version 2.5.1[/B]
 [B]Major[/B]
 Added PW playlists functionality:
 - ***Note: Personal playlists are only available when Website Integration is turned on***

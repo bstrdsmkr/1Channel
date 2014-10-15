@@ -576,12 +576,25 @@ def AddonMenu():  # homescreen
         _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'movie', 'sort': 'featured'}, {'title': 'Movies - Featured'},img=art('featured.png'), fanart=art('fanart.png'))
         _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'movie', 'sort': 'views'}, {'title': 'Movies - Most Popular'},img=art('most_popular.png'), fanart=art('fanart.png'))
 
+    
+    if not xbmc.getCondVisibility('System.HasAddon(script.1channel.themepak)') and xbmc.getCondVisibility('System.HasAddon(plugin.program.addoninstaller)'):
+        _1CH.add_directory({'mode': MODES.INSTALL_THEMES}, {'title': 'Install 1Channel Themes/Icons'}, img=art('settings.png'),fanart=art('fanart.png'))
+         
     _1CH.add_directory({'mode': MODES.RES_SETTINGS}, {'title': 'Resolver Settings'}, img=art('settings.png'),
                        fanart=art('fanart.png'))
     _1CH.add_directory({'mode': MODES.HELP}, {'title': 'Help'}, img=art('help.png'), fanart=art('fanart.png'))
     # _1CH.add_directory({'mode': 'test'},   {'title':  'Test'}, img=art('settings.png'), fanart=art('fanart.png'))
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
+
+@pw_dispatcher.register(MODES.INSTALL_THEMES)
+def install_themes():
+    addon='plugin://plugin.program.addoninstaller'
+    query={'mode': 'addoninstall', 'name': '1Channel.thempak', \
+           'url': 'https://offshoregit.com/tknorris/tknorris-release-repo/raw/master/zips/script.1channel.themepak/script.1channel.themepak-0.0.3.zip', \
+           'description': 'none', 'filetype': 'addon', 'repourl': 'none'}
+    run = 'RunPlugin(%s)' % (addon + '?' + urllib.urlencode(query))
+    xbmc.executebuiltin(run)
 
 @pw_dispatcher.register(MODES.LIST_MENU, ['section'])
 def BrowseListMenu(section):
