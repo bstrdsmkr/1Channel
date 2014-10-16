@@ -1,4 +1,4 @@
-[B][COLOR blue]2.5.0 Release Notes[/COLOR][/B]
+[B][COLOR blue]2.5.2 Release Notes[/COLOR][/B]
 - This release adds support for PrimeWire Public & Personal Playlists.
 - Public Playlists are always available but in order to browse, or add/remove from personal playlists "Website Integration" must be enabled in the 1CH settings.
 - You can now specify a PrimeWire playlist to be used for TV Show subscriptions. Enter the ID of the playlist (the part after "?id=" in the url when viewing the playlist in your browser)
