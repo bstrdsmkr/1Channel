@@ -758,7 +758,7 @@ def BrowseAlphabetMenu(section=None):
 def BrowseByGenreMenu(section=None): #2000
     utils.log('Browse by genres screen')
     for genre in pw_scraper.get_genres():
-        _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': section, 'sort': '', 'genre': genre},
+        _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': section, 'sort': 'date', 'genre': genre},
                            {'title': genre}, img=art(genre.lower() + '.png'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
