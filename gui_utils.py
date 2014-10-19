@@ -19,6 +19,7 @@ import datetime
 import xbmcgui
 import xbmc
 import time
+import os.path
 from pw_scraper import PW_Scraper
 from addon.common.addon import Addon
 import utils
@@ -268,7 +269,8 @@ def do_My_TextSplash(msg='',img='http://www.tvaddons.ag/wp-content/uploads/2014/
         scr={}; #scr['L']=0; scr['T']=0; scr['W']=1280; scr['H']=720; 
         def __init__(self,msg='',bgArt='',L=0,T=0,W=1280,H=720,TxtColor='0xFFFFFFFF',Font='font14',BorderWidth=10):
             self.background=bgArt; self.scr['L']=L; self.scr['T']=T; self.scr['W']=W; self.scr['H']=H; 
-            self.border = xbmcgui.ControlImage(self.scr['L'],self.scr['T'],self.scr['W'],self.scr['H'],'DialogBack2.png')
+            image_path = os.path.join(_1CH.get_path(), 'resources', 'media', '1CHDialogBack.png')
+            self.border = xbmcgui.ControlImage(self.scr['L'],self.scr['T'],self.scr['W'],self.scr['H'], image_path)
             self.addControl(self.border); 
             self.BG=xbmcgui.ControlImage(self.scr['L']+BorderWidth,self.scr['T']+BorderWidth,self.scr['W']-(BorderWidth*2),self.scr['H']-(BorderWidth*2),self.background,aspectRatio=0, colorDiffuse='0x2FFFFFFF')
             self.addControl(self.BG); 
