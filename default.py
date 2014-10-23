@@ -150,6 +150,62 @@ def get_sources(url, title, year='', img='', imdbnum='', dialog=None, respect_au
     if not hosters:
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
         return
+        
+    #if dbid is undefined at this point, then the line "dbid=xbmc.getInfoLabel('ListItem.DBID')" was undefined,
+    #so check if a match exists in the library via JSON.
+    
+    #if it's a movie check if the titles match in the library, then pull the movieid
+    if not dbid and video_type == 'movie':
+        json_string = '{"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetMovies", "params": { "properties": ["title"], "limits": {"end": 100000}}}'
+        result=xbmc.executeJSONRPC(json_string)
+        resultObj=json.loads(result)
+        for item in resultObj['result']['movies']:
+            #converts titles to only alpha numeric, then compares smallest title to largest title, for example
+            #'Adventure Time' would match to 'Adventure tIME with FiNn and Jake_ (en) (4214)'
+            titleComp1="".join(re.findall('[a-zA-Z0-9]*',item['title']))
+            titleComp2="".join(re.findall('[a-zA-Z0-9]*',title))
+            if len(titleComp1)>len(titleComp2):
+                titleComp1, titleComp2 = titleComp2, titleComp1
+            if re.search(titleComp1, titleComp2, flags=re.IGNORECASE):
+                dbid=item['movieid']
+                utils.log('ListItem.DBID was undefined, successfully matched dbid to movieid %s' % (dbid))
+                break          
+        if not dbid:
+            utils.log('Failed to recover dbid, title: %s' % (title))
+            
+    #if it's an episode then check the show title, then run another query with the season number and tvshowid, then pull the episodeid.
+    #This two part process helps with performance, rather than pulling every episode and parsing, filter by tvshowid and season number.     
+    if not dbid and video_type == 'episode':
+        json_string = '{"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetTvShows", "params": { "properties": ["title"], "limits": {"end": 100000}}}'
+        result=xbmc.executeJSONRPC(json_string)
+        resultObj=json.loads(result)
+        tvshowid=0
+        for item in resultObj['result']['tvshows']:
+            #converts titles to only alpha numeric, then compares smallest title to largest title, for example
+            #'Adventure Time' would match to 'Adventure tIME with FiNn and Jake_ (en) (4214)'
+            titleComp1="".join(re.findall('[a-zA-Z0-9]*',item['title']))
+            titleComp2="".join(re.findall('[a-zA-Z0-9]*',title))
+            if len(titleComp1)>len(titleComp2):
+                titleComp1, titleComp2 = titleComp2, titleComp1
+            if re.search(titleComp1, titleComp2, flags=re.IGNORECASE):
+                tvshowid=item['tvshowid']
+                break
+        if tvshowid:
+            json_string = '{"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetEpisodes", "params": { "tvshowid": %d, "season": %d, "properties": ["episode"], "limits": {"end": 100000}}}' % (tvshowid,season)
+            result=xbmc.executeJSONRPC(json_string)
+            resultObj=json.loads(result)
+            #check if the episode exists in result list
+            for item in resultObj['result']['episodes']:
+                if episode == item['episode']:
+                    dbid=item['episodeid']
+                    utils.log('ListItem.DBID was undefined, successfully matched dbid to episodeid %s' % (dbid))
+                    break
+            if not dbid:
+                utils.log('ListItem.DBID was undefined, failed to match TV show episode number %s' % (episode))
+        else:
+            utils.log('ListItem.DBID was undefined, failed to match TV show name %s' % (title))
+        if not dbid:
+            utils.log('Failed to recover dbid, title: %s, season: %s, episode: %s' % (title, season, episode))
 
     # auto play is on
     if respect_auto and _1CH.get_setting('auto-play')=='true':
