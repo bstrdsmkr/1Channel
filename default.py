@@ -24,7 +24,6 @@ import sys
 import json
 import string
 import urllib
-import time
 import datetime
 import metapacks
 import xbmc
@@ -43,7 +42,6 @@ from pw_dispatcher import PW_Dispatcher
 from utils import MODES
 from utils import SUB_TYPES
 import gui_utils
-import csv
 
 global urlresolver
 
@@ -151,7 +149,7 @@ def get_sources(url, title, year='', img='', imdbnum='', dialog=None, respect_au
         _1CH.show_ok_dialog(['No sources were found for this item'], title='PrimeWire')
         return
         
-    dbid=get_dbid(url, video_type, title, season, episode, year)
+    dbid=get_dbid(video_type, title, season, episode, year)
 
     # auto play is on
     if respect_auto and _1CH.get_setting('auto-play')=='true':
@@ -173,109 +171,57 @@ def get_sources(url, title, year='', img='', imdbnum='', dialog=None, respect_au
                 
             else:
                 play_unfiltered_dir(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume)
-
-def check_file(file_name):
-    if not os.path.isfile(file_name):
-        file = open(file_name, "w")
-        file.close
-
-def get_dbid_cache(cache_file_path,url):
-    with open(cache_file_path, "r") as cache_file:
-        cache_file_read=csv.reader(cache_file,"excel-tab")
-        for line in cache_file_read:
-            if line[1]==url:
-                utils.log("dbid from cache %s" % line[0])
-                return int(line[0])
-    return 0
-
-def write_dbid_cache(cache_file_path,dbid,url):
-    with open(cache_file_path, "a") as cache_file:
-        cache_file_write=csv.writer(cache_file, "excel-tab")
-        cache_file_write.writerow([dbid,url])
     
-def get_dbid(url, video_type, title, season='', episode='', year=''):
-    tvshowid_cache=xbmc.translatePath("special://userdata/addon_data/plugin.video.1channel/tvshowid")
-    episodeid_cache=xbmc.translatePath("special://userdata/addon_data/plugin.video.1channel/episodeid")
-    movieid_cache=xbmc.translatePath("special://userdata/addon_data/plugin.video.1channel/movieid")
-    check_file(tvshowid_cache)
-    check_file(episodeid_cache)
-    check_file(movieid_cache)
-    startTime=time.time()
+def get_dbid(video_type, title, season='', episode='', year=''):
     dbid=0
-    if video_type=="movie":
-        dbid = get_dbid_cache(movieid_cache,url)
-    if video_type=="episode":
-        dbid = get_dbid_cache(episodeid_cache,url)
-    if dbid:
-        return dbid
-    if video_type=="episode":
-        tvshowid = get_dbid_cache(tvshowid_cache,title)
+    filter=''
+    #variable used to match title with closest len, if there is more than one match, the one with the closest title length is the winner,
+    #The Middle and Malcolm in the Middle in the same library would still match the corret title. Starts at high value and lowers 
+    max_title_len_diff=1000
+    titleComp2=re.sub('[^a-zA-Z0-9]+','',title).lower()
     #if it's a movie check if the titles match in the library, then pull the movieid
     if video_type == 'movie':
-        json_string = '{"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetMovies", "params": { "properties": ["originaltitle", "title", "year"], "limits": {"end": 100000}}}'
+        if year: filter = '"filter": {"field": "year", "operator": "is", "value": "%s"},' % year
+        json_string = '{"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetMovies", "params": {%s "properties": ["title"], "limits": {"end": 10000}}}' % filter
         result_key="movies"
         id_key="movieid"
-    else:
-        json_string = '{"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetTvShows", "params": { "properties": ["originaltitle", "title", "year"], "limits": {"end": 100000}}}'
-        result_key="tvshows"
-        id_key="tvshowid"
-        
+        title_key="title"
+    #if it'a a tvshow episode filter out all tvshows which contain said season and episode, then match tvshow title
+    if video_type == 'episode':
+        filter = '"filter": {"and":['
+        if year: filter += '{"field": "year", "operator": "is", "value": "%s"},' % year
+        filter+='{"field": "season", "operator": "is", "value": "%s"},' % season
+        filter+='{"field": "episode", "operator": "is", "value": "%s"}]},' % episode
+        json_string = '{"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetEpisodes", "params": {%s "properties": ["showtitle"], "limits": {"end": 10000}}}' % (filter)
+        result_key="episodes"
+        id_key="episodeid"
+        title_key="showtitle"
     result=xbmc.executeJSONRPC(json_string)
     resultObj=json.loads(result)
-    if 'result' in resultObj and result_key in resultObj['result']:
-        #variable used to find smallest title, if there is more than one match, the one with the smallest title is the winner, 
-        #set to an arbitrary high value so the first match will always match.
-        min_title_len=10000
-        titleComp2="".join(re.findall('[a-zA-Z0-9]*',title))
-        if not (video_type == "episode" and tvshowid):
-            for item in resultObj['result'][result_key]:
-                #converts titles to only alpha numeric, then compares smallest title to largest title, for example
-                #'Adventure Time' would match to 'Adventure tIME with FiNn and Jake_ (en) (4214)'
-                year_pass=1
-                titleComp1="".join(re.findall('[a-zA-Z0-9]*',item['title']))
-                if len(titleComp1)>len(titleComp2):
-                    result=re.search(titleComp2, titleComp1, flags=re.IGNORECASE)
-                else:
-                    result=re.search(titleComp1, titleComp2, flags=re.IGNORECASE)
-                if result:
-                    if len(titleComp1)<=min_title_len:
-                        min_title_len=len(titleComp1)
-                        #passes on if the years match or if either is undefined
-                        if str(year) == str(item['year']) or not year or not item['year']:
-                            if video_type == 'movie':
-                                dbid=item[id_key]
-                                utils.log('successfully matched dbid to movieid %s "%s" "%s"' % (dbid, year, item['year']))
-                                utils.log('"%s" "%s" "%s" "%s" "%s"' % (year, item['year'], item['originaltitle'],item['title'],title))
-                            else:
-                                tvshowid=item[id_key]
-                                write_dbid_cache(tvshowid_cache,tvshowid,title)
-                                utils.log('"%s" "%s" "%s" "%s" "%s"' % (year, item['year'], item['originaltitle'],item['title'],title))
-                        else:
-                            utils.log('didnt pass the year test')
-                            utils.log('"%s" "%s" "%s" "%s" "%s"' % (year, item['year'], item['originaltitle'],item['title'],title))
-                        
-    if video_type == 'episode' and tvshowid:
-        json_string = '{"jsonrpc": "2.0", "id": 1, "method": "VideoLibrary.GetEpisodes", "params": { "tvshowid": %d, "season": %d, "properties": ["episode"], "limits": {"end": 100000}}}' % (tvshowid,season)
-        result=xbmc.executeJSONRPC(json_string)
-        resultObj=json.loads(result)
-        if 'result' in resultObj and 'episodes' in resultObj['result']:
-            #check if the episode exists in result list
-            for item in resultObj['result']['episodes']:
-                if episode == item['episode']:
-                    dbid=item['episodeid']
-                    utils.log('successfully matched dbid to episodeid %s' % (dbid))
-                    break
-            if not dbid:
-                utils.log('failed to match TV show episode number %s' % (episode))
-    utils.log(time.time()-startTime)        
+    if not ('result' in resultObj and result_key in resultObj['result']): return None
+    for item in resultObj['result'][result_key]:
+        #converts titles to only alpha numeric, then compares smallest title to largest title, for example
+        #'Adventure Time' would match to 'Adventure tIME with FiNn and Jake_ (en) (4214)'
+        titleComp1=re.sub('[^a-zA-Z0-9]+','',item[title_key]).lower()
+        found_match=0
+        if len(titleComp1)>len(titleComp2):
+            if titleComp2 in titleComp1: found_match=1
+        else:
+            if titleComp1 in titleComp2: found_match=1
+        if found_match:
+            title_len_diff=abs(len(titleComp1)-len(titleComp2))
+            if title_len_diff<=max_title_len_diff:
+                max_title_len_diff=title_len_diff
+                if video_type == 'movie':
+                    dbid=item[id_key]
+                    utils.log('successfully matched dbid to movieid %s' % (dbid), xbmc.LOGDEBUG)
+                if video_type == 'episode':
+                    dbid=item[id_key]
+                    utils.log('successfully matched dbid to episodeid %s' % (dbid), xbmc.LOGDEBUG)                  
     if dbid:
-        if video_type=="movie":
-            write_dbid_cache(movieid_cache,dbid,url)
-        if video_type=="episode":
-            write_dbid_cache(episodeid_cache,dbid,url)
         return dbid
     else:
-        utils.log('Failed to recover dbid, type: %s, title: %s, season: %s, episode: %s' % (video_type, title, season, episode))
+        utils.log('Failed to recover dbid, type: %s, title: %s, season: %s, episode: %s' % (video_type, title, season, episode), xbmc.LOGDEBUG)
         return None
         
 def play_filtered_dialog(hosters, title, img, year, imdbnum, video_type, season, episode, primewire_url, resume, dbid):
