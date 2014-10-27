@@ -1933,13 +1933,11 @@ def install_local_metapack():
     source = dialog.browse(1, 'Metapack', 'files', '.zip', False, False)
     metapacks.install_local_zip(source)
         
-@pw_dispatcher.register(MODES.MOVIE_UPDATE, ['section', 'genre', 'letter', 'sort', 'page'])
-def movie_update(section, genre, letter, sort, page):
+@pw_dispatcher.register(MODES.MOVIE_UPDATE)
+def movie_update():
     builtin = "XBMC.Notification(PrimeWire,Updating. Please wait...,5000,%s)" % xbmcaddon.Addon().getAddonInfo('icon')
     xbmc.executebuiltin(builtin)
-    sort = update_movie_cat()
-    section = 'movies'
-    GetFilteredResults(section, genre, letter, sort, page, paginate=True)
+    GetFilteredResults(section='movies', sort=update_movie_cat(), paginate=True)
 
 @pw_dispatcher.register(MODES.SELECT_SOURCES, ['url', 'title'], ['year', 'imdbnum', 'img'])
 def select_sources(url, title, year='', img='', imdbnum=''):
