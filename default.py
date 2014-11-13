@@ -512,7 +512,7 @@ def GetSearchQuery(section, next_mode):
             search_text = keyboard.getText()
             if not paginate and not search_text:
                 _1CH.show_ok_dialog(['Blank searches are not allowed unless [B]Paginate Search Results[/B] is enabled.'], title='PrimeWire')
-                continue
+                return
             else:
                 break
         else:
@@ -546,11 +546,11 @@ def GetSearchQueryAdvanced(section):
     except:
         BrowseListMenu(section)
 
-@pw_dispatcher.register(MODES.SEARCH, ['mode', 'section', 'query'], ['page'])
-@pw_dispatcher.register(MODES.SEARCH_DESC, ['mode', 'section', 'query'], ['page'])
-@pw_dispatcher.register(MODES.SEARCH_ADV, ['mode', 'section', 'query'], ['page'])
-@pw_dispatcher.register(MODES.REMOTE_SEARCH, ['section', 'query'])
-def Search(mode, section, query, page=None):
+@pw_dispatcher.register(MODES.SEARCH, ['mode', 'section'], ['query', 'page'])
+@pw_dispatcher.register(MODES.SEARCH_DESC, ['mode', 'section'], ['query', 'page'])
+@pw_dispatcher.register(MODES.SEARCH_ADV, ['mode', 'section'], ['query', 'page'])
+@pw_dispatcher.register(MODES.REMOTE_SEARCH, ['section'], ['query'])
+def Search(mode, section, query='', page=None):
     section_params = get_section_params(section)
     paginate=(_1CH.get_setting('paginate-search')=='true' and _1CH.get_setting('paginate')=='true')
     
