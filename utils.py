@@ -102,12 +102,8 @@ def format_label_tvshow(info):
         year = info['premiered'][:4]
     else:
         year = ''
-    title = info['title']
+    title = info['title'].decode('utf-8')
     label = _1CH.get_setting('format-tvshow')
-    # label = label.replace('{t}', title)
-    # label = label.replace('{y}', year)
-    # label = label.replace('{ft}', format_tvshow_title(title))
-    # label = label.replace('{fy}', format_tvshow_year(year))
 
     label = re.sub('\{t\}', title, label)
     label = re.sub('\{y\}', year, label)
@@ -115,12 +111,10 @@ def format_label_tvshow(info):
     label = re.sub('\{fy\}', format_tvshow_year(year), label)
     return label
 
-
 def format_tvshow_title(title):
     title_format = _1CH.get_setting('format-tvshow-title')
     label = re.sub('\{t\}', title, title_format)
     return label
-
 
 def format_tvshow_year(year):
     if not year: return ''
@@ -128,15 +122,13 @@ def format_tvshow_year(year):
     label = re.sub('\{y\}', year, year_format)
     return label
 
-
 def format_tvshow_episode(info):
     episode_format = _1CH.get_setting('format-tvshow-episode')
     label = re.sub('\{s\}', str(info['season']), episode_format)
     label = re.sub('\{e\}', str(info['episode']), label)
-    label = re.sub('\{t\}', info['title'], label)
-    label = re.sub('\{st\}', info['TVShowTitle'], label)
+    label = re.sub('\{t\}', info['title'].decode('utf-8'), label)
+    label = re.sub('\{st\}', info['TVShowTitle'].decode('utf-8'), label)
     return label
-
 
 def format_label_sub(info):
     sub_format = _1CH.get_setting('format-tvshow-sub')
@@ -144,20 +136,16 @@ def format_label_sub(info):
     formatted_label = re.sub('\{L\}', label, sub_format)
     return formatted_label
 
-
 def format_label_movie(info):
     if 'premiered' in info:
         year = info['premiered'][:4]
     else:
         year = ''
     label = _1CH.get_setting('format-movie')
-    #label = label.replace('{t}', title)
-    #label = label.replace('{y}', year)
-    #label = label.replace('{ft}', format_movie_title(title))
-    #label = label.replace('{fy}', format_movie_year(year))
-    label = re.sub('\{t\}', info['title'], label)
+    title = info['title'].decode('utf-8')
+    label = re.sub('\{t\}', title, label)
     label = re.sub('\{y\}', year, label)
-    label = re.sub('\{ft\}', format_movie_title(info['title']), label)
+    label = re.sub('\{ft\}', format_movie_title(title), label)
     label = re.sub('\{fy\}', format_movie_year(year), label)
     return label
 
