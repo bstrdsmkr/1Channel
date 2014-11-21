@@ -4,6 +4,7 @@
 - Add better algorithm to get DBID (thanks jhavens)
 - Fix script error on empty searches
 - Make empty searches cancel search
+- Update code for season page change
 
 [B]Version 2.5.2[/B]
 [B]Major[/B]
