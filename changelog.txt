@@ -6,6 +6,7 @@
 - Make empty searches cancel search
 - Update code for season page change
 - Add optional axel downloader import
+- Improve unicode conversions for PW site to avoid occasional errors
 
 [B]Version 2.5.2[/B]
 [B]Major[/B]
