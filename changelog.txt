@@ -1,10 +1,11 @@
-[B]Version 2.6.0[/B]
+[B]Version 2.5.52[/B]
 - Fix browse by genre defaulting to alphabetic
 - add dialog background to project
 - Add better algorithm to get DBID (thanks jhavens)
 - Fix script error on empty searches
 - Make empty searches cancel search
 - Update code for season page change
+- Add optional axel downloader import
 
 [B]Version 2.5.2[/B]
 [B]Major[/B]
