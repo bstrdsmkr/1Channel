@@ -463,7 +463,7 @@ class PW_Scraper():
         season_containers = show_container.split('<h2>')
 
         for season_html in season_containers:
-            r = re.search(r'<a.+?>Season (\d+)</a>', season_html)
+            r = re.search(r'<a[^<]+Season (\d+)</a>', season_html)
             if r:
                 season_label = r.group(1)
                 yield (season_label, season_html)
