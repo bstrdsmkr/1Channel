@@ -44,7 +44,7 @@
 	<string id="30906">Use a dialog for source selection</string>
     <string id="30905">Automatically play sources</string>
 	<string id="30900">Enable sorting of sources</string>
-	<string id="30901">     Host Ranking (coma separated)</string>
+	<string id="30901">     Host Ranking (comma separated)</string>
 	<string id="30902">     Sort by:</string>
 	<string id="30903">          Reverse sort</string>
 	<string id="30904">     Then by:</string>
