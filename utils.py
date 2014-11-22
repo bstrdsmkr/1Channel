@@ -102,7 +102,7 @@ def format_label_tvshow(info):
         year = info['premiered'][:4]
     else:
         year = ''
-    title = info['title'].decode('utf-8')
+    title = info['title']
     label = _1CH.get_setting('format-tvshow')
 
     label = re.sub('\{t\}', title, label)
@@ -126,8 +126,8 @@ def format_tvshow_episode(info):
     episode_format = _1CH.get_setting('format-tvshow-episode')
     label = re.sub('\{s\}', str(info['season']), episode_format)
     label = re.sub('\{e\}', str(info['episode']), label)
-    label = re.sub('\{t\}', info['title'].decode('utf-8'), label)
-    label = re.sub('\{st\}', info['TVShowTitle'].decode('utf-8'), label)
+    label = re.sub('\{t\}', info['title'], label)
+    label = re.sub('\{st\}', info['TVShowTitle'], label)
     return label
 
 def format_label_sub(info):
@@ -142,7 +142,7 @@ def format_label_movie(info):
     else:
         year = ''
     label = _1CH.get_setting('format-movie')
-    title = info['title'].decode('utf-8')
+    title = info['title']
     label = re.sub('\{t\}', title, label)
     label = re.sub('\{y\}', year, label)
     label = re.sub('\{ft\}', format_movie_title(title), label)
