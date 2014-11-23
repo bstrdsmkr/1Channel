@@ -476,7 +476,7 @@ class PW_Scraper():
             if self.__login(self.base_url):
                 html = self.__http_get_with_retry_1(url, headers)
             else:
-                html = None
+                html = ''
                 utils.log("Login failed for %s getting: %s" % (self.username, url), xbmc.LOGERROR)
 
         # addon.net tries to use page's Content Type to convert to unicode
