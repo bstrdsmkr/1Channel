@@ -471,7 +471,7 @@ class PW_Scraper():
     def __get_url(self,url, headers={}, login=False):
         before = time.time()
         html = self.__http_get_with_retry_1(url, headers)  
-        if login and not '<a href="/logout.php">[ Logout ]</a>' in html:
+        if login and not '<a href="/logout.php"' in html:
             utils.log('Logging in for url %s' % url, xbmc.LOGDEBUG)
             if self.__login(self.base_url):
                 html = self.__http_get_with_retry_1(url, headers)
@@ -581,7 +581,7 @@ class PW_Scraper():
         headers = {'Referer': redirect, 'Origin': self.base_url, 'Host': host, 'User-Agent': USER_AGENT}
         form_data = {'username': self.username, 'password': self.password, 'remember': 'on', 'login_submit': 'Login'}
         html = net.http_POST(url, headers=headers, form_data=form_data).content
-        if '<a href="/logout.php">[ Logout ]</a>' in html:
+        if '<a href="/logout.php"' in html:
             net.save_cookies(cookiejar)
             return True
         else:
