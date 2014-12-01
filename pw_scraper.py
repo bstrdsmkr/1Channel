@@ -31,7 +31,7 @@ from addon.common.net import Net
 from addon.common.addon import Addon
 from db_utils import DB_Connection
 
-USER_AGENT = ("User-Agent:Mozilla/5.0 (Windows NT 6.2; WOW64)"
+USER_AGENT = ("Mozilla/5.0 (Windows NT 6.2; WOW64)"
               "AppleWebKit/537.17 (KHTML, like Gecko)"
               "Chrome/24.0.1312.56")
 
