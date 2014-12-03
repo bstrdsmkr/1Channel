@@ -211,9 +211,6 @@ class DB_Connection():
             if age < limit:
                 html=rows[0][1]
 
-        if not isinstance(html,unicode):
-            html = unicode(html, 'windows-1252', 'ignore')
-      
         return html
     
     def cache_season(self, season_num,season_html):
