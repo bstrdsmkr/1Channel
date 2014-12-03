@@ -597,6 +597,7 @@ def Search(mode, section, query='', page=None):
             {'mode': mode, 'query': query, 'page': next_page, 'section': section},
             meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
 
+    utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
     _1CH.end_of_directory()
 
 @pw_dispatcher.register(MODES.MAIN)
@@ -864,7 +865,7 @@ def get_section_params(section):
     section_params={}
     section_params['section']=section
     if section == 'tv':
-        utils.set_view('tvshows', 'tvshows-view')
+        section_params['content']='tvshows'
         section_params['nextmode'] = MODES.SEASON_LIST
         section_params['video_type'] = 'tvshow'
         section_params['folder'] = True
@@ -873,11 +874,11 @@ def get_section_params(section):
     elif section=='episode':
         section_params['nextmode'] = MODES.GET_SOURCES
         section_params['video_type']='episode'
-        utils.set_view('episodes', 'episodes-view')
+        section_params['content']='episodes'
         section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
         section_params['subs'] = []
     else:
-        utils.set_view('movies', 'movies-view')
+        section_params['content']='movies'
         section_params['nextmode'] = MODES.GET_SOURCES
         section_params['video_type'] = 'movie'
         section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
@@ -1119,6 +1120,7 @@ def GetFilteredResults(section, genre='', letter='', sort='alphabet', page=None,
              'page': next_page},
             meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
 
+    utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 @pw_dispatcher.register(MODES.SEASON_LIST, ['url', 'title'], ['year', 'tvdbnum'])
@@ -1197,6 +1199,7 @@ def TVShowEpisodeList(title, season, imdbnum='', year=''):
 
         create_item(section_params, title, year, '', epurl, imdbnum, season, epnum)
 
+    utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 def get_fav_urls(fav_type=None):
@@ -1233,6 +1236,7 @@ def browse_favorites(section):
         _, title,favurl,year = row
         
         create_item(section_params,title,year,'',favurl)
+    utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 @pw_dispatcher.register(MODES.BROWSE_FAVS_WEB, ['section'], ['page'])
@@ -1275,6 +1279,7 @@ def browse_favorites_website(section, page=None):
         meta = {'title': 'Next Page >>'}
         _1CH.add_directory({'mode': MODES.BROWSE_FAVS_WEB, 'section': section, 'page': next_page}, meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
         
+    utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 @pw_dispatcher.register(MODES.MIG_FAVS)
@@ -1371,6 +1376,7 @@ def browse_watched_website(section, page=None):
         meta = {'title': 'Next Page >>'}
         _1CH.add_directory({'mode': MODES.BROWSE_W_WEB, 'section': section, 'page': next_page}, meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
         
+    utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 @pw_dispatcher.register(MODES.BROWSE_TW_WEB, ['section'], ['page'])    
@@ -1405,6 +1411,7 @@ def browse_towatch_website(section, page=None):
         meta = {'title': 'Next Page >>'}
         _1CH.add_directory({'mode': MODES.BROWSE_TW_WEB, 'section': section, 'page': next_page}, meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
         
+    utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 
 def create_meta(video_type, title, year):
