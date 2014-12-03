@@ -1,3 +1,8 @@
+[B]Version 2.5.57[/B]
+- Fix User Agent string
+- Make season.contents a blob
+- Fix set default view
+
 [B]Version 2.5.56[/B]
 - Fix login for pw site changes
 - Fix utf-8 in pages with mysql
