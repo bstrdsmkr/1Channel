@@ -662,6 +662,9 @@ def BrowseListMenu(section):
                            img=art('watched.png'), fanart=art('fanart.png'))
         _1CH.add_directory({'mode': MODES.BROWSE_TW_WEB, 'section': section}, {'title': 'Website To Watch List'},
                            img=art('towatch.png'), fanart=art('fanart.png'))
+        if section == 'tv':
+            _1CH.add_directory({'mode': MODES.SHOW_SCHEDULE}, {'title': 'My TV Schedule'}, img=art('schedule.png'),
+                               fanart=art('fanart.png'))
     else:
         _1CH.add_directory({'mode': MODES.BROWSE_FAVS, 'section': section}, {'title': 'Favourites'},
                            img=art('favourites.png'), fanart=art('fanart.png'))
@@ -877,6 +880,12 @@ def get_section_params(section):
         section_params['content']='episodes'
         section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
         section_params['subs'] = []
+    elif section == 'calendar':
+        section_params['nextmode'] = MODES.GET_SOURCES
+        section_params['video_type']='episode'
+        section_params['content']='calendar'
+        section_params['folder'] = (_1CH.get_setting('source-win') == 'Directory' and _1CH.get_setting('auto-play') == 'false')
+        section_params['subs'] = []
     else:
         section_params['content']='movies'
         section_params['nextmode'] = MODES.GET_SOURCES
@@ -893,7 +902,7 @@ def get_section_params(section):
 
     return section_params
 
-def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', totalItems=0, menu_items=None):
+def create_item(section_params,title,year,img,url, imdbnum='', season='', episode = '', day='', totalItems=0, menu_items=None):
     #utils.log('Create Item: %s, %s, %s, %s, %s, %s, %s, %s, %s' % (section_params, title, year, img, url, imdbnum, season, episode, totalItems))
     if menu_items is None: menu_items=[]
     if section_params['nextmode']==MODES.GET_SOURCES and _1CH.get_setting('auto-play')=='true':
@@ -911,7 +920,7 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
     else:
         temp_url=url
 
-    liz,menu_items = build_listitem(section_params, title, year, img, temp_url, imdbnum, season, episode, extra_cms=menu_items)
+    liz,menu_items = build_listitem(section_params, title, year, img, temp_url, imdbnum, season, episode, day=day, extra_cms=menu_items)
     img = liz.getProperty('img')
     imdbnum = liz.getProperty('imdb')
     if not section_params['folder']: # should only be when it's a movie and dialog are off and autoplay is off
@@ -932,7 +941,7 @@ def create_item(section_params,title,year,img,url, imdbnum='', season='', episod
 
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), liz_url, liz,section_params['folder'],totalItems)
 
-def build_listitem(section_params, title, year, img, resurl, imdbnum='', season='', episode='', extra_cms=None):
+def build_listitem(section_params, title, year, img, resurl, imdbnum='', season='', episode='', day='', extra_cms=None):
     if not extra_cms: extra_cms = []
     menu_items = add_contextsearchmenu(title, section_params['section'])
     menu_items = menu_items + extra_cms
@@ -1030,7 +1039,10 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
                 playcount=meta['playcount']
                 del meta['playcount']
         elif section_params['video_type'] == 'episode':
-            meta['title'] = utils.format_tvshow_episode(meta)
+            if section_params['content'] == 'calendar':
+                meta['title'] = '[[COLOR deeppink]%s[/COLOR]] %s - S%02dE%02d - %s' % (day, title, int(season), int(episode), meta['title'])
+            else:
+                meta['title'] = utils.format_tvshow_episode(meta)
         else:
             meta['title'] = utils.format_label_movie(meta)
 
@@ -1054,7 +1066,10 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
             
     else:  # Metadata off
         if section_params['video_type'] == 'episode':
-            disp_title = '%sx%s' % (season, episode)
+            if section_params['content'] == 'calendar':
+                disp_title = '[[COLOR deeppink]%s[/COLOR]] %s - S%02dE%02d' % (day, title, int(season), int(episode))
+            else:
+                disp_title = '%sx%s' % (season, episode)
             listitem = xbmcgui.ListItem(disp_title, iconImage=img,
                                         thumbnailImage=img)
         else:
@@ -1411,6 +1426,16 @@ def browse_towatch_website(section, page=None):
         meta = {'title': 'Next Page >>'}
         _1CH.add_directory({'mode': MODES.BROWSE_TW_WEB, 'section': section, 'page': next_page}, meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
         
+    utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
+    xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
+
+@pw_dispatcher.register(MODES.SHOW_SCHEDULE)    
+def show_schedule():
+    utils.log('Calling Show Schedule', xbmc.LOGDEBUG)
+    section_params = get_section_params('calendar')
+    for episode in pw_scraper.get_schedule():
+        create_item(section_params, episode['show_title'], '', episode['img'], episode['url'], '', episode['season_num'], episode['episode_num'], day=episode['day'])
+
     utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache')=='true')
 

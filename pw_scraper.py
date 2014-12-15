@@ -229,6 +229,20 @@ class PW_Scraper():
         pattern = r'class="index_item.+?href="(.+?)" title="Watch (.+?)"?\(?([0-9]{4})?\)?"?>.+?src="(.+?)"'
         return self.__get_results_gen(html, pageurl, page, paginate, pattern, self.__set_filtered_result)
 
+    def get_schedule(self):
+        page_url = self.base_url + '/tvschedule.php'
+        utils.log('Getting Schedule: %s' % (page_url), xbmc.LOGDEBUG)
+        
+        html = self.__get_url(page_url)
+        
+        for day_section in html.split('<h2'):
+            match = re.search('<span>(.*?)</span>', day_section)
+            if match:
+                day = match.group(1)
+                for episode in re.finditer('class="item".*?href="([^"]+)".*?src="([^"]+)".*?>\s*([^<]+).*?S(\d+)\s+E(\d+):[^>]+>([^<]+)', day_section, re.DOTALL):
+                    ep_url, image, show_title, season_num, episode_num, ep_title = episode.groups()
+                    yield {'day': day, 'url': ep_url, 'img': image.replace('//', 'https://'), 'show_title': show_title, 'season_num': season_num, 'episode_num': episode_num, 'ep_title': ep_title.strip()}
+    
     def get_playlists(self, public, sort=None, page=None, paginate=True):
         page_url = self.base_url + '/playlists.php?'
         if not public: page_url += 'user=%s' % (self.username)
