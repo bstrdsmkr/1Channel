@@ -346,8 +346,7 @@ class DB_Connection():
         from metahandler import metahandlers
         from metahandler import metacontainers
         import xbmcgui
-        PREPARE_ZIP = False
-        __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
+        __metaget__ = metahandlers.MetaData()
 
         cont = metacontainers.MetaContainer()
         if self.db_type == DB_TYPES.MYSQL:

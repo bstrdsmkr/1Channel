@@ -70,8 +70,7 @@ pw_scraper = PW_Scraper(_1CH.get_setting("username"),_1CH.get_setting("passwd"))
 db_connection = DB_Connection()
 pw_dispatcher = PW_Dispatcher()
 
-PREPARE_ZIP = False
-__metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
+__metaget__ = metahandlers.MetaData()
 
 if not xbmcvfs.exists(_1CH.get_profile()): 
     try: xbmcvfs.mkdirs(_1CH.get_profile())

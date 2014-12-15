@@ -30,7 +30,6 @@ except: xbmc.executebuiltin("XBMC.Notification(%s,%s,2000)" % ('Import Failed','
 import utils
 
 AZ_DIRECTORIES = (ltr for ltr in string.ascii_uppercase)
-PREPARE_ZIP = False
 _1CH = Addon('plugin.video.1channel')
 
 # Links and info about metacontainers.
@@ -157,7 +156,7 @@ def create_meta_packs():
                 start_letter = letter
                 __metaget__.__del__()
                 shutil.rmtree(container.cache_path)
-                __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
+                __metaget__ = metahandlers.MetaData()
 
             if letters_completed <= letters_per_zip:
                 #scan_by_letter(video_type, letter)
@@ -170,7 +169,7 @@ def create_meta_packs():
                 arcname = os.path.join(savpath, arcname)
                 __metaget__.__del__()
                 zipdir(container.cache_path, arcname)
-                __metaget__ = metahandlers.MetaData(preparezip=PREPARE_ZIP)
+                __metaget__ = metahandlers.MetaData()
                 letters_completed = 0
                 xbmc.sleep(5000)
 
