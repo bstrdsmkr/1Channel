@@ -1,3 +1,8 @@
+[B]Version 2.5.58[/B]
+- Added PW Schedule to TV Section
+- Removed PREPARE_ZIP from metahandlers
+- Allow more chars into filename
+
 [B]Version 2.5.57[/B]
 - Fix User Agent string
 - Make season.contents a blob
