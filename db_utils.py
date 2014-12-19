@@ -285,7 +285,7 @@ class DB_Connection():
                 raise Exception('Import: Delete of %s failed.' % (temp_path))
     
     def execute_sql(self, sql):
-        self.__execute(sql)
+        return self.__execute(sql)
 
     # intended to be a common method for creating a db from scratch
     def init_database(self):

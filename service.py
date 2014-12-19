@@ -29,14 +29,6 @@ utils.log('Service: Installed Version: %s' % (ADDON.getAddonInfo('version')))
 db_connection = DB_Connection()
 db_connection.init_database()
 
-# temporary method to migrate from old watched setting to new one
-def migrate_settings():
-    new_values=[70, 80, 90]
-    watched=int(ADDON.getSetting('watched-percent'))
-    if 0 <= watched <= 2:
-        print "setting: %s, %s" % (watched, new_values[watched])
-        ADDON.setSetting('watched-percent', str(new_values[watched]))
-    
 class Service(xbmc.Player):
     def __init__(self, *args, **kwargs):
         xbmc.Player.__init__(self, *args, **kwargs)
@@ -130,7 +122,6 @@ class Service(xbmc.Player):
         utils.log('Service: Playback completed')
         self.onPlayBackStopped()
 
-migrate_settings()
 monitor = Service()
 utils.do_startup_task(MODES.UPD_SUBS)
 utils.do_startup_task(MODES.MOVIE_UPDATE)

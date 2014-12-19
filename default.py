@@ -599,10 +599,26 @@ def Search(mode, section, query='', page=None):
     utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
     _1CH.end_of_directory()
 
+# temporary method to fix bad urls
+def fix_urls():
+    tables = ['favorites', 'subscriptions', 'external_subs']
+    for table in tables:
+        # remove any possible dupes
+        while True:
+            rows = db_connection.execute_sql("SELECT url from %s GROUP BY REPLACE(url,'-online-free','') HAVING COUNT(*)>1" % (table))
+            if rows:
+                db_connection.execute_sql("DELETE FROM %s WHERE url in (SELECT * FROM (SELECT url from %s GROUP BY REPLACE(url,'-online-free','') HAVING COUNT(*)>1) as t)" % (table, table))
+            else:
+                break
+        
+        # strip the -online-free part of the url off
+        db_connection.execute_sql("UPDATE %s SET url=REPLACE(url,'-online-free','') WHERE RIGHT(url,12)='-online-free'" % (table))
+        
 @pw_dispatcher.register(MODES.MAIN)
 def AddonMenu():  # homescreen
     utils.log('Main Menu')
     db_connection.init_database()
+    fix_urls()
     if utils.has_upgraded():
         utils.log('Showing update popup', xbmc.LOGDEBUG)
         if _1CH.get_setting('show_splash')=='true':

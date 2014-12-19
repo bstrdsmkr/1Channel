@@ -485,7 +485,7 @@ class PW_Scraper():
     
     def __fix_url(self, url):
         url = url.replace('/tv-', '/watch-', 1) # force tv urls to be consistent w/ movies
-        url = url.replace('-online-free', '')
+        url = url.replace('-online-free', '') # strip off the -online-free at the end to make all urls match
         return url
     
     def __get_url(self,url, headers={}, login=False):
