@@ -114,7 +114,7 @@ class PW_Scraper():
     def __set_fav_result(self, match):
         fav = {}
         link, img, year, title = match
-        fav['url'] = link.replace('/tv-', '/watch-', 1) # hack the returned favorite url so that it matches all the other pages
+        fav['url'] = self.__fix_url(link)
         fav['img'] = img
         fav['year'] = year
         fav['title'] = title
@@ -148,7 +148,7 @@ class PW_Scraper():
             result = {}
             link, img, year, title = match
             if not year or len(year) != 4: year = '' 
-            result['url']=link.replace('/tv-', '/watch-', 1) # hack the returned watched url so that it matches all the other pages
+            result['url']=self.__fix_url(link)
             result['img']=img
             result['year']=year
             result['title']=title
@@ -206,7 +206,7 @@ class PW_Scraper():
     def __set_search_result(self, match):
             result = {}
             link, title, year, img = match
-            result['url'] = link
+            result['url'] = self.__fix_url(link)
             result['title'] = title
             result['year'] = year
             result['img'] = img
@@ -295,8 +295,7 @@ class PW_Scraper():
         result={}
         img, url, title, year = match
         result['img']=img
-        result['url']='/'+url
-        result['url'] = result['url'].replace('/tv-', '/watch-', 1) # force tv urls to be consistent w/ movies
+        result['url'] = self.__fix_url('/' + url)
         result['title']=title
         result['year']=year
         if url.startswith('tv-'):
@@ -333,7 +332,7 @@ class PW_Scraper():
     def __set_filtered_result(self, match):
         result = {}
         link, title, year, img = match
-        result['url'] = link
+        result['url'] = self.__fix_url(link)
         result['img'] = img
         result['year'] = year
         result['title'] = title
@@ -483,6 +482,11 @@ class PW_Scraper():
             if r:
                 season_label = r.group(1)
                 yield (season_label, season_html)
+    
+    def __fix_url(self, url):
+        url = url.replace('/tv-', '/watch-', 1) # force tv urls to be consistent w/ movies
+        url = url.replace('-online-free', '')
+        return url
     
     def __get_url(self,url, headers={}, login=False):
         before = time.time()
