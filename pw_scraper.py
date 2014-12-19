@@ -410,6 +410,8 @@ class PW_Scraper():
             for source in re.finditer(item_pattern, container.group(1), re.DOTALL):
                 qual, url, host, parts, views = source.groups()
          
+                if host == 'ZnJhbWVndGZv': continue # filter out promo hosts
+                
                 item = {'host': host.decode('base-64'), 'url': url.decode('base-64')}
                 item['verified'] = source.group(0).find('star.gif') > -1
                 item['quality'] = qual.upper()
