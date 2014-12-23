@@ -1,3 +1,8 @@
+[B]Version 2.5.59[/B]
+- Add new filter for promo hosts
+- Fix new PW urls to match old ones
+- Improve host header parsing
+
 [B]Version 2.5.58[/B]
 - Added PW Schedule to TV Section
 - Removed PREPARE_ZIP from metahandlers
