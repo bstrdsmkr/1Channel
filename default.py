@@ -612,7 +612,7 @@ def fix_urls():
                 break
         
         # strip the -online-free part of the url off
-        db_connection.execute_sql("UPDATE %s SET url=REPLACE(url,'-online-free','') WHERE INSTR(url,'-online-free')>0" % (table))
+        db_connection.execute_sql("UPDATE %s SET url=REPLACE(url,'-online-free','') WHERE SUBSTR(url, -12)='-online-free'" % (table))
         
 @pw_dispatcher.register(MODES.MAIN)
 def AddonMenu():  # homescreen
