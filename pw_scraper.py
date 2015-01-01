@@ -116,7 +116,7 @@ class PW_Scraper():
         fav = {}
         link, img, year, title = match
         fav['url'] = self.__fix_url(link)
-        fav['img'] = img
+        fav['img'] = self.__fix_url(img)
         fav['year'] = year
         fav['title'] = title
         return fav
@@ -150,7 +150,7 @@ class PW_Scraper():
             link, img, year, title = match
             if not year or len(year) != 4: year = '' 
             result['url']=self.__fix_url(link)
-            result['img']=img
+            result['img']=self.__fix_url(img)
             result['year']=year
             result['title']=title
             return result
@@ -210,7 +210,7 @@ class PW_Scraper():
             result['url'] = self.__fix_url(link)
             result['title'] = title
             result['year'] = year
-            result['img'] = img
+            result['img'] = self.__fix_url(img)
             return result
 
     def get_filtered_results(self, section, genre, letter, sort, page=None, paginate=False):
@@ -274,7 +274,7 @@ class PW_Scraper():
         title = parser.unescape(title)
         title=title.encode('ascii', 'ignore')
         
-        result['img'] = img
+        result['img'] = self.__fix_url(img)
         result['url'] = url
         result['title'] = title
         result['item_count'] = item_count
@@ -295,7 +295,7 @@ class PW_Scraper():
     def __set_playlist_result(self, match):
         result={}
         img, url, title, year = match
-        result['img']=img
+        result['img']=self.__fix_url(img)
         result['url'] = self.__fix_url('/' + url)
         result['title']=title
         result['year']=year
@@ -334,7 +334,7 @@ class PW_Scraper():
         result = {}
         link, title, year, img = match
         result['url'] = self.__fix_url(link)
-        result['img'] = img
+        result['img'] = self.__fix_url(img)
         result['year'] = year
         result['title'] = title
         return result
@@ -485,6 +485,7 @@ class PW_Scraper():
                 yield (season_label, season_html)
     
     def __fix_url(self, url):
+        if url.startswith('//'): url = urlparse.urlsplit(self.base_url).scheme + ':'+ url 
         url = url.replace('/tv-', '/watch-', 1) # force tv urls to be consistent w/ movies
         url = url.replace('-online-free', '') # strip off the -online-free at the end to make all urls match
         return url
