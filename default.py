@@ -51,7 +51,7 @@ META_ON = _1CH.get_setting('use-meta') == 'true'
 FANART_ON = _1CH.get_setting('enable-fanart') == 'true'
 USE_POSTERS = _1CH.get_setting('use-posters') == 'true'
 POSTERS_FALLBACK = _1CH.get_setting('posters-fallback') == 'true'
-THEME_LIST = ['Classic', 'Glossy_Black', 'PrimeWire']
+THEME_LIST = ['Classic', 'Glossy_Black', 'PrimeWire', 'Firestorm']
 THEME = THEME_LIST[int(_1CH.get_setting('theme'))]
 if xbmc.getCondVisibility('System.HasAddon(script.1channel.themepak)'):
     themepak_path = xbmcaddon.Addon('script.1channel.themepak').getAddonInfo('path')
@@ -77,7 +77,10 @@ if not xbmcvfs.exists(_1CH.get_profile()):
     except: os.mkdir(_1CH.get_profile())
 
 def art(name): 
-    return os.path.join(THEME_PATH, name)
+    path = os.path.join(THEME_PATH, name)
+    if not xbmcvfs.exists(path):
+        path = path.replace('.png','.jpg')
+    return path
 
 @pw_dispatcher.register(MODES.SAVE_FAV, ['fav_type', 'title', 'url'], ['year'])
 def save_favorite(fav_type, title, url, year=''):

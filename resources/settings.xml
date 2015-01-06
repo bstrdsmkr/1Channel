@@ -16,7 +16,7 @@
 	</category>
 
 	<category label="User Interface">
-        <setting id="theme" type="enum" label="30800" values="Classic|Glossy Black|PrimeWire" default="0" enable="System.HasAddon(script.1channel.themepak)"/>
+        <setting id="theme" type="enum" label="30800" values="Classic|Glossy Black|PrimeWire|Firestorm" default="0" enable="System.HasAddon(script.1channel.themepak)"/>
         <setting id="playlist-sort" type="enum" label="Playlist Sort Order" values="Order Added|Alphabetic|Popularity" default="0"/>
         <setting type="sep"/>
         <setting id="auto-view" type="bool" label="Set Default Views" default="false"/>
