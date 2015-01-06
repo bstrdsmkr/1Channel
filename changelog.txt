@@ -1,3 +1,8 @@
+[B]Version 2.5.62[/B]
+- Fix urls that start with //
+- Set playlists to default view
+- Fix playlist images
+
 [B]Version 2.5.61[/B]
 - Fix url update to work on all versions of sqlite
 
