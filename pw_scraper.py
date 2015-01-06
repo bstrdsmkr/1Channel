@@ -267,7 +267,6 @@ class PW_Scraper():
     def __set_playlists_result(self, match):
         result = {}
         img, url, title, item_count, views, rating = match
-        if not img.startswith('http://'): img=self.base_url + img
 
         # cleanse playlist title (strips out non-printable chars)
         parser = HTMLParser.HTMLParser()

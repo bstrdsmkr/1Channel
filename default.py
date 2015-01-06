@@ -746,6 +746,7 @@ def browse_playlists(public,sort=None, page=None, paginate=True):
             {'mode': MODES.BROWSE_PLAYLISTS, 'public': public, 'sort': sort, 'page': next_page},
             meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
     
+    utils.set_view(None, 'default-view')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     
 @pw_dispatcher.register(MODES.SHOW_PLAYLIST, ['url', 'public'])
