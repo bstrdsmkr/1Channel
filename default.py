@@ -1072,7 +1072,6 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
         except: pass # method doesn't exist in Frodo
         listitem.setInfo('video', meta)
         listitem.setProperty('imdb', meta['imdb_id'])
-        listitem.setProperty('img', img)
         
         # set tvshow episode counts
         if section_params['video_type']== 'tvshow' and 'episode' in meta:
@@ -1099,6 +1098,7 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
             listitem = xbmcgui.ListItem(disp_title, iconImage=img,
                                         thumbnailImage=img)
 
+    listitem.setProperty('img', img)
     # Hack resumetime & totaltime to prevent XBMC from popping up a resume dialog if a native bookmark is set. UGH! 
     listitem.setProperty('resumetime',str(0))
     listitem.setProperty('totaltime',str(1))
