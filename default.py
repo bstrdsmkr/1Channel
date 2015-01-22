@@ -1091,12 +1091,32 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
             listitem = xbmcgui.ListItem(disp_title, iconImage=img,
                                         thumbnailImage=img)
         else:
+          if section_params['video_type'] == 'tvshow':
+            if resurl in section_params['subs']:
+              if year:
+                titleT = utils.format_label_sub({'title':title,'year':year})
+                disp_title = '%s (%s)' % (titleT.replace(' '+year,'').replace('(%s)'%year,''), year)
+              else:
+                titleT = utils.format_label_tvshow({'title':title,'year':''})
+                disp_title = titleT
+            else:
+              if year:
+                disp_title = '%s (%s)' % (title.replace(' '+year,'').replace('(%s)'%year,''), year)
+              else:
+                disp_title = title
+          else:
             if year:
-                disp_title = '%s (%s)' % (title, year)
+                disp_title = '%s (%s)' % (title.replace(' '+year,'').replace('(%s)'%year,''), year)
             else:
                 disp_title = title
-            listitem = xbmcgui.ListItem(disp_title, iconImage=img,
+          listitem = xbmcgui.ListItem(disp_title, iconImage=img,
                                         thumbnailImage=img)
+          try: listitem.setInfo('video',{'title':title,'show-title':title,'year':year})
+          except: pass
+          try: listitem.setProperty('imdb', imdbnum)
+          except: pass
+          try: listitem.setArt(art)
+          except: pass # method doesn't exist in Frodo
 
     listitem.setProperty('img', img)
     # Hack resumetime & totaltime to prevent XBMC from popping up a resume dialog if a native bookmark is set. UGH! 
