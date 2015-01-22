@@ -642,10 +642,13 @@ def AddonMenu():  # homescreen
 
     if _1CH.get_setting('h99_hidden')=='true':
         _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'tv', 'sort': 'date'}, {'title': 'TV - Date added'},img=art('date_added.png'), fanart=art('fanart.png'))
-        _1CH.add_directory({'mode': MODES.MANAGE_SUBS}, {'title': 'TV - Subscriptions'}, img=art('subscriptions.png'),fanart=art('fanart.png'))
+        _1CH.add_directory({'mode': MODES.MANAGE_SUBS, 'section': 'tv'}, {'title': 'TV - Subscriptions'}, img=art('subscriptions.png'),fanart=art('fanart.png'))
+        add_search_item({'mode': MODES.SEARCH_QUERY, 'section': 'tv', 'next_mode': MODES.SEARCH}, 'TV - Search')
         _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'movie', 'sort': 'date'}, {'title': 'Movies - Date added'},img=art('date_added.png'), fanart=art('fanart.png'))
+        _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'movie', 'sort': 'release'},{'title': 'Movies - Date released'}, img=art('date_released.png'), fanart=art('fanart.png'))
         _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'movie', 'sort': 'featured'}, {'title': 'Movies - Featured'},img=art('featured.png'), fanart=art('fanart.png'))
         _1CH.add_directory({'mode': MODES.FILTER_RESULTS, 'section': 'movie', 'sort': 'views'}, {'title': 'Movies - Most Popular'},img=art('most_popular.png'), fanart=art('fanart.png'))
+        add_search_item({'mode': MODES.SEARCH_QUERY, 'section': 'movie', 'next_mode': MODES.SEARCH}, 'Movies - Search')
 
     
     if not xbmc.getCondVisibility('System.HasAddon(script.1channel.themepak)') and xbmc.getCondVisibility('System.HasAddon(plugin.program.addoninstaller)'):
