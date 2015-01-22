@@ -633,6 +633,7 @@ def AddonMenu():  # homescreen
         adn = xbmcaddon.Addon('plugin.video.1channel')
         adn.setSetting('domain', 'http://www.primewire.ag')
         adn.setSetting('old_version', _1CH.get_version())
+    utils.set_view('list', '%s-view' % ('default'))
     _1CH.add_directory({'mode': MODES.LIST_MENU, 'section': 'movie'}, {'title': 'Movies'}, img=art('movies.png'),
                        fanart=art('fanart.png'))
     _1CH.add_directory({'mode': MODES.LIST_MENU, 'section': 'tv'}, {'title': 'TV shows'}, img=art('television.png'),
@@ -676,6 +677,7 @@ def BrowseListMenu(section):
     _1CH.add_directory({'mode': MODES.AZ_MENU, 'section': section}, {'title': 'A-Z'}, img=art('atoz.png'),
                        fanart=art('fanart.png'))
     add_search_item({'mode': MODES.SEARCH_QUERY, 'section': section, 'next_mode': MODES.SEARCH}, 'Search')
+    utils.set_view('list', '%s-view' % ('default'))
     if utils.website_is_integrated():
         _1CH.add_directory({'mode': MODES.BROWSE_FAVS_WEB, 'section': section}, {'title': 'Website Favourites'},
                            img=art('favourites.png'), fanart=art('fanart.png'))                          
@@ -716,6 +718,7 @@ def playlist_menu():
     utils.log('Playlist Menu')
     _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': True, 'sort': 'date'}, {'title': 'Public Playlists (sorted by date)'}, img=art('public_playlists_date.png'),
                        fanart=art('fanart.png'))
+    utils.set_view('list', '%s-view' % ('default'))
     _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': True, 'sort': 'rating'}, {'title': 'Public Playlists (sorted by rating)'}, img=art('public_playlists_rating.png'),
                        fanart=art('fanart.png'))
     _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': True, 'sort': 'hits'}, {'title': 'Public Playlists (sorted by views)'}, img=art('public_playlists_views.png'),
@@ -734,6 +737,7 @@ def browse_playlists(public,sort=None, page=None, paginate=True):
     utils.log('Browse Playlists: public: |%s| sort: |%s| page: |%s| paginate: |%s|' % (public, sort, page, paginate))
     playlists=pw_scraper.get_playlists(public, sort, page, paginate)
     total_pages = pw_scraper.get_last_res_pages()
+    utils.set_view('list', '%s-view' % ('default'))
     for playlist in playlists:
         title = '%s (%s items) (%s views) (rating %s)' % (playlist['title'].encode('ascii', 'ignore'), playlist['item_count'], playlist['views'], playlist['rating'])
         _1CH.add_directory({'mode': MODES.SHOW_PLAYLIST, 'url': playlist['url'], 'public': public}, {'title': title}, img=playlist['img'],fanart=art('fanart.png'))
