@@ -368,7 +368,10 @@ def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='
                 meta = __metaget__.get_meta('movie', title, year=year)
                 meta['title'] = utils.format_label_movie(meta)
     else: #metadata is not enabled
-        meta = {'label' : title, 'title' : title}
+        if video_type == 'episode':
+            meta = {'label' : title, 'tvshowtitle' : title, 'year': year, 'season': int(season), 'episode': int(episode)}
+        else:
+            meta = {'label' : title, 'title' : title, 'year': year}
 
     if dbid and int(dbid) > 0:
         #we're playing from a library item
@@ -1089,13 +1092,14 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
             
     else:  # Metadata off
         temp_title =re.sub(' \(\d{4}\)$','',title)
-        meta = {'TVShowTitle': temp_title, 'title': temp_title, 'year': year, 'premiered': year}
+        meta = {'TVShowTitle': temp_title, 'tvshowtitle': temp_title, 'title': temp_title, 'year': year, 'premiered': year}
         if section_params['video_type'] == 'episode':
             meta.update({'title': '', 'season': int(season), 'episode': int(episode)})
             if section_params['content'] == 'calendar':
                 disp_title = '[[COLOR deeppink]%s[/COLOR]] %s - S%02dE%02d' % (day, temp_title, int(season), int(episode))
             else:
                 disp_title = utils.format_tvshow_episode(meta)
+                meta.update({'title': disp_title})
         else:
             if section_params['video_type'] == 'tvshow':
                 if resurl in section_params['subs']:
@@ -1105,9 +1109,10 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
             else:
                 disp_title = utils.format_label_movie(meta)
 
+        #print '|%s||%s||%s||%s|' % (temp_title, title, year, disp_title)
         listitem = xbmcgui.ListItem(disp_title, iconImage=img,thumbnailImage=img)
     
-    listitem.setProperty('imdb', imdbnum)    
+    listitem.setProperty('imdb', imdbnum)
     listitem.setInfo('video', meta)
     listitem.setProperty('img', img)
     
