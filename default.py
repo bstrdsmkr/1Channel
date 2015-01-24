@@ -1105,7 +1105,6 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
             else:
                 disp_title = utils.format_label_movie(meta)
 
-        print '|%s||%s||%s||%s|' % (temp_title, title, year, disp_title)
         listitem = xbmcgui.ListItem(disp_title, iconImage=img,thumbnailImage=img)
     
     listitem.setProperty('imdb', imdbnum)    
