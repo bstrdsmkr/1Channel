@@ -1089,23 +1089,21 @@ def build_listitem(section_params, title, year, img, resurl, imdbnum='', season=
             
     else:  # Metadata off
         temp_title =re.sub(' \(\d{4}\)$','',title)
-        meta = {'year': year, 'premiered': year}
+        meta = {'TVShowTitle': temp_title, 'title': temp_title, 'year': year, 'premiered': year}
         if section_params['video_type'] == 'episode':
+            meta.update({'title': '', 'season': int(season), 'episode': int(episode)})
             if section_params['content'] == 'calendar':
                 disp_title = '[[COLOR deeppink]%s[/COLOR]] %s - S%02dE%02d' % (day, temp_title, int(season), int(episode))
             else:
-                disp_title = '%sx%s' % (season, episode)
-            meta.update({'tvshowtitle': temp_title, 'season': int(season), 'episode': int(episode)})
+                disp_title = utils.format_tvshow_episode(meta)
         else:
             if section_params['video_type'] == 'tvshow':
                 if resurl in section_params['subs']:
-                    disp_title = utils.format_label_sub({'title':temp_title, 'premiered':year})
+                    disp_title = utils.format_label_sub(meta)
                 else:
-                    disp_title = utils.format_label_tvshow({'title':temp_title, 'premiered':year})
-                meta.update({'tvshowtitle': temp_title})
+                    disp_title = utils.format_label_tvshow(meta)
             else:
-                disp_title = utils.format_label_movie({'title':temp_title, 'premiered':year})
-                meta.update({'title': temp_title})
+                disp_title = utils.format_label_movie(meta)
 
         print '|%s||%s||%s||%s|' % (temp_title, title, year, disp_title)
         listitem = xbmcgui.ListItem(disp_title, iconImage=img,thumbnailImage=img)
