@@ -369,7 +369,7 @@ def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='
                 meta['title'] = utils.format_label_movie(meta)
     else: #metadata is not enabled
         if video_type == 'episode':
-            meta = {'label' : title, 'tvshowtitle' : title, 'year': year, 'season': int(season), 'episode': int(episode), 'title': '%sx%s' % (season, episode)}
+            meta = {'label': title, 'TVShowTitle': title, 'year': year, 'season': int(season), 'episode': int(episode), 'title': '%sx%s' % (season, episode)}
         else:
             meta = {'label' : title, 'title' : title, 'year': year}
 
