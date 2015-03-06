@@ -1600,10 +1600,10 @@ def write_strm(stream, path):
         except Exception, e:
             utils.log('Failed to create .strm file: %s\n%s' % (path, e), xbmc.LOGERROR)
     
-@pw_dispatcher.register(MODES.ADD_SUB, ['url', 'title', 'year'], ['img', 'imdbnum'])
-def add_subscription(url, title, year, img='', imdbnum=''):
+@pw_dispatcher.register(MODES.ADD_SUB, ['url', 'title'], ['year', 'img', 'imdbnum'])
+def add_subscription(url, title, year='', img='', imdbnum=''):
     try:
-        days=utils.get_default_days()
+        days = utils.get_default_days()
         if utils.using_pl_subs():
             pw_scraper.add_to_playlist(utils.get_subs_pl_url(), url)
             db_connection.add_ext_sub(SUB_TYPES.PW_PL, url, imdbnum, days)
