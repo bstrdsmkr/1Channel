@@ -1,3 +1,6 @@
+[B]Version 2.5.64[/B]
+Various bug fixes when metadata is off
+
 [B]Version 2.5.63[/B]
 - Add Firestorm Theme
 
