@@ -346,6 +346,10 @@ def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='
 
     #If urlresolver returns false then the video url was not resolved.
     if not stream_url or not isinstance(stream_url, basestring):
+        try: msg = stream_url.msg
+        except: msg = url
+        builtin = 'XBMC.Notification(%s,Link Resolve Failed: %s, 7500, %s)'
+        xbmc.executebuiltin(builtin % (_1CH.get_name(), msg, ICON_PATH))
         return False
 
     win = xbmcgui.Window(10000)
