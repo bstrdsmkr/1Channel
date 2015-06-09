@@ -1,0 +1,232 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TV Addons Addons\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30600"
+msgid "Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)"
+msgstr ""
+
+msgctxt "#30601"
+msgid "       MetaData Settings..."
+msgstr ""
+
+msgctxt "#30602"
+msgid "       Enable Fanart"
+msgstr ""
+
+msgctxt "#30604"
+msgid "       Fallback to PW Posters if Cover Art unavailable"
+msgstr ""
+
+msgctxt "#30720"
+msgid "Install local metapack..."
+msgstr ""
+
+msgctxt "#30700"
+msgid "       Install Tv Show MetaData A-G"
+msgstr ""
+
+msgctxt "#30701"
+msgid "       Install Tv Show MetaData H-N"
+msgstr ""
+
+msgctxt "#30702"
+msgid "       Install Tv Show MetaData O-U"
+msgstr ""
+
+msgctxt "#30703"
+msgid "       Install Tv Show MetaData V-#123"
+msgstr ""
+
+msgctxt "#30710"
+msgid "       Install Movie MetaData A"
+msgstr ""
+
+msgctxt "#30711"
+msgid "       Install Movie MetaData B-C"
+msgstr ""
+
+msgctxt "#30712"
+msgid "       Install Movie MetaData D-E"
+msgstr ""
+
+msgctxt "#30713"
+msgid "       Install Movie MetaData F-G"
+msgstr ""
+
+msgctxt "#30714"
+msgid "       Install Movie MetaData H-J"
+msgstr ""
+
+msgctxt "#30715"
+msgid "       Install Movie MetaData K-M"
+msgstr ""
+
+msgctxt "#30716"
+msgid "       Install Movie MetaData N-R"
+msgstr ""
+
+msgctxt "#30717"
+msgid "       Install Movie MetaData S"
+msgstr ""
+
+msgctxt "#30718"
+msgid "       Install Movie MetaData T"
+msgstr ""
+
+msgctxt "#30719"
+msgid "       Install Movie MetaData U-#123"
+msgstr ""
+
+msgctxt "#30800"
+msgid "Theme ([COLOR red]Requires 1channel Themepak Addon[/COLOR])"
+msgstr ""
+
+msgctxt "#30801"
+msgid "Automatically mark videos as watched"
+msgstr ""
+
+msgctxt "#30802"
+msgid "       Mark Watched Percentage"
+msgstr ""
+
+msgctxt "#30803"
+msgid "TV Show Folder:"
+msgstr ""
+
+msgctxt "#30804"
+msgid "Movie Folder:"
+msgstr ""
+
+msgctxt "#30805"
+msgid "Enable automatic subscription updates"
+msgstr ""
+
+msgctxt "#30816"
+msgid "       Add ToWatch movies to library"
+msgstr ""
+
+msgctxt "#30806"
+msgid "       Subscription update interval (in hours)"
+msgstr ""
+
+msgctxt "#30815"
+msgid "       Run on start up"
+msgstr ""
+
+msgctxt "#30807"
+msgid "       Update library afterward?"
+msgstr ""
+
+msgctxt "#30808"
+msgid "       Clean Up subscriptions for ended shows"
+msgstr ""
+
+msgctxt "#30809"
+msgid "       During Playback?"
+msgstr ""
+
+msgctxt "#30810"
+msgid "Enable automatic movie update"
+msgstr ""
+
+msgctxt "#30811"
+msgid "       Update interval"
+msgstr ""
+
+msgctxt "#30812"
+msgid "       Run on start up"
+msgstr ""
+
+msgctxt "#30813"
+msgid "Update Now"
+msgstr ""
+
+msgctxt "#30814"
+msgid "Category"
+msgstr ""
+
+msgctxt "#30906"
+msgid "Use a dialog for source selection"
+msgstr ""
+
+msgctxt "#30905"
+msgid "Automatically play sources"
+msgstr ""
+
+msgctxt "#30900"
+msgid "Enable sorting of sources"
+msgstr ""
+
+msgctxt "#30901"
+msgid "     Host Ranking (comma separated)"
+msgstr ""
+
+msgctxt "#30902"
+msgid "     Sort by:"
+msgstr ""
+
+msgctxt "#30903"
+msgid "          Reverse sort"
+msgstr ""
+
+msgctxt "#30904"
+msgid "     Then by:"
+msgstr ""
+
+msgctxt "#31000"
+msgid "Base:"
+msgstr ""
+
+msgctxt "#31001"
+msgid "Title:"
+msgstr ""
+
+msgctxt "#31002"
+msgid "Year:"
+msgstr ""
+
+msgctxt "#31003"
+msgid "Subscribed:"
+msgstr ""
+
+msgctxt "#31004"
+msgid "Episodes:"
+msgstr ""
+
+msgctxt "#31110"
+msgid "Movies"
+msgstr ""
+
+msgctxt "#31100"
+msgid "Base:"
+msgstr ""
+
+msgctxt "#31101"
+msgid "Title:"
+msgstr ""
+
+msgctxt "#31102"
+msgid "Year:"
+msgstr ""
+
+msgctxt "#32000"
+msgid "Source:"
+msgstr ""
+
+msgctxt "#32001"
+msgid "Verified Sources:"
+msgstr ""
+
+msgctxt "#32002"
+msgid "Subsequent parts:"
+msgstr ""
+
