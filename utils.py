@@ -21,24 +21,26 @@ import sys
 import time
 import datetime
 import json
-import _strptime # fix bug in python import
+import _strptime  # fix bug in python import
 import xbmc
 import xbmcgui
 import xbmcplugin
 from addon.common.addon import Addon
+import strings
 
 DAY_NUMS = list('0123456')
 DAY_CODES = ['M', 'T', 'W', 'H', 'F', 'Sa', 'Su']
 
 _1CH = Addon('plugin.video.1channel')
+ICON_PATH = os.path.join(_1CH.get_path(), 'icon.png')
 
 def enum(**enums):
     return type('Enum', (), enums)
 
 MODES = enum(SAVE_FAV='SaveFav', DEL_FAV='DeleteFav', GET_SOURCES='GetSources', PLAY_SOURCE='PlaySource', CH_WATCH='ChangeWatched', PLAY_TRAILER='PlayTrailer',
                    SEARCH_QUERY='GetSearchQuery', DESC_QUERY='GetSearchQueryDesc', ADV_QUERY='GetSearchQueryAdvanced', SEARCH='Search', SEARCH_DESC='SearchDesc',
-                   SEARCH_ADV='SearchAdvanced', REMOTE_SEARCH='7000', MAIN='main', LIST_MENU='BrowseListMenu', AZ_MENU='BrowseAlphabetMenu', GENRE_MENU='BrowseByGenreMenu', 
-                   FILTER_RESULTS='GetFilteredResults', SEASON_LIST='TVShowSeasonList', EPISODE_LIST='TVShowEpisodeList', BROWSE_FAVS='browse_favorites', 
+                   SEARCH_ADV='SearchAdvanced', REMOTE_SEARCH='7000', MAIN='main', LIST_MENU='BrowseListMenu', AZ_MENU='BrowseAlphabetMenu', GENRE_MENU='BrowseByGenreMenu',
+                   FILTER_RESULTS='GetFilteredResults', SEASON_LIST='TVShowSeasonList', EPISODE_LIST='TVShowEpisodeList', BROWSE_FAVS='browse_favorites',
                    BROWSE_FAVS_WEB='browse_favorites_website', MIG_FAVS='migrateFavs', FAV2LIB='fav2Library', BROWSE_W_WEB='browse_watched_website', ADD2LIB='add_to_library',
                    ADD_SUB='add_subscription', CANCEL_SUB='cancel_subscription', MAN_UPD_SUBS='manual_update_subscriptions', UPD_SUBS='update_subscriptions',
                    MAN_CLEAN_SUBS='manual_clean_up_subscriptions', CLEAN_SUBS='clean_up_subscriptions', MANAGE_SUBS='manage_subscriptions', PAGE_SELECT='PageSelect',
@@ -47,56 +49,56 @@ MODES = enum(SAVE_FAV='SaveFav', DEL_FAV='DeleteFav', GET_SOURCES='GetSources', 
                    MOVIE_UPDATE='movie_update', SELECT_SOURCES='SelectSources', REFRESH_META='refresh_meta', META_SETTINGS='9988', RES_SETTINGS='ResolverSettings',
                    TOGGLE_X_FAVS='toggle_xbmc_fav', PLAYLISTS_MENU='playlists_menu', BROWSE_PLAYLISTS='get_playlists', SHOW_PLAYLIST='show_playlist', PL_PAGE_SELECT='PLPageSelect',
                    RM_FROM_PL='remove_from_playlist', ADD2PL='add_to_playlist', BROWSE_TW_WEB='browse_towatch_website', CH_TOWATCH_WEB='change_towatch_website',
-                   CH_WATCH_WEB='change_watched_website', MAN_UPD_TOWATCH='man_update_towatch', RESET_DB='reset_db', INSTALL_THEMES='install_themes', 
+                   CH_WATCH_WEB='change_watched_website', MAN_UPD_TOWATCH='man_update_towatch', RESET_DB='reset_db', INSTALL_THEMES='install_themes',
                    SHOW_SCHEDULE='show_schedule')
 
-SUB_TYPES  = enum(PW_PL=0)
+SUB_TYPES = enum(PW_PL=0)
 
-hours_list={}
-hours_list[MODES.UPD_SUBS] = [2, 2] + range(2, 25) # avoid accidental runaway subscription updates
+hours_list = {}
+hours_list[MODES.UPD_SUBS] = [2, 2] + range(2, 25)  # avoid accidental runaway subscription updates
 hours_list[MODES.MOVIE_UPDATE] = [2, 5, 10, 15, 24]
 hours_list[MODES.BACKUP_DB] = [12, 24, 168, 720]
 
 
 def get_days_string_from_days(days):
     if days is None:
-        days=''
+        days = ''
 
-    days_string=''
-    fdow=int(_1CH.get_setting('first-dow'))
-    adj_day_nums=DAY_NUMS[fdow:]+DAY_NUMS[:fdow]
-    adj_day_codes=DAY_CODES[fdow:]+DAY_CODES[:fdow]
+    days_string = ''
+    fdow = int(_1CH.get_setting('first-dow'))
+    adj_day_nums = DAY_NUMS[fdow:] + DAY_NUMS[:fdow]
+    adj_day_codes = DAY_CODES[fdow:] + DAY_CODES[:fdow]
     all_days = ''.join(adj_day_codes)
     for i, day_num in enumerate(adj_day_nums):
         if day_num in days:
             days_string += adj_day_codes[i]
-        
-    if days_string==all_days:
-        days_string='ALL'
-        
+
+    if days_string == all_days:
+        days_string = 'ALL'
+
     return days_string
 
 def get_days_from_days_string(days_string):
     if days_string is None:
-        days_string=''
-        
-    days_string=days_string.upper()
-    days=''
-    if days_string=='ALL':
-        days='0123456'
+        days_string = ''
+
+    days_string = days_string.upper()
+    days = ''
+    if days_string == 'ALL':
+        days = '0123456'
     else:
         for i, day in enumerate(DAY_CODES):
             if day.upper() in days_string:
                 days += DAY_NUMS[i]
-                
+
     return days
 
 def get_default_days():
-    def_days= ['0123456', '', '0246']
-    dow=datetime.datetime.now().weekday()
+    def_days = ['0123456', '', '0246']
+    dow = datetime.datetime.now().weekday()
     def_days.append(str(dow))
-    def_days.append(str(dow)+str((dow+1)%7))
-    return def_days[int(_1CH.get_setting('sub-days'))]        
+    def_days.append(str(dow) + str((dow + 1) % 7))
+    return def_days[int(_1CH.get_setting('sub-days'))]
 
 def format_label_tvshow(info):
     if 'premiered' in info:
@@ -226,7 +228,7 @@ class TextBox:
 
     def __init__(self, *args, **kwargs):
         # activate the text viewer window
-        xbmc.executebuiltin("ActivateWindow(%d)" % ( self.WINDOW, ))
+        xbmc.executebuiltin("ActivateWindow(%d)" % (self.WINDOW,))
         # get window
         self.win = xbmcgui.Window(self.WINDOW)
         # give window time to initialize
@@ -300,10 +302,10 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
     elif index > -1:
         new_imdb_id = search_meta[index - 1]['imdb_id']
         try: new_tmdb_id = search_meta[index - 1]['tmdb_id']
-        except: new_tmdb_id=''
-        
-        #Temporary workaround for metahandlers problem:
-        #Error attempting to delete from cache table: no such column: year
+        except: new_tmdb_id = ''
+
+        # Temporary workaround for metahandlers problem:
+        # Error attempting to delete from cache table: no such column: year
         if video_type == 'tvshow': year = ''
 
         log(search_meta[index - 1], xbmc.LOGDEBUG)
@@ -341,18 +343,18 @@ def set_view(content, view_type):
     xbmcplugin.addSortMethod(handle=int(sys.argv[1]), sortMethod=xbmcplugin.SORT_METHOD_PROGRAM_COUNT)
     xbmcplugin.addSortMethod(handle=int(sys.argv[1]), sortMethod=xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
     xbmcplugin.addSortMethod(handle=int(sys.argv[1]), sortMethod=xbmcplugin.SORT_METHOD_GENRE)
-        
+
 
 def get_dir_size(start_path):
     print 'Calculating size of %s' % start_path
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(start_path):
+    for dirpath, _, filenames in os.walk(start_path):
         for each_file in filenames:
             fpath = os.path.join(dirpath, each_file)
             total_size += os.path.getsize(fpath)
     print 'Calculated: %s' % total_size
     return total_size
-        
+
 
 def format_eta(seconds):
     minutes, seconds = divmod(seconds, 60)
@@ -372,29 +374,29 @@ def format_time(seconds):
 
 def filename_filter_out_year(name=''):
     try:
-        years=re.compile(' \((\d+)\)').findall('__'+name+'__')
-        for year in years: name=name.replace(' ('+year+')','')
-        name=name.replace('[B]','').replace('[/B]','').replace('[/COLOR]','').replace('[COLOR green]','')
-        name=name.strip()
+        years = re.compile(' \((\d+)\)').findall('__' + name + '__')
+        for year in years: name = name.replace(' (' + year + ')', '')
+        name = name.replace('[B]', '').replace('[/B]', '').replace('[/COLOR]', '').replace('[COLOR green]', '')
+        name = name.strip()
         return name
     except: name.strip(); return name
 
 def unpack_query(query):
-    expected_keys = ('title','tag','country','genre','actor','director','year','month','decade')
-    criteria=json.loads(query)
+    expected_keys = ('title', 'tag', 'country', 'genre', 'actor', 'director', 'year', 'month', 'decade')
+    criteria = json.loads(query)
     for key in expected_keys:
-        if key not in criteria: criteria[key]= ''
+        if key not in criteria: criteria[key] = ''
 
     return criteria
 
 def get_xbmc_fav_urls():
-    xbmc_favs=get_xbmc_favs()
-    fav_urls=[]
+    xbmc_favs = get_xbmc_favs()
+    fav_urls = []
     for fav in xbmc_favs:
         if 'path' in fav:
-            fav_url=fav['path']
+            fav_url = fav['path']
         elif 'windowparameter' in fav:
-            fav_url=fav['windowparameter']
+            fav_url = fav['windowparameter']
         else:
             continue
 
@@ -403,18 +405,18 @@ def get_xbmc_fav_urls():
 
 def in_xbmc_favs(url, fav_urls, ignore_dialog=True):
     if ignore_dialog:
-        fav_urls = (fav_url.replace('&dialog=True','').replace('&dialog=False','') for fav_url in fav_urls)
-    
+        fav_urls = (fav_url.replace('&dialog=True', '').replace('&dialog=False', '') for fav_url in fav_urls)
+
     if url in fav_urls:
         return True
     else:
         return False
-    
+
 def get_xbmc_favs():
-    favs=[]
+    favs = []
     cmd = '{"jsonrpc": "2.0", "method": "Favourites.GetFavourites", "params": {"type": null, "properties": ["path", "windowparameter"]}, "id": 1}'
     result = xbmc.executeJSONRPC(cmd)
-    result=json.loads(result)
+    result = json.loads(result)
     if 'error' not in result:
         if result['result']['favourites'] is not None:
             for fav in result['result']['favourites']:
@@ -425,23 +427,23 @@ def get_xbmc_favs():
 
 # Run a task on startup. Settings and mode values must match task name
 def do_startup_task(task):
-    run_on_startup=_1CH.get_setting('auto-%s' % task)=='true' and _1CH.get_setting('%s-during-startup' % task) == 'true' 
+    run_on_startup = _1CH.get_setting('auto-%s' % task) == 'true' and _1CH.get_setting('%s-during-startup' % task) == 'true'
     if run_on_startup and not xbmc.abortRequested:
         log('Service: Running startup task [%s]' % (task))
         now = datetime.datetime.now()
         xbmc.executebuiltin('RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task))
         _1CH.set_setting('%s-last_run' % (task), now.strftime("%Y-%m-%d %H:%M:%S.%f"))
-    
+
 # Run a recurring scheduled task. Settings and mode values must match task name
 def do_scheduled_task(task, isPlaying):
     now = datetime.datetime.now()
     if _1CH.get_setting('auto-%s' % task) == 'true':
-        next_run=get_next_run(task)
-        #log("Update Status on [%s]: Currently: %s Will Run: %s" % (task, now, next_run))
+        next_run = get_next_run(task)
+        # log("Update Status on [%s]: Currently: %s Will Run: %s" % (task, now, next_run))
         if now >= next_run:
             is_scanning = xbmc.getCondVisibility('Library.IsScanningVideo')
             if not is_scanning:
-                during_playback = _1CH.get_setting('%s-during-playback' % (task))=='true'
+                during_playback = _1CH.get_setting('%s-during-playback' % (task)) == 'true'
                 if during_playback or not isPlaying:
                     log('Service: Running Scheduled Task: [%s]' % (task))
                     builtin = 'RunPlugin(plugin://plugin.video.1channel/?mode=%s)' % (task)
@@ -456,19 +458,30 @@ def get_next_run(task):
     # strptime mysteriously fails sometimes with TypeError; this is a hacky workaround
     # note, they aren't 100% equal as time.strptime loses fractional seconds but they are close enough
     try:
-        last_run=datetime.datetime.strptime(_1CH.get_setting(task+'-last_run'), "%Y-%m-%d %H:%M:%S.%f")
+        last_run = datetime.datetime.strptime(_1CH.get_setting(task + '-last_run'), "%Y-%m-%d %H:%M:%S.%f")
     except TypeError:
-        last_run=datetime.datetime(*(time.strptime(_1CH.get_setting(task+'-last_run'), '%Y-%m-%d %H:%M:%S.%f')[0:6]))
-    interval=datetime.timedelta(hours=hours_list[MODES.UPD_SUBS][int(_1CH.get_setting(task+'-interval'))])
-    return (last_run+interval)
-    
+        last_run = datetime.datetime(*(time.strptime(_1CH.get_setting(task + '-last_run'), '%Y-%m-%d %H:%M:%S.%f')[0:6]))
+    interval = datetime.timedelta(hours=hours_list[MODES.UPD_SUBS][int(_1CH.get_setting(task + '-interval'))])
+    return (last_run + interval)
+
 def log(msg, level=xbmc.LOGNOTICE):
     # override message level to force logging when addon logging turned on
-    if _1CH.get_setting('addon_debug')=='true' and level==xbmc.LOGDEBUG:
-        level=xbmc.LOGNOTICE
-        
-    try: _1CH.log(msg, level)
-    except: 
-        try: xbmc.log('Logging Failure', level)
-        except: pass # just give up
+    if _1CH.get_setting('addon_debug') == 'true' and level == xbmc.LOGDEBUG:
+        level = xbmc.LOGNOTICE
 
+    try: _1CH.log(msg, level)
+    except:
+        try: xbmc.log('Logging Failure', level)
+        except: pass  # just give up
+
+def notify(header=None, msg='', duration=2000):
+    if header is None: header = _1CH.get_name()
+    builtin = "XBMC.Notification(%s,%s, %s, %s)" % (header, msg, duration, ICON_PATH)
+    xbmc.executebuiltin(builtin)
+
+def i18n(string_id):
+    try:
+        return _1CH.get_string(strings.STRINGS[string_id]).encode('utf-8', 'ignore')
+    except Exception as e:
+        log('Failed String Lookup: %s (%s)' % (string_id, e))
+        return string_id
