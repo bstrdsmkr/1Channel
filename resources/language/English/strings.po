@@ -10,6 +10,203 @@ msgstr ""
 "Language: English\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+
+msgctxt "#30000"
+msgid "Import Failed"
+msgstr ""
+
+msgctxt "#30001"
+msgid "Remove from ToWatch List"
+msgstr ""
+
+msgctxt "#30002"
+msgid "Remove from Watched list"
+msgstr ""
+
+msgctxt "#30003"
+msgid "Remove from Favorites"
+msgstr ""
+
+msgctxt "#30004"
+msgid "%s added to Favorites"
+msgstr ""
+
+msgctxt "#30005"
+msgid "%s already in Favorites"
+msgstr ""
+
+msgctxt "#30006"
+msgid "Favorite Removed"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Resume from %s"
+msgstr ""
+
+msgctxt "#30008"
+msgid "Resume?"
+msgstr ""
+
+msgctxt "#30009"
+msgid "Start from beginning"
+msgstr ""
+
+msgctxt "#30010"
+msgid "Resume"
+msgstr ""
+
+msgctxt "#30011"
+msgid "No sources were found for this item"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Choose your stream"
+msgstr ""
+
+msgctxt "#30013"
+msgid "Trying Source:    "
+msgstr ""
+
+msgctxt "#30014"
+msgid "Playback Failed: %s"
+msgstr ""
+
+msgctxt "#30015"
+msgid "All Sources Failed to Play"
+msgstr ""
+
+msgctxt "#30016"
+msgid "Link Resolve Failed: %s"
+msgstr ""
+
+msgctxt "#30017"
+msgid "Axel [COLOR blue]ENABLED[/COLOR] but [COLOR red]NOT INSTALLED[/COLOR]"
+msgstr ""
+
+msgctxt "#30018"
+msgid "Search TV Shows'"
+msgstr ""
+
+msgctxt "#30019"
+msgid "Search Movies"
+msgstr ""
+
+msgctxt "#30020"
+msgid "Blank searches are not allowed unless [B]Paginate Search Results[/B] is enabled."
+msgstr ""
+
+msgctxt "#30021"
+msgid "Site Blocked? Unexpected page received."
+msgstr ""
+
+msgctxt "#30022"
+msgid "Skip to Page"
+msgstr ""
+
+msgctxt "#30023"
+msgid "Next Page"
+msgstr ""
+
+msgctxt "#30024"
+msgid "The 1Channel/PrimeWire addon is developed and supported by the team at [COLOR white]www.tvaddons.ag[/COLOR]"
+msgstr ""
+
+msgctxt "#30025"
+msgid "If you are having issues with the addon, visit our Forums for help. We also invite you to visit us regularly to show your support."
+msgstr ""
+
+msgctxt "#30026"
+msgid "[I](This message is [B]only[/B] shown when the 1Channel addon is first installed or updated.)[/I]"
+msgstr ""
+
+msgctxt "#30027"
+msgid "Movies"
+msgstr ""
+
+msgctxt "#30028"
+msgid "TV Shows"
+msgstr ""
+
+msgctxt "#30029"
+msgid "Playlists"
+msgstr ""
+
+msgctxt "#30030"
+msgid "Install 1Channel Themes/Icons"
+msgstr ""
+
+msgctxt "#30031"
+msgid "URLResolver Settings"
+msgstr ""
+
+msgctxt "#30032"
+msgid "Help"
+msgstr ""
+
+msgctxt "#30033"
+msgid "A-Z"
+msgstr ""
+
+msgctxt "#30034"
+msgid "Search"
+msgstr ""
+
+msgctxt "#30035"
+msgid "Website Favourites"
+msgstr ""
+
+msgctxt "#30036"
+msgid "Website Watched List"
+msgstr ""
+
+msgctxt "#30037"
+msgid "Website To Watch List"
+msgstr ""
+
+msgctxt "#30038"
+msgid "My TV Schedule"
+msgstr ""
+
+msgctxt "#30039"
+msgid "Favourites"
+msgstr ""
+
+msgctxt "#30040"
+msgid "Subscriptions"
+msgstr ""
+
+msgctxt "#30041"
+msgid "Genres"
+msgstr ""
+
+msgctxt "#30042"
+msgid "Featured"
+msgstr ""
+
+msgctxt "#30043"
+msgid "Most Popular"
+msgstr ""
+
+msgctxt "#30044"
+msgid "Highly rated"
+msgstr ""
+
+msgctxt "#30045"
+msgid "Date released"
+msgstr ""
+
+msgctxt "#30046"
+msgid "Date added"
+msgstr ""
+
+msgctxt "#30047"
+msgid "Search (+Description)"
+msgstr ""
+
+msgctxt "#30048"
+msgid "Search (Advanced Search)"
+msgstr ""
+
 msgctxt "#30600"
 msgid "Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)"
 msgstr ""
