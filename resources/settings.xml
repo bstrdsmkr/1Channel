@@ -1,149 +1,148 @@
 <settings>
-	<category label="Website">
-        <setting id="domain" type="labelenum" label="Domain"
-                 values="http://www.primewire.ag|http://www.1channel.ch|http://www.1channel.ag"
+	<category label="30800">
+        <setting id="domain" type="labelenum" label="30801"
+                 values="http://www.primewire.ag|http://www.1channel.ch|http://www.primewire.org|http://www.primewire.is"
                  default="http://www.primewire.ag"/>
-        <setting id="enableDomain" 	type="bool" label="Enable Custom Domain" default="false" visible="true"/>
-        <setting id="customDomain" 	type="text" label="Custom Domain" default="http://1channel.occupyuk.co.uk" enable="!eq(-1,false)" />
+        <setting id="enableDomain" 	type="bool" label="30802" default="false" visible="true"/>
+        <setting id="customDomain" 	type="text" label="30803" default="" enable="!eq(-1,false)" />
         <setting type="sep"/>
-        <setting id="site_enabled" type="bool" label="Website Integration" default="False"/>
-        <setting id="username" type="text" label="    Username" enable="eq(-1,true)" default=""/>
-        <setting id="passwd" type="text" label="    Password" enable="eq(-2,true)" default="" option="hidden"/>
-		<setting id="playlist-sub" type="number" label="    Subscription Playlist ID" enable="eq(-3,true)" default=""/>
+        <setting id="site_enabled" type="bool" label="30804" default="False"/>
+        <setting id="username" type="text" label="30805" enable="eq(-1,true)" default=""/>
+        <setting id="passwd" type="text" label="30806" enable="eq(-2,true)" default="" option="hidden"/>
+		<setting id="playlist-sub" type="number" label="30807" enable="eq(-3,true)" default=""/>
         <setting id="old_version" type="text" visible="False" default="0.0.0.0"/>
         <setting id="h99_hidden" type="bool" label="H99's Hidden Menu" visible="false" default="false"/>
         <setting id="show_splash" type="bool" label="Show Upgrade Splash" visible="false" default="true"/>
 	</category>
 
-	<category label="User Interface">
-        <setting id="theme" type="enum" label="30800" values="Classic|Glossy Black|PrimeWire|Firestorm" default="0" enable="System.HasAddon(script.1channel.themepak)"/>
-        <setting id="playlist-sort" type="enum" label="Playlist Sort Order" values="Order Added|Alphabetic|Popularity" default="0"/>
+	<category label="30808">
+        <setting id="theme" type="enum" label="30809" values="Classic|Glossy Black|PrimeWire|Firestorm" default="0" enable="System.HasAddon(script.1channel.themepak)"/>
+        <setting id="playlist-sort" type="enum" label="30810" lvalues="30811|30812|30813" default="0"/>
         <setting type="sep"/>
-        <setting id="auto-view" type="bool" label="Set Default Views" default="false"/>
-        <setting id="movies-view" type="number" label="    Movies View" default="503" enable="!eq(-1,false)"/>
-        <setting id="tvshows-view" type="number" label="    TV Shows View" default="503" enable="!eq(-2,false)"/>
-        <setting id="seasons-view" type="number" label="    Seasons View" default="504" enable="!eq(-3,false)"/>
-        <setting id="episodes-view" type="number" label="    Episodes View" default="504" enable="!eq(-4,false)"/>
-        <setting id="actors-view" type="number" label="    Actors/Directors/Cast View" default="500"
-                 enable="!eq(-5,false)"/>
-        <setting id="default-view" type="number" label="    Default View" default="50" enable="!eq(-6,false)"/>
+        <setting id="auto-view" type="bool" label="30814" default="false"/>
+        <setting id="movies-view" type="number" label="30815" default="503" enable="!eq(-1,false)"/>
+        <setting id="tvshows-view" type="number" label="30816" default="503" enable="!eq(-2,false)"/>
+        <setting id="seasons-view" type="number" label="30817" default="504" enable="!eq(-3,false)"/>
+        <setting id="episodes-view" type="number" label="30818" default="504" enable="!eq(-4,false)"/>
+        <setting id="actors-view" type="number" label="30819" default="500" enable="!eq(-5,false)"/>
+        <setting id="default-view" type="number" label="30820" default="50" enable="!eq(-6,false)"/>
 	</category>
 
-    <category label="Video Playback">
-        <setting id="auto-play" type="bool" label="30905" default="false"/>
-		<setting id="source-win" type="labelenum" label="     Source Selection Method" values="Directory|Dialog" default="Dialog"/>
-        <setting id="auto-watch" type="bool" label="30801" default="true"/>
-        <setting label="30802" type="slider" id="watched-percent" range="70,1,100" option="int"  default="85" enable="!eq(-1,false)"/>
-		<setting label="Use Axel Downloader ([COLOR red]EXPERIMENTAL[/COLOR] download accelerator)" type="bool" id="enable-axel" default="false"/>
-        <setting id="sorting-enabled" type="bool" label="30900" default="false"/>
-        <setting id="host-rank" type="text" label="30901" visible="!eq(-1,false)"/>
-        <setting id="first-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30902"
+    <category label="30821">
+        <setting id="auto-play" type="bool" label="30822" default="false"/>
+		<setting id="source-win" type="labelenum" label="30823" values="Dialog|Directory" default="Dialog"/>
+        <setting id="auto-watch" type="bool" label="30824" default="true"/>
+        <setting label="30825" type="slider" id="watched-percent" range="70,1,100" option="int"  default="85" enable="!eq(-1,false)"/>
+		<setting label="30826" type="bool" id="enable-axel" default="false"/>
+        <setting id="sorting-enabled" type="bool" label="30827" default="false"/>
+        <setting id="host-rank" type="text" label="30828" visible="!eq(-1,false)"/>
+        <setting id="first-sort" type="enum" lvalues="30830|30831|30832|30833|30834|30835" label="30829"
                  default="0" visible="!eq(-2,false)"/>
-        <setting id="first-sort-reversed" type="bool" label="30903" default="false" visible="gt(-1,0)+!eq(-3,false)"/>
-        <setting id="second-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30904"
+        <setting id="first-sort-reversed" type="bool" label="30836" default="false" visible="gt(-1,0)+!eq(-3,false)"/>
+        <setting id="second-sort" type="enum" lvalues="30830|30831|30832|30833|30834|30835" label="30837"
                  default="0" visible="gt(-2,0)+!eq(-4,false)"/>
-        <setting id="second-sort-reversed" type="bool" label="30903" default="true"
+        <setting id="second-sort-reversed" type="bool" label="30836" default="true"
                  visible="gt(-1,0)+gt(-3,0)+!eq(-5,false)"/>
-        <setting id="third-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30904"
+        <setting id="third-sort" type="enum" lvalues="30830|30831|30832|30833|30834|30835" label="30837"
                  default="0" visible="gt(-2,0)+gt(-4,0)+!eq(-6,false)"/>
-        <setting id="third-sort-reversed" type="bool" label="30903" default="true"
+        <setting id="third-sort-reversed" type="bool" label="30836" default="true"
                  visible="gt(-1,0)+gt(-3,0)+gt(-5,0)+!eq(-7,false)"/>
-        <setting id="fourth-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30904"
+        <setting id="fourth-sort" type="enum" lvalues="30830|30831|30832|30833|30834|30835" label="30837"
                  default="0" visible="gt(-2,0)+gt(-4,0)+gt(-6,0)+!eq(-8,false)"/>
-        <setting id="fourth-sort-reversed" type="bool" label="30903" default="true"
+        <setting id="fourth-sort-reversed" type="bool" label="31038" default="true"
                  visible="gt(-1,0)+gt(-3,0)+gt(-5,0)+gt(-7,0)+!eq(-9,false)"/>
-        <setting id="fifth-sort" type="enum" values="None|Host|Verified|Quality|Views|Multi-part" label="30904"
+        <setting id="fifth-sort" type="enum" lvalues="30830|30831|30832|30833|30834|30835" label="30837"
                  default="0" visible="gt(-2,0)+gt(-4,0)+gt(-6,0)+gt(-8,0)+!eq(-10,false)"/>
-        <setting id="fifth-sort-reversed" type="bool" label="30903" default="true"
+        <setting id="fifth-sort-reversed" type="bool" label="30836" default="true"
                  visible="gt(-1,0)+gt(-3,0)+gt(-5,0)+gt(-7,0)+gt(-9,0)+!eq(-11,false)"/>
     </category>
     
-    <category label="Performance">
-        <setting id="dir-cache" type="bool" label="Cache Directory Listings (ON=Faster, but triggers XBMC bugs in resume)" default="false"/>
-        <setting id="filter-source" type="bool" label="Filter Source Lists (OFF=Faster, but shows unusable sources)" default="true"/>Robinso
-		<setting id="paginate" label="Paginate Website Results (ON=Faster and avoids runaway results)"  type="bool" default="true"/>
-		<setting id="paginate-favs" type="bool" label="      Paginate Website Favorites" enable="eq(-1,true)" visible="eq(-1,true)"  default="false"/>
-		<setting id="paginate-watched" type="bool" label="      Paginate Website Watched" enable="eq(-2,true)" visible="eq(-2,true)" default="false"/>
-		<setting id="paginate-towatch" type="bool" label="      Paginate Website To Watch" enable="eq(-3,true)" visible="eq(-3,true)" default="false"/>
-		<setting id="paginate-search" type="bool" label="      Paginate Search Results"  enable="eq(-4,true)" visible="eq(-4,true)" default="false"/>
-		<setting id="paginate-lists" type="bool" label="      Paginate Built-in Lists (e.g. Most Popular, Featured, etc.)"  enable="eq(-5,true)" visible="eq(-5,true)" default="true"/>
+    <category label="30838">
+        <setting id="dir-cache" type="bool" label="30839" default="false"/>
+        <setting id="filter-source" type="bool" label="30840" default="true"/>
+		<setting id="paginate" label="30841"  type="bool" default="true"/>
+		<setting id="paginate-favs" type="bool" label="30842" enable="eq(-1,true)" visible="eq(-1,true)"  default="false"/>
+		<setting id="paginate-watched" type="bool" label="30843" enable="eq(-2,true)" visible="eq(-2,true)" default="false"/>
+		<setting id="paginate-towatch" type="bool" label="30844" enable="eq(-3,true)" visible="eq(-3,true)" default="false"/>
+		<setting id="paginate-search" type="bool" label="30845"  enable="eq(-4,true)" visible="eq(-4,true)" default="false"/>
+		<setting id="paginate-lists" type="bool" label="30846"  enable="eq(-5,true)" visible="eq(-5,true)" default="true"/>
         <setting type="sep"/>
-        <setting id="use-meta" type="bool" label="30600" default="true"/>
-        <setting id="meta-path" type="action" label="30601" enable="eq(-1,true)"
+        <setting id="use-meta" type="bool" label="30847" default="true"/>
+        <setting id="meta-path" type="action" label="30848" enable="eq(-1,true)"
                  action="RunPlugin(plugin://plugin.video.1channel/?mode=9988)" option="close"/>
-        <setting id="enable-fanart" type="bool" label="30602" enable="eq(-2,true)" default="true"/>
-        <setting id="posters-fallback" type="bool" label="30604" enable="eq(-3,true)" default="false"/>
+        <setting id="enable-fanart" type="bool" label="30849" enable="eq(-2,true)" default="true"/>
+        <setting id="posters-fallback" type="bool" label="30850" enable="eq(-3,true)" default="false"/>
     </category>
 
-    <category label="Library Integration">
-        <setting id="tvshow-folder" type="folder" label="30803"
+    <category label="30851">
+        <setting id="tvshow-folder" type="folder" label="30852"
                  default="special://userdata/addon_data/plugin.video.1channel/TVShows"/>
-        <setting id="movie-folder" type="folder" label="30804"
+        <setting id="movie-folder" type="folder" label="30853"
                  default="special://userdata/addon_data/plugin.video.1channel/Movies"/>
-		<setting id="sub-days" type="enum" values="All Days|No Days|Every Other Day|Today|Today &amp; Tomorrow" label="Default Subscription Days" default="0"/> 
-		<setting id="first-dow" type="enum" values="Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday" label="First Day of Week" default="0"/> 
+		<setting id="sub-days" type="enum" lvalues="30854|30855|30856|30857|30858" label="Default Subscription Days" default="0"/> 
+		<setting id="first-dow" type="enum" lvalues="30501|30502|30503|30504|30505|30506|30507" label="First Day of Week" default="0"/> 
 		<setting type="sep"/>
-        <setting id="auto-update_subscriptions" type="bool" label="30805" default="false"/>
-        <setting id="auto-update_towatch" type="bool" label="30816" default="true" enable="eq(-1,true)"/>
-        <setting id="update_subscriptions-interval" type="slider" range="2,1,24" option="int" label="30806" default="12" enable="eq(-2,true)"/>
-        <setting id="update_subscriptions-during-playback" type="bool" label="30809" default="true" enable="eq(-3,true)"/>
-        <setting id="update_subscriptions-during-startup" type="bool" label="30815" default="false" enable="eq(-4,true)" />
-        <setting id="library-update" type="bool" label="30807" default="true" enable="eq(-5,true)"/>
-        <setting id="cleanup-subscriptions" type="bool" label="30808" default="true" enable="eq(-6,true)"/>
-        <setting id="update_subscriptions-notify" type="bool" label="       Show Notifications" default="true" enable="eq(-7,true)"/>
-        <setting id="update_subscriptions-last_run" type="text" label="       Last Subscription Update" default="1970-01-01 23:59:00.000000" enable="false"/>
+        <setting id="auto-update_subscriptions" type="bool" label="30861" default="false"/>
+        <setting id="auto-update_towatch" type="bool" label="30862" default="true" enable="eq(-1,true)"/>
+        <setting id="update_subscriptions-interval" type="slider" range="2,1,24" option="int" label="30863" default="12" enable="eq(-2,true)"/>
+        <setting id="update_subscriptions-during-playback" type="bool" label="30864" default="true" enable="eq(-3,true)"/>
+        <setting id="update_subscriptions-during-startup" type="bool" label="30865" default="false" enable="eq(-4,true)" />
+        <setting id="library-update" type="bool" label="30866" default="true" enable="eq(-5,true)"/>
+        <setting id="cleanup-subscriptions" type="bool" label="30867" default="true" enable="eq(-6,true)"/>
+        <setting id="update_subscriptions-notify" type="bool" label="30868" default="true" enable="eq(-7,true)"/>
+        <setting id="update_subscriptions-last_run" type="text" label="30869" default="1970-01-01 23:59:00.000000" enable="false"/>
     </category>
 
-    <category label="Skin Integration">
-        <setting id="auto-update-movies-cat" type="labelenum" values="Featured|Most Popular|Highly Rated|Date Released|Date Added" label="30814" default="0" />
-        <setting id="auto-movie_update" type="bool" label="30810" default="false"/>
-        <setting enable="!eq(-1,false)" id="movie_update-during-startup" type="bool" label="30812" default="false"/>
-        <setting enable="!eq(-2,false)" id="movie_update-interval" type="enum" values="2h|5h|10h|15h|24h" label="30811" default="3" />
-        <setting label="30813" type="action" option="close" action="RunPlugin(plugin://plugin.video.1channel/?mode=movie_update)" />
+    <category label="30870">
+        <setting id="auto-update-movies-cat" type="labelenum" values="Featured|Most Popular|Highly Rated|Date Released|Date Added" label="30871" default="0" />
+        <setting id="auto-movie_update" type="bool" label="30861" default="false"/>
+        <setting enable="!eq(-1,false)" id="movie_update-during-startup" type="bool" label="30865" default="false"/>
+        <setting enable="!eq(-2,false)" id="movie_update-interval" type="enum" values="2h|5h|10h|15h|24h" label="30863" default="3" />
+        <setting label="30872" type="action" option="close" action="RunPlugin(plugin://plugin.video.1channel/?mode=movie_update)" />
         <setting id="movie_update-last_run" type="text" default="1970-01-01 23:59:00.000000" visible="false"/>
     </category>
 
-    <category label="Label Formatting">
-        <setting id="format-tvshow" type="text" label="31000" default="{ft} {fy}"/>
-        <setting id="format-tvshow-title" type="text" label="31001" default="[B]{t}[/B]"/>
-        <setting id="format-tvshow-year" type="text" label="31002" default="({y})"/>
-        <setting id="format-tvshow-sub" type="text" label="31003" default="[COLOR green]{L}[/COLOR]"/>
-        <setting id="format-tvshow-episode" type="text" label="31004" default="{s}x{e} {t}"/>
-        <setting type="sep"/>
-        <setting type="action" label="31110"/>
-        <setting id="format-movie" type="text" label="31100" default="{ft} {fy}"/>
-        <setting id="format-movie-title" type="text" label="31101" default="[B]{t}[/B]"/>
-        <setting id="format-movie-year" type="text" label="31102" default="({y})"/>
-        <setting type="sep"/>
-        <setting id="format-source" type="text" label="32000" default="[{q}] {h} {p} ({v} views)"/>
-        <setting id="format-source-verified" type="text" label="32001" default="[COLOR gold]{L}[/COLOR]"/>
-        <setting id="format-source-parts" type="text" label="32002" default="     {h} {p}"/>
-        <setting id="format-sub-days" type="text" label="Format Subscription Days" default="[COLOR deeppink]%s[/COLOR]"/>
+    <category label="30882">
+        <setting type="lsep" label="30028"/>
+        <setting id="format-tvshow" type="text" label="30873" default="{ft} {fy}"/>
+        <setting id="format-tvshow-title" type="text" label="30874" default="[B]{t}[/B]"/>
+        <setting id="format-tvshow-year" type="text" label="30875" default="({y})"/>
+        <setting id="format-tvshow-sub" type="text" label="30876" default="[COLOR green]{L}[/COLOR]"/>
+        <setting id="format-tvshow-episode" type="text" label="30877" default="{s}x{e} {t}"/>
+        <setting type="lsep" label="30027"/>
+        <setting id="format-movie" type="text" label="30873" default="{ft} {fy}"/>
+        <setting id="format-movie-title" type="text" label="30874" default="[B]{t}[/B]"/>
+        <setting id="format-movie-year" type="text" label="30875" default="({y})"/>
+        <setting type="lsep" label="30885"/>
+        <setting id="format-source" type="text" label="30879" default="[{q}] {h} {p} ({v} views)"/>
+        <setting id="format-source-verified" type="text" label="30880" default="[COLOR gold]{L}[/COLOR]"/>
+        <setting id="format-source-parts" type="text" label="30881" default="     {h} {p}"/>
+        <setting id="format-sub-days" type="text" label="30883" default="[COLOR deeppink]%s[/COLOR]"/>
     </category>
 
-	<category label="Database">
-		<setting id="use_remote_db" type="bool" label="Use a MySQL DB" default="False"/>
-        <setting id="db_address" type="text" label="    Address" enable="eq(-1,true)" visible="eq(-1,true)" default=""/>
-        <setting id="db_port" type="integer" label="    Port" enable="eq(-2,true)" visible="eq(-2,true)" default=""/>
-        <setting id="db_user" type="text" label="    Username" enable="eq(-3,true)" visible="eq(-3,true)" default=""/>
-        <setting id="db_pass" type="text" label="    Password" enable="eq(-4,true)" visible="eq(-4,true)" default="" option="hidden"/>
-        <setting id="db_name" type="text" label="    Database" enable="eq(-5,true)" visible="eq(-5,true)" default="1channel"/>
+	<category label="30886">
+		<setting id="use_remote_db" type="bool" label="30887" default="False"/>
+        <setting id="db_address" type="text" label="30888" enable="eq(-1,true)" visible="eq(-1,true)" default=""/>
+        <setting id="db_port" type="integer" label="30889" enable="eq(-2,true)" visible="eq(-2,true)" default=""/>
+        <setting id="db_user" type="text" label="30805" enable="eq(-3,true)" visible="eq(-3,true)" default=""/>
+        <setting id="db_pass" type="text" label="30806" enable="eq(-4,true)" visible="eq(-4,true)" default="" option="hidden"/>
+        <setting id="db_name" type="text" label="30892" enable="eq(-5,true)" visible="eq(-5,true)" default="1channel"/>
 		<setting type="sep"/>
-        <setting id="auto-backup_db" type="bool" label="Enable automatic 1Channel DB Backups" default="false"/>
-        <setting id="backup_db-folder" type="folder" label="     Export Folder" default="special://database" enable="eq(-1,true)" visible="eq(-1,true)"/>
-        <setting id="backup_db-interval" type="enum" values="12h|1d|7d|30d" label="     Export Interval" default="3"
+        <setting id="auto-backup_db" type="bool" label="30893" default="false"/>
+        <setting id="backup_db-folder" type="folder" label="30894" default="special://database" enable="eq(-1,true)" visible="eq(-1,true)"/>
+        <setting id="backup_db-interval" type="enum" values="12h|1d|7d|30d" label="30895" default="3"
                  enable="eq(-2,true)" visible="eq(-2,true)"/>
-        <setting id="backup_db-during-playback" type="bool" label="     During Playback?" default="true" enable="eq(-3,true)" visible="eq(-3,true)"/>
-        <setting id="backup_db-during-startup" type="bool" label="     On Startup?" default="false" enable="eq(-4,true)" visible="eq(-4,true)"/>
-        <setting id="backup_db-last_run" type="text" label="     Last DB Backup" default="1970-01-01 23:59:00.000000" visible="eq(-5,true)" enable="false"/>
+        <setting id="backup_db-during-playback" type="bool" label="30864" default="true" enable="eq(-3,true)" visible="eq(-3,true)"/>
+        <setting id="backup_db-during-startup" type="bool" label="30865" default="false" enable="eq(-4,true)" visible="eq(-4,true)"/>
+        <setting id="backup_db-last_run" type="text" label="30896" default="1970-01-01 23:59:00.000000" visible="eq(-5,true)" enable="false"/>
 		<setting type="sep"/>
-        <setting id="flush_cache" type="action" label="Flush webpage cache..." enable="true"
+        <setting id="flush_cache" type="action" label="30897" enable="true"
                  action="RunPlugin(plugin://plugin.video.1channel/?mode=flush_cache)"/>
-        <setting id="reset_db" type="action" label="Reset 1Channel DB ([COLOR red]SQLITE Only[/COLOR])" enable="true"
+        <setting id="reset_db" type="action" label="30898" enable="true"
                  action="RunPlugin(plugin://plugin.video.1channel/?mode=reset_db)"/>
-		<setting id="db_export" type="action" label="Export data from 1Channel DB" enable="true"
+		<setting id="db_export" type="action" label="30899" enable="true"
 				action="RunPlugin(plugin://plugin.video.1channel/?mode=export_db)"/>
-		<setting id="db_import" type="action" label="Import data into 1Channel DB" enable="true"
+		<setting id="db_import" type="action" label="30900" enable="true"
 				action="RunPlugin(plugin://plugin.video.1channel/?mode=import_db)"/>
 	</category>
 </settings>

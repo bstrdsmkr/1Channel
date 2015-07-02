@@ -135,7 +135,6 @@ STRINGS = {
            'export': 30116,
            'select_import_file': 30117,
            'imported_from': 30118,
-           'import_failed': 30119,
            'import': 30120,
            'days_upd_sub': 30121,
            'are_you_sure_you_want_to': 30122,

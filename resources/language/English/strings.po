@@ -10,7 +10,6 @@ msgstr ""
 "Language: English\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-
 msgctxt "#30000"
 msgid "Import Failed"
 msgstr ""
@@ -487,9 +486,7 @@ msgctxt "#30118"
 msgid "Imported from %s"
 msgstr ""
 
-msgctxt "#30119"
-msgid "Import Failed"
-msgstr ""
+# 30119 removed
 
 msgctxt "#30120"
 msgid "Import"
@@ -550,6 +547,8 @@ msgstr ""
 msgctxt "#30134"
 msgid "Year must be a 4 digit number between %s and %s."
 msgstr ""
+
+# Window Strings
 
 msgctxt "#30500"
 msgid "Select Subscription Days"
@@ -631,171 +630,408 @@ msgctxt "#30519"
 msgid "Decade"
 msgstr ""
 
-msgctxt "#30520"
-msgid "Search"
-msgstr ""
-
-msgctxt "#30521"
-msgid "Cancel"
-msgstr ""
-
-msgctxt "#30600"
-msgid "Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)"
-msgstr ""
-
-msgctxt "#30601"
-msgid "       MetaData Settings..."
-msgstr ""
-
-msgctxt "#30602"
-msgid "       Enable Fanart"
-msgstr ""
-
-msgctxt "#30604"
-msgid "       Fallback to PW Posters if Cover Art unavailable"
-msgstr ""
+# Settings Strings
 
 msgctxt "#30800"
-msgid "Theme ([COLOR red]Requires 1channel Themepak Addon[/COLOR])"
+msgid "Website"
 msgstr ""
 
 msgctxt "#30801"
-msgid "Automatically mark videos as watched"
+msgid "Domain"
 msgstr ""
 
 msgctxt "#30802"
-msgid "       Mark Watched Percentage"
+msgid "Enable Custom Domain"
 msgstr ""
 
 msgctxt "#30803"
-msgid "TV Show Folder:"
+msgid "Custom Domain"
 msgstr ""
 
 msgctxt "#30804"
-msgid "Movie Folder:"
+msgid "Website Integration"
 msgstr ""
 
+#. Retain 3 spaces at the start of string
 msgctxt "#30805"
-msgid "Enable automatic subscription updates"
+msgid "    Username"
 msgstr ""
 
-msgctxt "#30816"
-msgid "       Add ToWatch movies to library"
-msgstr ""
-
+#. Retain 3 spaces at the start of string
 msgctxt "#30806"
-msgid "       Subscription update interval (in hours)"
+msgid "    Password"
 msgstr ""
 
-msgctxt "#30815"
-msgid "       Run on start up"
-msgstr ""
-
+#. Retain 3 spaces at the start of string
 msgctxt "#30807"
-msgid "       Update library afterward?"
+msgid "    Subscription Playlist ID"
 msgstr ""
 
 msgctxt "#30808"
-msgid "       Clean Up subscriptions for ended shows"
+msgid "User Interface"
 msgstr ""
 
 msgctxt "#30809"
-msgid "       During Playback?"
+msgid "Theme ([COLOR red]Requires 1channel Themepak Addon[/COLOR])"
 msgstr ""
 
 msgctxt "#30810"
-msgid "Enable automatic movie update"
+msgid "Playlist Sort Order"
 msgstr ""
 
 msgctxt "#30811"
-msgid "       Update interval"
+msgid "Order Added"
 msgstr ""
 
 msgctxt "#30812"
-msgid "       Run on start up"
+msgid "Alphabetic"
 msgstr ""
 
 msgctxt "#30813"
-msgid "Update Now"
+msgid "Popularity"
 msgstr ""
 
 msgctxt "#30814"
-msgid "Category"
+msgid "Set Default Views"
 msgstr ""
 
-msgctxt "#30906"
-msgid "Use a dialog for source selection"
+#. Retain 3 spaces at the start of string
+msgctxt "#30815"
+msgid "   Movies View"
 msgstr ""
 
-msgctxt "#30905"
+#. Retain 3 spaces at the start of string
+msgctxt "#30816"
+msgid "    TV Shows View"
+msgstr ""
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30817"
+msgid "    Seasons View"
+msgstr ""
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30818"
+msgid "    Episodes View"
+msgstr ""
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30819"
+msgid "    Actors/Directors/Cast View"
+msgstr ""
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30820"
+msgid "    Default View"
+msgstr ""
+
+msgctxt "#30821"
+msgid "Video Playback"
+msgstr ""
+
+msgctxt "#30822"
 msgid "Automatically play sources"
 msgstr ""
 
-msgctxt "#30900"
+msgctxt "#30823"
+msgid "     Source Selection Method"
+msgstr ""
+
+msgctxt "#30824"
+msgid "Automatically mark videos as watched"
+msgstr ""
+
+msgctxt "#30825"
+msgid "       Mark Watched Percentage"
+msgstr ""
+
+msgctxt "#30826"
+msgid "Use Axel Downloader ([COLOR red]EXPERIMENTAL[/COLOR] download accelerator)"
+msgstr ""
+
+msgctxt "#30827"
 msgid "Enable sorting of sources"
 msgstr ""
 
-msgctxt "#30901"
+msgctxt "#30828"
 msgid "     Host Ranking (comma separated)"
 msgstr ""
 
-msgctxt "#30902"
+msgctxt "#30829"
 msgid "     Sort by:"
 msgstr ""
 
-msgctxt "#30903"
+msgctxt "#30830"
+msgid "None"
+msgstr ""
+
+msgctxt "#30831"
+msgid "Host"
+msgstr ""
+
+msgctxt "#30832"
+msgid "Verified"
+msgstr ""
+
+msgctxt "#30833"
+msgid "Quality"
+msgstr ""
+
+msgctxt "#30834"
+msgid "Views"
+msgstr ""
+
+msgctxt "#30835"
+msgid "Multi-part"
+msgstr ""
+
+msgctxt "#30836"
 msgid "          Reverse sort"
 msgstr ""
 
-msgctxt "#30904"
+msgctxt "#30837"
 msgid "     Then by:"
 msgstr ""
 
-msgctxt "#31000"
+msgctxt "#30838"
+msgid "Performance"
+msgstr ""
+
+msgctxt "#30839"
+msgid "Cache Directory Listings (ON=Faster, but triggers XBMC bugs in resume)"
+msgstr ""
+
+msgctxt "#30840"
+msgid "Filter Source Lists (OFF=Faster, but shows unusable sources)"
+msgstr ""
+
+msgctxt "#30841"
+msgid "Paginate Website Results (ON=Faster and avoids runaway results)"
+msgstr ""
+
+msgctxt "#30842"
+msgid "      Paginate Website Favorites"
+msgstr ""
+
+msgctxt "#30843"
+msgid "      Paginate Website Watched"
+msgstr ""
+
+msgctxt "#30844"
+msgid "      Paginate Website To Watch"
+msgstr ""
+
+msgctxt "#30845"
+msgid "      Paginate Search Results"
+msgstr ""
+
+msgctxt "#30846"
+msgid "      Paginate Built-in Lists (e.g. Most Popular, Featured, etc.)"
+msgstr ""
+
+msgctxt "#30847"
+msgid "Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)"
+msgstr ""
+
+msgctxt "#30848"
+msgid "       MetaData Settings..."
+msgstr ""
+
+msgctxt "#30849"
+msgid "       Enable Fanart"
+msgstr ""
+
+msgctxt "#30850"
+msgid "       Fallback to PW Posters if Cover Art unavailable"
+msgstr ""
+
+msgctxt "#30851"
+msgid "Library Integration"
+msgstr ""
+
+msgctxt "#30852"
+msgid "TV Show Folder:"
+msgstr ""
+
+msgctxt "#30853"
+msgid "Movie Folder:"
+msgstr ""
+
+msgctxt "#30854"
+msgid "All Days"
+msgstr ""
+
+msgctxt "#30855"
+msgid "No Days"
+msgstr ""
+
+msgctxt "#30856"
+msgid "Every Other Day"
+msgstr ""
+
+msgctxt "#30857"
+msgid "Today"
+msgstr ""
+
+msgctxt "#30858"
+msgid "Today + Tomorrow"
+msgstr ""
+
+msgctxt "#30859"
+msgid "Default Subscription Days"
+msgstr ""
+
+msgctxt "#30860"
+msgid "First Day of Week"
+msgstr ""
+
+msgctxt "#30861"
+msgid "Enable automatic subscription updates"
+msgstr ""
+
+msgctxt "#30862"
+msgid "       Add ToWatch movies to library"
+msgstr ""
+
+msgctxt "#30863"
+msgid "       Subscription update interval (in hours)"
+msgstr ""
+
+msgctxt "#30864"
+msgid "       Run on start up"
+msgstr ""
+
+msgctxt "#30865"
+msgid "       Update library afterward?"
+msgstr ""
+
+msgctxt "#30866"
+msgid "       Clean Up subscriptions for ended shows"
+msgstr ""
+
+msgctxt "#30867"
+msgid "       During Playback?"
+msgstr ""
+
+msgctxt "#30868"
+msgid "       Show Notifications"
+msgstr ""
+
+msgctxt "#30869"
+msgid "       Last Subscription Update"
+msgstr ""
+
+msgctxt "#30870"
+msgid "Skin Integration"
+msgstr ""
+
+msgctxt "#30871"
+msgid "Category"
+msgstr ""
+
+msgctxt "#30872"
+msgid "Update Now"
+msgstr ""
+
+msgctxt "#30873"
 msgid "Base:"
 msgstr ""
 
-msgctxt "#31001"
+msgctxt "#30874"
 msgid "Title:"
 msgstr ""
 
-msgctxt "#31002"
+msgctxt "#30875"
 msgid "Year:"
 msgstr ""
 
-msgctxt "#31003"
+msgctxt "#30876"
 msgid "Subscribed:"
 msgstr ""
 
-msgctxt "#31004"
+msgctxt "#30877"
 msgid "Episodes:"
 msgstr ""
 
-msgctxt "#31110"
-msgid "Movies"
-msgstr ""
+# 30878 removed
 
-msgctxt "#31100"
-msgid "Base:"
-msgstr ""
-
-msgctxt "#31101"
-msgid "Title:"
-msgstr ""
-
-msgctxt "#31102"
-msgid "Year:"
-msgstr ""
-
-msgctxt "#32000"
+msgctxt "#30879"
 msgid "Source:"
 msgstr ""
 
-msgctxt "#32001"
+msgctxt "#30880"
 msgid "Verified Sources:"
 msgstr ""
 
-msgctxt "#32002"
+msgctxt "#30881"
 msgid "Subsequent parts:"
+msgstr ""
+
+msgctxt "#30882"
+msgid "Label Formatting"
+msgstr ""
+
+msgctxt "#30883"
+msgid "Format Subscription Days"
+msgstr ""
+
+# 30884 removed
+
+msgctxt "#30885"
+msgid "Sources"
+msgstr ""
+
+msgctxt "#30886"
+msgid "Database"
+msgstr ""
+
+msgctxt "#30887"
+msgid "Use a MySQL DB"
+msgstr ""
+
+msgctxt "#30888"
+msgid "    Address"
+msgstr ""
+
+msgctxt "#30889"
+msgid "    Port"
+msgstr ""
+
+# 30890 & 30891 removed
+
+msgctxt "#30892"
+msgid "    Database"
+msgstr ""
+
+msgctxt "#30893"
+msgid "Enable automatic 1Channel DB Backups"
+msgstr ""
+
+msgctxt "#30894"
+msgid "       Export Folder"
+msgstr ""
+
+msgctxt "#30895"
+msgid "       Export Interval"
+msgstr ""
+
+msgctxt "#30896"
+msgid "       Last DB Backup"
+msgstr ""
+
+msgctxt "#30897"
+msgid "Flush webpage cache..."
+msgstr ""
+
+msgctxt "#30898"
+msgid "Reset 1Channel DB ([COLOR red]SQLITE Only[/COLOR])"
+msgstr ""
+
+msgctxt "#30899"
+msgid "Export data from 1Channel DB"
+msgstr ""
+
+msgctxt "#30900"
+msgid "Import data into 1Channel DB"
 msgstr ""
 

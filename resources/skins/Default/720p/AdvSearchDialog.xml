@@ -166,7 +166,7 @@
 				<height>40</height>
 				<align>center</align>
 				<aligny>center</aligny>
-				<label>$ADDON[plugin.video.1channel 30520]</label>
+				<label>$ADDON[plugin.video.1channel 30034]</label>
 				<font>font12_title</font>
 				<ondown>201</ondown>
 				<onright>201</onright>
@@ -179,7 +179,7 @@
 				<height>40</height>
 				<align>center</align>
 				<aligny>center</aligny>
-				<label>$ADDON[plugin.video.1channel 30521]</label>
+				<label>$ADDON[plugin.video.1channel 30510]</label>
 				<font>font12_title</font>
 				<onup>200</onup>
 				<onleft>200</onleft>
