@@ -285,7 +285,7 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
         search_meta = __metaget__.search_movies(search_title)
     log('search_meta: %s' % search_meta, xbmc.LOGDEBUG)
 
-    option_list = ['Manual Search...']
+    option_list = ['%s...' % (i18n('manual_search'))]
     if search_meta:
         for option in search_meta:
             if 'year' in option and option['year'] is not None:
@@ -295,7 +295,7 @@ def refresh_meta(video_type, old_title, imdb, alt_id, year, new_title=''):
             option_list.append(disptitle)
 
     dialog = xbmcgui.Dialog()
-    index = dialog.select('Choose', option_list)
+    index = dialog.select(i18n('choose'), option_list)
 
     if index == 0:
         refresh_meta_manual(video_type, old_title, imdb, alt_id, year)
@@ -319,7 +319,7 @@ def refresh_meta_manual(video_type, old_title, imdb, alt_id, year):
         disptitle = '%s (%s)' % (old_title, year)
     else:
         disptitle = old_title
-    keyboard.setHeading('Enter a title')
+    keyboard.setHeading(i18n('enter_a_title'))
     keyboard.setDefault(disptitle)
     keyboard.doModal()
     if keyboard.isConfirmed():

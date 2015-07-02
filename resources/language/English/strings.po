@@ -519,6 +519,18 @@ msgctxt "#30126"
 msgid "Updating. Please wait..."
 msgstr ""
 
+msgctxt "#30127"
+msgid "Manual Search"
+msgstr ""
+
+msgctxt "#30128"
+msgid "Choose"
+msgstr ""
+
+msgctxt "#30129"
+msgid "Enter a Title"
+msgstr ""
+
 msgctxt "#30600"
 msgid "Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)"
 msgstr ""

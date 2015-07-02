@@ -142,5 +142,8 @@ STRINGS = {
            'delete_the_url_cache': 30123,
            'slow_things_down': 30124,
            'flush_web_cache': 30125,
-           'updating_wait': 30126
+           'updating_wait': 30126,
+           'manual_search': 30127,
+           'choose': 30128,
+           'enter_a_title': 30129
 }
