@@ -442,9 +442,7 @@ msgctxt "#30107"
 msgid "Edit days"
 msgstr ""
 
-msgctxt "#30108"
-msgid "Cancel subscription"
-msgstr ""
+# 30108 removed
 
 msgctxt "#30109"
 msgid "Page"
