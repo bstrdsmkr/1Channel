@@ -32,7 +32,7 @@
 				<width>330</width>
 				<height>30</height>
 				<font>font13_title</font>
-				<label>Select Subscription Days</label>
+				<label>$ADDON[plugin.video.1channel 30500]</label>
 				<align>center</align>
 				<aligny>center</aligny>
 				<textcolor>selected</textcolor>
@@ -61,7 +61,7 @@
 				<width>350</width>
 				<height>30</height>
 				<font>font12</font>
-				<label>Monday</label>
+				<label>$ADDON[plugin.video.1channel 30501]</label>
 			</control>
 			<control type="radiobutton" id="77771">
 				<posx>0</posx>
@@ -69,7 +69,7 @@
 				<width>350</width>
 				<height>30</height>
 				<font>font12</font>
-				<label>Tuesday</label>
+				<label>$ADDON[plugin.video.1channel 30502]</label>
 			</control>
 			<control type="radiobutton" id="77772">
 				<posx>0</posx>
@@ -77,7 +77,7 @@
 				<width>350</width>
 				<height>30</height>
 				<font>font12</font>
-				<label>Wednesday</label>
+				<label>$ADDON[plugin.video.1channel 30503]</label>
 			</control>
 			<control type="radiobutton" id="77773">
 				<posx>0</posx>
@@ -85,7 +85,7 @@
 				<width>350</width>
 				<height>30</height>
 				<font>font12</font>
-				<label>Thursday</label>
+				<label>$ADDON[plugin.video.1channel 30504]</label>
 			</control>
 			<control type="radiobutton" id="77774">
 				<posx>0</posx>
@@ -93,7 +93,7 @@
 				<width>350</width>
 				<height>30</height>
 				<font>font12</font>
-				<label>Friday</label>
+				<label>$ADDON[plugin.video.1channel 30505]</label>
 			</control>
 			<control type="radiobutton" id="77775">
 				<posx>0</posx>
@@ -101,7 +101,7 @@
 				<width>350</width>
 				<height>30</height>
 				<font>font12</font>
-				<label>Saturday</label>
+				<label>$ADDON[plugin.video.1channel 30506]</label>
 			</control>
 			<control type="radiobutton" id="77776">
 				<posx>0</posx>
@@ -109,7 +109,7 @@
 				<width>350</width>
 				<height>30</height>
 				<font>font12</font>
-				<label>Sunday</label>
+				<label>$ADDON[plugin.video.1channel 30507]</label>
 			</control>
 			<control type="radiobutton" id="99">
 				<posx>0</posx>
@@ -117,7 +117,7 @@
 				<width>350</width>
 				<height>30</height>
 				<font>font12</font>
-				<label>Select/Deselect All</label>
+				<label>$ADDON[plugin.video.1channel 30508]</label>
 				<ondown>200</ondown>
 				<onright>200</onright>
 			</control>
@@ -131,7 +131,7 @@
 				<height>40</height>
 				<align>center</align>
 				<aligny>center</aligny>
-				<label>OK</label>
+				<label>$ADDON[plugin.video.1channel 30509]</label>
 				<font>font13_title</font>
 				<onup>99</onup>
 				<onleft>99</onleft>
@@ -146,7 +146,7 @@
 				<height>40</height>
 				<align>center</align>
 				<aligny>center</aligny>
-				<label>Cancel</label>
+				<label>$ADDON[plugin.video.1channel 30510]</label>
 				<font>font13_title</font>
 				<onup>200</onup>
 				<onleft>200</onleft>

@@ -551,6 +551,94 @@ msgctxt "#30134"
 msgid "Year must be a 4 digit number between %s and %s."
 msgstr ""
 
+msgctxt "#30500"
+msgid "Select Subscription Days"
+msgstr ""
+
+msgctxt "#30501"
+msgid "Monday"
+msgstr ""
+
+msgctxt "#30502"
+msgid "Tuesday"
+msgstr ""
+
+msgctxt "#30503"
+msgid "Wednesday"
+msgstr ""
+
+msgctxt "#30504"
+msgid "Thursday"
+msgstr ""
+
+msgctxt "#30505"
+msgid "Friday"
+msgstr ""
+
+msgctxt "#30506"
+msgid "Saturday"
+msgstr ""
+
+msgctxt "#30507"
+msgid "Sunday"
+msgstr ""
+
+msgctxt "#30508"
+msgid "Select/Deselect All"
+msgstr ""
+
+msgctxt "#30509"
+msgid "OK"
+msgstr ""
+
+msgctxt "#30510"
+msgid "Cancel"
+msgstr ""
+
+msgctxt "#30511"
+msgid "Title"
+msgstr ""
+
+msgctxt "#30512"
+msgid "Tag"
+msgstr ""
+
+msgctxt "#30513"
+msgid "Actor"
+msgstr ""
+
+msgctxt "#30514"
+msgid "Director"
+msgstr ""
+
+msgctxt "#30515"
+msgid "Country"
+msgstr ""
+
+msgctxt "#30516"
+msgid "Genre"
+msgstr ""
+
+msgctxt "#30517"
+msgid "Month"
+msgstr ""
+
+msgctxt "#30518"
+msgid "Year"
+msgstr ""
+
+msgctxt "#30519"
+msgid "Decade"
+msgstr ""
+
+msgctxt "#30520"
+msgid "Search"
+msgstr ""
+
+msgctxt "#30521"
+msgid "Cancel"
+msgstr ""
+
 msgctxt "#30600"
 msgid "Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)"
 msgstr ""
@@ -565,66 +653,6 @@ msgstr ""
 
 msgctxt "#30604"
 msgid "       Fallback to PW Posters if Cover Art unavailable"
-msgstr ""
-
-msgctxt "#30720"
-msgid "Install local metapack..."
-msgstr ""
-
-msgctxt "#30700"
-msgid "       Install Tv Show MetaData A-G"
-msgstr ""
-
-msgctxt "#30701"
-msgid "       Install Tv Show MetaData H-N"
-msgstr ""
-
-msgctxt "#30702"
-msgid "       Install Tv Show MetaData O-U"
-msgstr ""
-
-msgctxt "#30703"
-msgid "       Install Tv Show MetaData V-#123"
-msgstr ""
-
-msgctxt "#30710"
-msgid "       Install Movie MetaData A"
-msgstr ""
-
-msgctxt "#30711"
-msgid "       Install Movie MetaData B-C"
-msgstr ""
-
-msgctxt "#30712"
-msgid "       Install Movie MetaData D-E"
-msgstr ""
-
-msgctxt "#30713"
-msgid "       Install Movie MetaData F-G"
-msgstr ""
-
-msgctxt "#30714"
-msgid "       Install Movie MetaData H-J"
-msgstr ""
-
-msgctxt "#30715"
-msgid "       Install Movie MetaData K-M"
-msgstr ""
-
-msgctxt "#30716"
-msgid "       Install Movie MetaData N-R"
-msgstr ""
-
-msgctxt "#30717"
-msgid "       Install Movie MetaData S"
-msgstr ""
-
-msgctxt "#30718"
-msgid "       Install Movie MetaData T"
-msgstr ""
-
-msgctxt "#30719"
-msgid "       Install Movie MetaData U-#123"
 msgstr ""
 
 msgctxt "#30800"

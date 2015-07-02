@@ -61,7 +61,7 @@
 				<posy>0</posy>
 				<width>0</width>
 				<height>0</height>
-				<label>Title</label>
+				<label>$ADDON[plugin.video.1channel 30511]</label>
 				<align>left</align>
 				<font>font12</font>
 				<textcolor>blue</textcolor>
@@ -73,7 +73,7 @@
 				<posy>55</posy>
 				<width>0</width>
 				<height>0</height>
-				<label>Tag</label>
+				<label>$ADDON[plugin.video.1channel 30512]</label>
 				<align>left</align>
 				<font>font12</font>
 				<textcolor>blue</textcolor>
@@ -85,7 +85,7 @@
 				<posy>110</posy>
 				<width>0</width>
 				<height>0</height>
-				<label>Actor</label>
+				<label>$ADDON[plugin.video.1channel 30513]</label>
 				<align>left</align>
 				<font>font12</font>
 				<textcolor>blue</textcolor>
@@ -96,7 +96,7 @@
 				<posy>165</posy>
 				<width>0</width>
 				<height>0</height>
-				<label>Director</label>
+				<label>$ADDON[plugin.video.1channel 30514]</label>
 				<align>left</align>
 				<font>font12</font>
 				<textcolor>blue</textcolor>
@@ -107,7 +107,7 @@
 				<posy>220</posy>
 				<width>0</width>
 				<height>0</height>
-				<label>Country</label>
+				<label>$ADDON[plugin.video.1channel 30515]</label>
 				<align>left</align>
 				<font>font12</font>
 				<textcolor>blue</textcolor>
@@ -118,7 +118,7 @@
 				<posy>275</posy>
 				<width>0</width>
 				<height>0</height>
-				<label>Genre</label>
+				<label>$ADDON[plugin.video.1channel 30516]</label>
 				<align>left</align>
 				<font>font12</font>
 				<textcolor>blue</textcolor>
@@ -129,7 +129,7 @@
 				<posy>330</posy>
 				<width>0</width>
 				<height>0</height>
-				<label>Month</label>
+				<label>$ADDON[plugin.video.1channel 30517]</label>
 				<align>left</align>
 				<font>font12</font>
 				<textcolor>blue</textcolor>
@@ -140,7 +140,7 @@
 				<posy>330</posy>
 				<width>0</width>
 				<height>0</height>
-				<label>Year</label>
+				<label>$ADDON[plugin.video.1channel 30518]</label>
 				<align>left</align>
 				<font>font12</font>
 				<textcolor>blue</textcolor>
@@ -151,7 +151,7 @@
 				<posy>330</posy>
 				<width>0</width>
 				<height>0</height>
-				<label>Decade</label>
+				<label>$ADDON[plugin.video.1channel 30519]</label>
 				<align>left</align>
 				<font>font12</font>
 				<textcolor>blue</textcolor>
@@ -166,7 +166,7 @@
 				<height>40</height>
 				<align>center</align>
 				<aligny>center</aligny>
-				<label>Search</label>
+				<label>$ADDON[plugin.video.1channel 30520]</label>
 				<font>font12_title</font>
 				<ondown>201</ondown>
 				<onright>201</onright>
@@ -179,7 +179,7 @@
 				<height>40</height>
 				<align>center</align>
 				<aligny>center</aligny>
-				<label>Cancel</label>
+				<label>$ADDON[plugin.video.1channel 30521]</label>
 				<font>font12_title</font>
 				<onup>200</onup>
 				<onleft>200</onleft>
