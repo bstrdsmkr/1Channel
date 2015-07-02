@@ -3,9 +3,9 @@ import utils
 
 class PW_Dispatcher:
     def __init__(self):
-        self.func_registry={}
-        self.args_registry={}
-        self.kwargs_registry={}
+        self.func_registry = {}
+        self.args_registry = {}
+        self.kwargs_registry = {}
 
     def register(self, mode, args=None, kwargs=None):
         """
@@ -13,7 +13,7 @@ class PW_Dispatcher:
         
         mode: the mode value passed in the plugin:// url
         args: a list  of strings that are the positional arguments to expect
-        kwargs: a list of strings that are the keyword arguments to expect 
+        kwargs: a list of strings that are the keyword arguments to expect
         
         * Positional argument must be in the order the function expect
         * kwargs can be in any order
@@ -21,22 +21,22 @@ class PW_Dispatcher:
         * If there are no arguments at all, just "mode" can be specified
         """
         if args is None:
-            args=[]
+            args = []
         if kwargs is None:
-            kwargs=[]
-                
+            kwargs = []
+
         def decorator(f):
             if mode in self.func_registry:
-                message='Error: %s already registered as %s' % (str(f), mode)
+                message = 'Error: %s already registered as %s' % (str(f), mode)
                 utils.log(message, xbmc.LOGERROR)
                 raise Exception(message)
 
-            utils.log('registering function: |%s|->|%s|' % (mode,str(f)), xbmc.LOGDEBUG)
-            self.func_registry[mode.strip()]=f
-            self.args_registry[mode]=args
-            self.kwargs_registry[mode]=kwargs
-            utils.log('registering args: |%s|-->(%s) and {%s}' % (mode, args, kwargs), xbmc.LOGDEBUG) 
-            
+            utils.log('registering function: |%s|->|%s|' % (mode, str(f)), xbmc.LOGDEBUG)
+            self.func_registry[mode.strip()] = f
+            self.args_registry[mode] = args
+            self.kwargs_registry[mode] = kwargs
+            utils.log('registering args: |%s|-->(%s) and {%s}' % (mode, args, kwargs), xbmc.LOGDEBUG)
+
             return f
         return decorator
 
@@ -48,47 +48,46 @@ class PW_Dispatcher:
         queries: a dictionary of the parameters to be passed to the called function
         """
         if mode not in self.func_registry:
-            message='Error: Attempt to invoke unregistered mode |%s|' % (mode)
+            message = 'Error: Attempt to invoke unregistered mode |%s|' % (mode)
             utils.log(message, xbmc.LOGERROR)
             raise Exception(message)
 
-        args=[]
-        kwargs={}
-        unused_args=queries.copy()
+        args = []
+        kwargs = {}
+        unused_args = queries.copy()
         if self.args_registry[mode]:
             # positional arguments are all required
             for arg in self.args_registry[mode]:
-                arg=arg.strip()
+                arg = arg.strip()
                 if arg in queries:
                     args.append(self.__coerce(queries[arg]))
                     del unused_args[arg]
                 else:
-                    message='Error: mode |%s| requested argument |%s| but it was not provided.' % (mode, arg)
+                    message = 'Error: mode |%s| requested argument |%s| but it was not provided.' % (mode, arg)
                     utils.log(message, xbmc.LOGERROR)
                     raise Exception(message)
-            
+
         if self.kwargs_registry[mode]:
-            #kwargs are optional
+            # kwargs are optional
             for arg in self.kwargs_registry[mode]:
-                arg=arg.strip()
+                arg = arg.strip()
                 if arg in queries:
-                    kwargs[arg]=self.__coerce(queries[arg])
+                    kwargs[arg] = self.__coerce(queries[arg])
                     del unused_args[arg]
-        
-        if 'mode' in unused_args: del unused_args['mode'] # delete mode last in case it's used by the target function
-        utils.log('Calling |%s| for mode |%s| with pos args |%s| and kwargs |%s|' % (self.func_registry[mode].__name__, mode, args,  kwargs))
+
+        if 'mode' in unused_args: del unused_args['mode']  # delete mode last in case it's used by the target function
+        utils.log('Calling |%s| for mode |%s| with pos args |%s| and kwargs |%s|' % (self.func_registry[mode].__name__, mode, args, kwargs))
         if unused_args: utils.log('Warning: Arguments |%s| were passed but unused by |%s| for mode |%s|' % (unused_args, self.func_registry[mode].__name__, mode), xbmc.LOGWARNING)
         self.func_registry[mode](*args, **kwargs)
 
     # since all params are passed as strings, do any conversions necessary to get good types (e.g. boolean)
     def __coerce(self, arg):
-        temp=arg.lower()
+        temp = arg.lower()
         if temp == 'true':
             return True
         elif temp == 'false':
             return False
         elif temp == 'none':
             return None
-        
 
         return arg
