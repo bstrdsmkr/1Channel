@@ -59,7 +59,6 @@ else:
     themepak_path = ''
 THEME_PATH = os.path.join(themepak_path, 'art', 'themes', THEME)
 
-ICON_PATH = os.path.join(_1CH.get_path(), 'icon.png')
 FAV_ACTIONS = utils.enum(ADD='add', REMOVE='remove')
 PL_SORT = ['added', 'alphabet', 'popularity']
 REMOVE_TW_MENU = i18n('remove_tw_menu')
