@@ -531,6 +531,26 @@ msgctxt "#30129"
 msgid "Enter a Title"
 msgstr ""
 
+msgctxt "#30130"
+msgid "Advanced TV Show Search"
+msgstr ""
+
+msgctxt "#30131"
+msgid "Advanced Movie Search"
+msgstr ""
+
+msgctxt "#30132"
+msgid "Enter at least one criteria to search on."
+msgstr ""
+
+msgctxt "#30133"
+msgid "must be one of:"
+msgstr ""
+
+msgctxt "#30134"
+msgid "Year must be a 4 digit number between %s and %s."
+msgstr ""
+
 msgctxt "#30600"
 msgid "Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)"
 msgstr ""

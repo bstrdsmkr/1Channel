@@ -145,5 +145,10 @@ STRINGS = {
            'updating_wait': 30126,
            'manual_search': 30127,
            'choose': 30128,
-           'enter_a_title': 30129
+           'enter_a_title': 30129,
+           'adv_tv_search': 30130,
+           'adv_movie_search': 30131,
+           'one_criteria': 30132,
+           'must_be_one_of': 30133,
+           'year_range_error': 30134
 }
