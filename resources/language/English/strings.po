@@ -84,7 +84,7 @@ msgid "Axel [COLOR blue]ENABLED[/COLOR] but [COLOR red]NOT INSTALLED[/COLOR]"
 msgstr ""
 
 msgctxt "#30018"
-msgid "Search TV Shows'"
+msgid "Search TV Shows"
 msgstr ""
 
 msgctxt "#30019"
@@ -205,6 +205,318 @@ msgstr ""
 
 msgctxt "#30048"
 msgid "Search (Advanced Search)"
+msgstr ""
+
+msgctxt "#30049"
+msgid "Public Playlists (sorted by date)"
+msgstr ""
+
+msgctxt "#30050"
+msgid "Public Playlists (sorted by rating)"
+msgstr ""
+
+msgctxt "#30051"
+msgid "Public Playlists (sorted by views)"
+msgstr ""
+
+msgctxt "#30052"
+msgid "Personal Playlists (sorted by date)"
+msgstr ""
+
+msgctxt "#30053"
+msgid "Personal Playlists (sorted by rating)"
+msgstr ""
+
+msgctxt "#30054"
+msgid "Personal Playlists (sorted by views)"
+msgstr ""
+
+msgctxt "#30055"
+msgid "items"
+msgstr ""
+
+msgctxt "#30056"
+msgid "views"
+msgstr ""
+
+msgctxt "#30057"
+msgid "rating"
+msgstr ""
+
+msgctxt "#30058"
+msgid "Remove from Playlist"
+msgstr ""
+
+msgctxt "#30059"
+msgid "Item added to playlist."
+msgstr ""
+
+msgctxt "#30060"
+msgid "Error adding item to playlist."
+msgstr ""
+
+msgctxt "#30061"
+msgid "Create a playlist on the website first."
+msgstr ""
+
+msgctxt "#30062"
+msgid "Select Playlist"
+msgstr ""
+
+msgctxt "#30063"
+msgid "Select Source"
+msgstr ""
+
+msgctxt "#30064"
+msgid "Remove from XBMC Favourites"
+msgstr ""
+
+msgctxt "#30065"
+msgid "Add to XBMC Favourites"
+msgstr ""
+
+msgctxt "#30066"
+msgid "Add to Favorites"
+msgstr ""
+
+msgctxt "#30067"
+msgid "Add to ToWatch list"
+msgstr ""
+
+msgctxt "#30068"
+msgid "Add to Watched List"
+msgstr ""
+
+msgctxt "#30069"
+msgid "Add to Library"
+msgstr ""
+
+msgctxt "#30070"
+msgid "Add to Playlist"
+msgstr ""
+
+msgctxt "#30071"
+msgid "Subscribe"
+msgstr ""
+
+msgctxt "#30072"
+msgid "Cancel Subscription"
+msgstr ""
+
+msgctxt "#30073"
+msgid "Add to CouchPotato"
+msgstr ""
+
+msgctxt "#30074"
+msgid "Show Information"
+msgstr ""
+
+msgctxt "#30075"
+msgid "Refresh Metadata"
+msgstr ""
+
+msgctxt "#30076"
+msgid "Watch Trailer"
+msgstr ""
+
+msgctxt "#30077"
+msgid "Mark as watched"
+msgstr ""
+
+msgctxt "#30078"
+msgid "Mark as unwatched"
+msgstr ""
+
+msgctxt "#30079"
+msgid "Season"
+msgstr ""
+
+msgctxt "#30080"
+msgid "No Seasons Found for %s"
+msgstr ""
+
+msgctxt "#30081"
+msgid "Add Favorite TV Shows to Library"
+msgstr ""
+
+msgctxt "#30082"
+msgid "Add Favorite Movies to Library"
+msgstr ""
+
+msgctxt "#30083"
+msgid "Uploading your favorites to www.primewire.ag..."
+msgstr ""
+
+msgctxt "#30084"
+msgid "Uploading Favorites"
+msgstr ""
+
+msgctxt "#30085"
+msgid "Success"
+msgstr ""
+
+msgctxt "#30086"
+msgid "Already Exists"
+msgstr ""
+
+msgctxt "#30087"
+msgid "Processed %s"
+msgstr ""
+
+msgctxt "#30088"
+msgid "Do you want to remove the successful"
+msgstr ""
+
+msgctxt "#30089"
+msgid "uploads from local favorites?"
+msgstr ""
+
+msgctxt "#30090"
+msgid "THIS CANNOT BE UNDONE"
+msgstr ""
+
+msgctxt "#30091"
+msgid "Keep"
+msgstr ""
+
+msgctxt "#30092"
+msgid "Delete"
+msgstr ""
+
+msgctxt "#30093"
+msgid "Migration Complete"
+msgstr ""
+
+msgctxt "#30094"
+msgid "Favorite TV Shows Added to Library"
+msgstr ""
+
+msgctxt "#30095"
+msgid "Favorite Movies Added to Library"
+msgstr ""
+
+msgctxt "#30096"
+msgid "Add To Watch List Movies to Library"
+msgstr ""
+
+msgctxt "#30097"
+msgid "Added '%s' to library"
+msgstr ""
+
+msgctxt "#30098"
+msgid "Subscribed to '%s'"
+msgstr ""
+
+msgctxt "#30099"
+msgid "Already subscribed to '%s'"
+msgstr ""
+
+msgctxt "#30100"
+msgid "Subscriptions Updated"
+msgstr ""
+
+msgctxt "#30101"
+msgid "Next Update in %s hours"
+msgstr ""
+
+msgctxt "#30102"
+msgid "Subscriptions Cleaned Up"
+msgstr ""
+
+msgctxt "#30103"
+msgid "ToWatch LIst added to library"
+msgstr ""
+
+msgctxt "#30104"
+msgid "Update Subscriptions ([B]Next Scheduled Run: %s[/B])"
+msgstr ""
+
+msgctxt "#30105"
+msgid "Clean Up Subscriptions"
+msgstr ""
+
+msgctxt "#30106"
+msgid "DISABLED"
+msgstr ""
+
+msgctxt "#30107"
+msgid "Edit days"
+msgstr ""
+
+msgctxt "#30108"
+msgid "Cancel subscription"
+msgstr ""
+
+msgctxt "#30109"
+msgid "Page"
+msgstr ""
+
+msgctxt "#30110"
+msgid "DB Reset Successful"
+msgstr ""
+
+msgctxt "#30111"
+msgid "Reset only allowed on sqlite DBs"
+msgstr ""
+
+msgctxt "#30112"
+msgid "Select Export Directory"
+msgstr ""
+
+msgctxt "#30113"
+msgid "Enter Export Filename"
+msgstr ""
+
+msgctxt "#30114"
+msgid "Exported to %s"
+msgstr ""
+
+msgctxt "#30115"
+msgid "Export Failed"
+msgstr ""
+
+msgctxt "#30116"
+msgid "Export"
+msgstr ""
+
+msgctxt "#30117"
+msgid "Select Import File"
+msgstr ""
+
+msgctxt "#30118"
+msgid "Imported from %s"
+msgstr ""
+
+msgctxt "#30119"
+msgid "Import Failed"
+msgstr ""
+
+msgctxt "#30120"
+msgid "Import"
+msgstr ""
+
+msgctxt "#30121"
+msgid "Days to update Subscription"
+msgstr ""
+
+msgctxt "#30122"
+msgid "Are you sure you want to"
+msgstr ""
+
+msgctxt "#30123"
+msgid "delete the url cache?"
+msgstr ""
+
+msgctxt "#30124"
+msgid "This will slow things down until rebuilt"
+msgstr ""
+
+msgctxt "#30125"
+msgid "Flush web cache"
+msgstr ""
+
+msgctxt "#30126"
+msgid "Updating. Please wait..."
 msgstr ""
 
 msgctxt "#30600"
