@@ -1,3 +1,8 @@
+[B]Version 2.5.66[/B]
+- Migrate addon to use po files
+- Move all strings to strings.po in preparation for translation
+- Code cleanup
+
 [B]Version 2.5.65[/B]
 - Add notification on failed streams
 - Fix proxy captchas
