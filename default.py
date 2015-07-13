@@ -373,7 +373,6 @@ def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='
         else:
             meta = {'label': title, 'title': title, 'year': year}
 
-    utils.log('ids meta is: imdbnum: %s; meta: %s' % (imdbnum, meta), xbmc.LOGDEBUG)
     ids = {}
     if imdbnum:
         ids = {'imdb': imdbnum}
@@ -416,6 +415,7 @@ def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='
             meta['backdrop_url'] = meta['fanart']
             meta['cover_url'] = meta['thumbnail']
 
+    utils.log('ids meta is: imdbnum: %s; meta: %s' % (imdbnum, meta), xbmc.LOGDEBUG)
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing', json.dumps(meta))
 
