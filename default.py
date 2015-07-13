@@ -1463,7 +1463,7 @@ def repair_missing_images():
 @pw_dispatcher.register(MODES.ADD2LIB, ['video_type', 'url', 'title'], ['year', 'img', 'imdbnum'])
 def manual_add_to_library(video_type, url, title, year='', img='', imdbnum=''):
     add_to_library(video_type, url, title, img, year, imdbnum)
-    utils.notify(msg=i18n('added_to_library'), duration=2000)
+    utils.notify(msg=i18n('added_to_library') % (title), duration=2000)
 
 def add_to_library(video_type, url, title, img, year, imdbnum):
     utils.log('Creating .strm for %s %s %s %s %s %s' % (video_type, title, imdbnum, url, img, year))
