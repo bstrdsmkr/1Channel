@@ -373,19 +373,6 @@ def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='
         else:
             meta = {'label': title, 'title': title, 'year': year}
 
-    ids = {}
-    if imdbnum:
-        ids = {'imdb': imdbnum}
-    else:
-        if 'imdb_id' in meta:
-            ids.update({'imdb': meta['imdb_id']})
-        if 'tmdb_id' in meta:
-            ids.update({'tmdb': meta['tmdb_id']})
-        if 'tvdb_id' in meta:
-            ids.update({'tvdb': meta['tvdb_id']})
-    if ids:
-        win.setProperty('script.trakt.ids', json.dumps(ids))
-
     if dbid and int(dbid) > 0:
         # we're playing from a library item
         if video_type == 'episode':
@@ -416,6 +403,19 @@ def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='
             meta['cover_url'] = meta['thumbnail']
 
     utils.log('ids meta is: imdbnum: %s; meta: %s' % (imdbnum, meta), xbmc.LOGDEBUG)
+    ids = {}
+    if imdbnum:
+        ids = {'imdb': imdbnum}
+    else:
+        if 'imdb_id' in meta:
+            ids.update({'imdb': meta['imdb_id']})
+        if 'tmdb_id' in meta:
+            ids.update({'tmdb': meta['tmdb_id']})
+        if 'tvdb_id' in meta:
+            ids.update({'tvdb': meta['tvdb_id']})
+    if ids:
+        win.setProperty('script.trakt.ids', json.dumps(ids))
+
     win = xbmcgui.Window(10000)
     win.setProperty('1ch.playing', json.dumps(meta))
 
