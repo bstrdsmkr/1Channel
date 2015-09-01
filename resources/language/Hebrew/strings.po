@@ -44,7 +44,7 @@ msgstr "המשך מ %s"
 
 msgctxt "#30008"
 msgid "Resume?"
-msgstr להמשיך?"
+msgstr "להמשיך?"
 
 msgctxt "#30009"
 msgid "Start from beginning"
