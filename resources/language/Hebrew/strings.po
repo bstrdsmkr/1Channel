@@ -1,0 +1,1035 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TV Addons Addons\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Language-Team: Hebrew (http://www.transifex.com/projects/p/xbmc-addons/language/he/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: he\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30000"
+msgid "Import Failed"
+msgstr "הייבוא נכשל"
+
+msgctxt "#30001"
+msgid "Remove from ToWatch List"
+msgstr "הסר מרשימת לצפייה"
+
+msgctxt "#30002"
+msgid "Remove from Watched list"
+msgstr "הסר מרשימת שניצפו"
+
+msgctxt "#30003"
+msgid "Remove from Favorites"
+msgstr "הסר מהמועדפים"
+
+msgctxt "#30004"
+msgid "%s added to Favorites"
+msgstr "%s הוסף למועדפים"
+
+msgctxt "#30005"
+msgid "%s already in Favorites"
+msgstr "%s כבר במועדפים"
+
+msgctxt "#30006"
+msgid "Favorite Removed"
+msgstr "המועדף הוסר"
+
+msgctxt "#30007"
+msgid "Resume from %s"
+msgstr "המשך מ %s"
+
+msgctxt "#30008"
+msgid "Resume?"
+msgstr להמשיך?"
+
+msgctxt "#30009"
+msgid "Start from beginning"
+msgstr "התחל מהתחלה"
+
+msgctxt "#30010"
+msgid "Resume"
+msgstr "המשך"
+
+msgctxt "#30011"
+msgid "No sources were found for this item"
+msgstr "לא נמצאו מקורות עבור פריט זה"
+
+msgctxt "#30012"
+msgid "Choose your stream"
+msgstr "בחר את ההזרמה שלך"
+
+msgctxt "#30013"
+msgid "Trying Source:    "
+msgstr "מנסה מקור:    "
+
+msgctxt "#30014"
+msgid "Playback Failed: %s"
+msgstr "ההשמעה נכשלה: %s"
+
+msgctxt "#30015"
+msgid "All Sources Failed to Play"
+msgstr "כל המקורות נכשלו לנגן"
+
+msgctxt "#30016"
+msgid "Link Resolve Failed: %s"
+msgstr "הקישור נכשל: %s"
+
+msgctxt "#30017"
+msgid "Axel [COLOR blue]ENABLED[/COLOR] but [COLOR red]NOT INSTALLED[/COLOR]"
+msgstr "אקסל [COLOR blue]זמין[/COLOR] אבל [COLOR red]אינו מותקן[/COLOR]"
+
+msgctxt "#30018"
+msgid "Search TV Shows"
+msgstr "חיפוש סדרות"
+
+msgctxt "#30019"
+msgid "Search Movies"
+msgstr "חיפוש סרטים"
+
+msgctxt "#30020"
+msgid "Blank searches are not allowed unless [B]Paginate Search Results[/B] is enabled."
+msgstr "חיפושים ריקים אסורים, אלא אם כן [B]דפדוף בתוצאות חיפוש[B] מופעל."
+
+msgctxt "#30021"
+msgid "Site Blocked? Unexpected page received."
+msgstr "האתר חסום? התקבל דף בלתי צפוי."
+
+msgctxt "#30022"
+msgid "Skip to Page"
+msgstr "דלג לדף"
+
+msgctxt "#30023"
+msgid "Next Page"
+msgstr "עמוד הבא"
+
+msgctxt "#30024"
+msgid "The 1Channel/PrimeWire addon is developed and supported by the team at [COLOR white]www.tvaddons.ag[/COLOR]"
+msgstr "התוסף 1Channel/PrimeWire מפותח ונתמך על ידי צוות ב-[COLOR white]www.tvaddons.ag[/COLOR]"
+
+msgctxt "#30025"
+msgid "If you are having issues with the addon, visit our Forums for help. We also invite you to visit us regularly to show your support."
+msgstr "אם אתה נתקלת בבעיות עם התוסף, בקר בפורומים שלנו לקבלת עזרה. כמו כן, אנו מזמינים אתכם לבקר אותנו באופן קבוע כדי להראות את התמיכה שלך."
+
+msgctxt "#30026"
+msgid "[I](This message is [B]only[/B] shown when the 1Channel addon is first installed or updated.)[/I]"
+msgstr "[I](הודעה זו מוצגת [B]רק[B] כאשר התוסף 1Channel מותקן לראשונה או מתעדכן.)[/I]"
+
+msgctxt "#30027"
+msgid "Movies"
+msgstr "סרטים"
+
+msgctxt "#30028"
+msgid "TV Shows"
+msgstr "סדרות"
+
+msgctxt "#30029"
+msgid "Playlists"
+msgstr "רשימות השמעה"
+
+msgctxt "#30030"
+msgid "Install 1Channel Themes/Icons"
+msgstr "התקנת ערכות נושא/סמלים"
+
+msgctxt "#30031"
+msgid "URLResolver Settings"
+msgstr "הגדרות URLResolver"
+
+msgctxt "#30032"
+msgid "Help"
+msgstr "עזרה"
+
+msgctxt "#30033"
+msgid "A-Z"
+msgstr "A-Z"
+
+msgctxt "#30034"
+msgid "Search"
+msgstr "חיפוש"
+
+msgctxt "#30035"
+msgid "Website Favourites"
+msgstr "אתרים מועדפים"
+
+msgctxt "#30036"
+msgid "Website Watched List"
+msgstr "רשימת אתרים שנצפו"
+
+msgctxt "#30037"
+msgid "Website To Watch List"
+msgstr "רשימת אתרים לצפייה"
+
+msgctxt "#30038"
+msgid "My TV Schedule"
+msgstr "לוח שידורים של הסדרות שלי"
+
+msgctxt "#30039"
+msgid "Favourites"
+msgstr "מועדפים"
+
+msgctxt "#30040"
+msgid "Subscriptions"
+msgstr "הרשמות"
+
+msgctxt "#30041"
+msgid "Genres"
+msgstr "ז'אנרים"
+
+msgctxt "#30042"
+msgid "Featured"
+msgstr "מוצגים עכשיו"
+
+msgctxt "#30043"
+msgid "Most Popular"
+msgstr "הכי פופולארי"
+
+msgctxt "#30044"
+msgid "Highly rated"
+msgstr "מדורגים גבוהה"
+
+msgctxt "#30045"
+msgid "Date released"
+msgstr "תאריך שוחרר"
+
+msgctxt "#30046"
+msgid "Date added"
+msgstr "תאריך הוספה"
+
+msgctxt "#30047"
+msgid "Search (+Description)"
+msgstr "חיפוש (+תיאור)"
+
+msgctxt "#30048"
+msgid "Search (Advanced Search)"
+msgstr "חיפוש (חיפוש מתקדם)"
+
+msgctxt "#30049"
+msgid "Public Playlists (sorted by date)"
+msgstr "פלייליסטים ציבוריים (מסודרים לפי תאריך)"
+
+msgctxt "#30050"
+msgid "Public Playlists (sorted by rating)"
+msgstr "פלייליסטים ציבוריים (מסודרים לפי דירוג)"
+
+msgctxt "#30051"
+msgid "Public Playlists (sorted by views)"
+msgstr "פלייליסטים ציבוריים (מסודרים לפי צפיות)"
+
+msgctxt "#30052"
+msgid "Personal Playlists (sorted by date)"
+msgstr "פלייליסטים אישי (מסודרים לפי תאריך)"
+
+msgctxt "#30053"
+msgid "Personal Playlists (sorted by rating)"
+msgstr "פלייליסטים אישי (מסודרים לפי דירוג)"
+
+msgctxt "#30054"
+msgid "Personal Playlists (sorted by views)"
+msgstr "פלייליסטים אישי (מסודרים לפי צפיות)"
+
+msgctxt "#30055"
+msgid "items"
+msgstr "פריטים"
+
+msgctxt "#30056"
+msgid "views"
+msgstr "צפיות"
+
+msgctxt "#30057"
+msgid "rating"
+msgstr "דירוג"
+
+msgctxt "#30058"
+msgid "Remove from Playlist"
+msgstr "הסר מרשימת ההשמעה"
+
+msgctxt "#30059"
+msgid "Item added to playlist."
+msgstr "פריט נוסף לרשימת השמעה."
+
+msgctxt "#30060"
+msgid "Error adding item to playlist."
+msgstr "שגיאה בהוספת פריט לרשימת השמעה."
+
+msgctxt "#30061"
+msgid "Create a playlist on the website first."
+msgstr "קודם כל צור רשימת הפעלה באתר."
+
+msgctxt "#30062"
+msgid "Select Playlist"
+msgstr "בחר רשימת השמעה"
+
+msgctxt "#30063"
+msgid "Select Source"
+msgstr "בחר מקור"
+
+msgctxt "#30064"
+msgid "Remove from XBMC Favourites"
+msgstr "הסר מהמועדפים של XBMC"
+
+msgctxt "#30065"
+msgid "Add to XBMC Favourites"
+msgstr "הוסף להמועדפים של XBMC"
+
+msgctxt "#30066"
+msgid "Add to Favorites"
+msgstr "הוסף למועדפים"
+
+msgctxt "#30067"
+msgid "Add to ToWatch list"
+msgstr "הוסף לרשימת צפייה"
+
+msgctxt "#30068"
+msgid "Add to Watched List"
+msgstr "הוסף לרשימת שניצפו"
+
+msgctxt "#30069"
+msgid "Add to Library"
+msgstr "הוסף לספרייה"
+
+msgctxt "#30070"
+msgid "Add to Playlist"
+msgstr "הוסף לרשימת ההשמעה"
+
+msgctxt "#30071"
+msgid "Subscribe"
+msgstr "הירשם"
+
+msgctxt "#30072"
+msgid "Cancel Subscription"
+msgstr "ביטול הרשמה"
+
+msgctxt "#30073"
+msgid "Add to CouchPotato"
+msgstr "הוסף ל-CouchPotato"
+
+msgctxt "#30074"
+msgid "Show Information"
+msgstr "הצג מידע"
+
+msgctxt "#30075"
+msgid "Refresh Metadata"
+msgstr "רענן מידע"
+
+msgctxt "#30076"
+msgid "Watch Trailer"
+msgstr "צפה בטריילר"
+
+msgctxt "#30077"
+msgid "Mark as watched"
+msgstr "סמן כנצפה"
+
+msgctxt "#30078"
+msgid "Mark as unwatched"
+msgstr "סמן כלא נצפה"
+
+msgctxt "#30079"
+msgid "Season"
+msgstr "עונה"
+
+msgctxt "#30080"
+msgid "No Seasons Found for %s"
+msgstr "לא נמצאו עונות עבור %s"
+
+msgctxt "#30081"
+msgid "Add Favorite TV Shows to Library"
+msgstr "הוסף סדרות מועדפים לספרייה"
+
+msgctxt "#30082"
+msgid "Add Favorite Movies to Library"
+msgstr "הוסף סרטים מועדפים לספרייה"
+
+msgctxt "#30083"
+msgid "Uploading your favorites to www.primewire.ag..."
+msgstr "מעלה את המועדפים שלך ל-www.primewire.ag..."
+
+msgctxt "#30084"
+msgid "Uploading Favorites"
+msgstr "מעלה מועדפים"
+
+msgctxt "#30085"
+msgid "Success"
+msgstr "עבר בהצלחה"
+
+msgctxt "#30086"
+msgid "Already Exists"
+msgstr "כבר קיים"
+
+msgctxt "#30087"
+msgid "Processed %s"
+msgstr "מעבד %s"
+
+msgctxt "#30088"
+msgid "Do you want to remove the successful"
+msgstr "האם ברצונך להסיר את המוצלח"
+
+msgctxt "#30089"
+msgid "uploads from local favorites?"
+msgstr "העלאות מהמועדפים מקומיים?"
+
+msgctxt "#30090"
+msgid "THIS CANNOT BE UNDONE"
+msgstr "לא ניתן לבטל זה"
+
+msgctxt "#30091"
+msgid "Keep"
+msgstr "שמור"
+
+msgctxt "#30092"
+msgid "Delete"
+msgstr "מחק"
+
+msgctxt "#30093"
+msgid "Migration Complete"
+msgstr "ההעברה הושלמה"
+
+msgctxt "#30094"
+msgid "Favorite TV Shows Added to Library"
+msgstr "סדרות מועדפים התווספו לספרייה"
+
+msgctxt "#30095"
+msgid "Favorite Movies Added to Library"
+msgstr "סרטים המועדפים התווספו לספרייה"
+
+msgctxt "#30096"
+msgid "Add To Watch List Movies to Library"
+msgstr "הוסף רשימת מעקב של סרטים לספרייה"
+
+msgctxt "#30097"
+msgid "Added '%s' to library"
+msgstr "מוסיף '%s' לספרייה"
+
+msgctxt "#30098"
+msgid "Subscribed to '%s'"
+msgstr "נרשם ל-'%s'"
+
+msgctxt "#30099"
+msgid "Already subscribed to '%s'"
+msgstr "כבר רשום ל-'%s'"
+
+msgctxt "#30100"
+msgid "Subscriptions Updated"
+msgstr "הרשמות עודכנה"
+
+msgctxt "#30101"
+msgid "Next Update in %s hours"
+msgstr "העדכון הבא בעוד %s שעות"
+
+msgctxt "#30102"
+msgid "Subscriptions Cleaned Up"
+msgstr "ניקוי הרשמות"
+
+msgctxt "#30103"
+msgid "ToWatch LIst added to library"
+msgstr "רשימת לצפייה התווספה לספרייה"
+
+msgctxt "#30104"
+msgid "Update Subscriptions ([B]Next Scheduled Run: %s[/B])"
+msgstr "עדכון הרשמות ([B]הפעלה הבאה מתוכננת: %s[/B])"
+
+msgctxt "#30105"
+msgid "Clean Up Subscriptions"
+msgstr "ניקוי הרשמות"
+
+msgctxt "#30106"
+msgid "DISABLED"
+msgstr "השבת"
+
+msgctxt "#30107"
+msgid "Edit days"
+msgstr "ערוך ימים"
+
+# 30108 removed
+
+msgctxt "#30109"
+msgid "Page"
+msgstr "עמוד"
+
+msgctxt "#30110"
+msgid "DB Reset Successful"
+msgstr "איפוס מוצלח של DB"
+
+msgctxt "#30111"
+msgid "Reset only allowed on sqlite DBs"
+msgstr "איפוס מותר רק על DBs SQLite"
+
+msgctxt "#30112"
+msgid "Select Export Directory"
+msgstr "בחר ספרייה לייצוא"
+
+msgctxt "#30113"
+msgid "Enter Export Filename"
+msgstr "הזן שם קובץ ייצוא"
+
+msgctxt "#30114"
+msgid "Exported to %s"
+msgstr "ייצוא ל- %s"
+
+msgctxt "#30115"
+msgid "Export Failed"
+msgstr "הייצוא נכשל"
+
+msgctxt "#30116"
+msgid "Export"
+msgstr "ייצוא"
+
+msgctxt "#30117"
+msgid "Select Import File"
+msgstr "בחר קובץ לייבוא"
+
+msgctxt "#30118"
+msgid "Imported from %s"
+msgstr "מייבא מ-%s"
+
+# 30119 removed
+
+msgctxt "#30120"
+msgid "Import"
+msgstr "ייבוא"
+
+msgctxt "#30121"
+msgid "Days to update Subscription"
+msgstr "ימים לעדכון הרשמות"
+
+msgctxt "#30122"
+msgid "Are you sure you want to"
+msgstr "האם אתה בטוח שברצונך"
+
+msgctxt "#30123"
+msgid "delete the url cache?"
+msgstr "האם למחוק את המטמון url?"
+
+msgctxt "#30124"
+msgid "This will slow things down until rebuilt"
+msgstr "זה ייאט דברים עד שייבנה מחדש"
+
+msgctxt "#30125"
+msgid "Flush web cache"
+msgstr "ריקון מטמון האינטרנט"
+
+msgctxt "#30126"
+msgid "Updating. Please wait..."
+msgstr "מעדכן. אנא המתן..."
+
+msgctxt "#30127"
+msgid "Manual Search"
+msgstr "חיפוש ידני"
+
+msgctxt "#30128"
+msgid "Choose"
+msgstr "בחר"
+
+msgctxt "#30129"
+msgid "Enter a Title"
+msgstr "הזן כותרת"
+
+msgctxt "#30130"
+msgid "Advanced TV Show Search"
+msgstr "חיפוש סדרות מתקדם"
+
+msgctxt "#30131"
+msgid "Advanced Movie Search"
+msgstr "חיפוש סרטים מתקדם"
+
+msgctxt "#30132"
+msgid "Enter at least one criteria to search on."
+msgstr "הזן לפחות קריטריון אחד לחיפוש."
+
+msgctxt "#30133"
+msgid "must be one of:"
+msgstr "חייב להיות אחד:"
+
+msgctxt "#30134"
+msgid "Year must be a 4 digit number between %s and %s."
+msgstr "שנה חייבת להיות מספר בן 4 ספרות בין %s ל-%s."
+
+# Window Strings
+
+msgctxt "#30500"
+msgid "Select Subscription Days"
+msgstr "בחר ימים להרשמה"
+
+msgctxt "#30501"
+msgid "Monday"
+msgstr "שני"
+
+msgctxt "#30502"
+msgid "Tuesday"
+msgstr "שלישי"
+
+msgctxt "#30503"
+msgid "Wednesday"
+msgstr ""
+
+msgctxt "#30504"
+msgid "Thursday"
+msgstr "רביעי"
+
+msgctxt "#30505"
+msgid "Friday"
+msgstr "שישי"
+
+msgctxt "#30506"
+msgid "Saturday"
+msgstr "שבת"
+
+msgctxt "#30507"
+msgid "Sunday"
+msgstr "ראשון"
+
+msgctxt "#30508"
+msgid "Select/Deselect All"
+msgstr "בחר/בטל הכל"
+
+msgctxt "#30509"
+msgid "OK"
+msgstr "אישור"
+
+msgctxt "#30510"
+msgid "Cancel"
+msgstr "ביטול"
+
+msgctxt "#30511"
+msgid "Title"
+msgstr "כותרת"
+
+msgctxt "#30512"
+msgid "Tag"
+msgstr "תג"
+
+msgctxt "#30513"
+msgid "Actor"
+msgstr "שחקן"
+
+msgctxt "#30514"
+msgid "Director"
+msgstr "במאי"
+
+msgctxt "#30515"
+msgid "Country"
+msgstr "מדינה"
+
+msgctxt "#30516"
+msgid "Genre"
+msgstr "ז'אנר"
+
+msgctxt "#30517"
+msgid "Month"
+msgstr "חודש"
+
+msgctxt "#30518"
+msgid "Year"
+msgstr "שנה"
+
+msgctxt "#30519"
+msgid "Decade"
+msgstr "עשור"
+
+# Settings Strings
+
+msgctxt "#30800"
+msgid "Website"
+msgstr "אתר"
+
+msgctxt "#30801"
+msgid "Domain"
+msgstr "דומיין"
+
+msgctxt "#30802"
+msgid "Enable Custom Domain"
+msgstr "אפשר דומיין מותאם אישית"
+
+msgctxt "#30803"
+msgid "Custom Domain"
+msgstr "דומיין מותאם אישית"
+
+msgctxt "#30804"
+msgid "Website Integration"
+msgstr "אינטגרציה לאתר"
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30805"
+msgid "    Username"
+msgstr "    שם משתמש"
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30806"
+msgid "    Password"
+msgstr "    סיסמה"
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30807"
+msgid "    Subscription Playlist ID"
+msgstr "    מזהה מנוי רשימת השמעה"
+
+msgctxt "#30808"
+msgid "User Interface"
+msgstr "ממשק משתמש"
+
+msgctxt "#30809"
+msgid "Theme ([COLOR red]Requires 1channel Themepak Addon[/COLOR])"
+msgstr "ערכת נושא ([COLOR red]נדרש תוסף 1channel Themepack[/COLOR])"
+
+msgctxt "#30810"
+msgid "Playlist Sort Order"
+msgstr "מיון רשימת השמעה"
+
+msgctxt "#30811"
+msgid "Order Added"
+msgstr "הסדר נוסף"
+
+msgctxt "#30812"
+msgid "Alphabetic"
+msgstr "אלפביתי"
+
+msgctxt "#30813"
+msgid "Popularity"
+msgstr "פופולריות"
+
+msgctxt "#30814"
+msgid "Set Default Views"
+msgstr "קבע תצוגה ברירת מחדל"
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30815"
+msgid "   Movies View"
+msgstr "   תצוגת סרטים"
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30816"
+msgid "    TV Shows View"
+msgstr "    תצוגת סדרות"
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30817"
+msgid "    Seasons View"
+msgstr "    תצוגת עונות"
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30818"
+msgid "    Episodes View"
+msgstr "    תצוגת פרקים"
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30819"
+msgid "    Actors/Directors/Cast View"
+msgstr "    תצוגת שחקנים/במאים/צוות"
+
+#. Retain 3 spaces at the start of string
+msgctxt "#30820"
+msgid "    Default View"
+msgstr "    תצוגת ברירת מחדל"
+
+msgctxt "#30821"
+msgid "Video Playback"
+msgstr "הפעלת וידאו"
+
+msgctxt "#30822"
+msgid "Automatically play sources"
+msgstr "נגן מקורות באופן אוטומטי"
+
+msgctxt "#30823"
+msgid "     Source Selection Method"
+msgstr "     שיטת בחירת מקור"
+
+msgctxt "#30824"
+msgid "Automatically mark videos as watched"
+msgstr "סמן כצפה באופן אוטומטי"
+
+msgctxt "#30825"
+msgid "       Mark Watched Percentage"
+msgstr "       סימון אחוזי נצפה"
+
+msgctxt "#30826"
+msgid "Use Axel Downloader ([COLOR red]EXPERIMENTAL[/COLOR] download accelerator)"
+msgstr "השתמש באקסל הורדה([COLOR red]ניסיוני[/COLOR] מאיץ הורדה)"
+
+msgctxt "#30827"
+msgid "Enable sorting of sources"
+msgstr "אפשר מיון של מקורות"
+
+msgctxt "#30828"
+msgid "     Host Ranking (comma separated)"
+msgstr "     דירוג שרת (מופרד בפסיקים)"
+
+msgctxt "#30829"
+msgid "     Sort by:"
+msgstr "     מיין לפי:"
+
+msgctxt "#30830"
+msgid "None"
+msgstr "ללא"
+
+msgctxt "#30831"
+msgid "Host"
+msgstr "שרת"
+
+msgctxt "#30832"
+msgid "Verified"
+msgstr "מאומת"
+
+msgctxt "#30833"
+msgid "Quality"
+msgstr "איכות"
+
+msgctxt "#30834"
+msgid "Views"
+msgstr "צפיות"
+
+msgctxt "#30835"
+msgid "Multi-part"
+msgstr "מרובה"
+
+msgctxt "#30836"
+msgid "          Reverse sort"
+msgstr "          מיון הפוך"
+
+msgctxt "#30837"
+msgid "     Then by:"
+msgstr "     ואז לפי:"
+
+msgctxt "#30838"
+msgid "Performance"
+msgstr "ביצועים"
+
+msgctxt "#30839"
+msgid "Cache Directory Listings (ON=Faster, but triggers XBMC bugs in resume)"
+msgstr "ספריית רשימת מטמון (פועל= מהיר יותר, אבל מפעיל באגים XBMC בשחזור)"
+
+msgctxt "#30840"
+msgid "Filter Source Lists (OFF=Faster, but shows unusable sources)"
+msgstr "סינון רשימות מקור (כבוי= מהיר יותר, אך מראה מקורות בלתי שמישים)"
+
+msgctxt "#30841"
+msgid "Paginate Website Results (ON=Faster and avoids runaway results)"
+msgstr "תוצאות דפדוף אתרים (פועל= מהיר יותר וימנע בריחת תוצאות)"
+
+msgctxt "#30842"
+msgid "      Paginate Website Favorites"
+msgstr "      דפדוף אתרים מועדפים"
+
+msgctxt "#30843"
+msgid "      Paginate Website Watched"
+msgstr "      דפדוף אתרים שניצפו"
+
+msgctxt "#30844"
+msgid "      Paginate Website To Watch"
+msgstr "      דפדוף אתרים לצפייה"
+
+msgctxt "#30845"
+msgid "      Paginate Search Results"
+msgstr "      דפדוף תוצאות חיפוש"
+
+msgctxt "#30846"
+msgid "      Paginate Built-in Lists (e.g. Most Popular, Featured, etc.)"
+msgstr "      דפדוף רשימות מובנה (לדוגמא הכי פופולרי, מומלצים, וכ'ו)"
+
+msgctxt "#30847"
+msgid "Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)"
+msgstr "הפעל מטא-נתונים (כבוי = מהר יותר, אבל אין תמונות יפות, scrobbling, וכ'ו)."
+
+msgctxt "#30848"
+msgid "       MetaData Settings..."
+msgstr "       הגדרות"
+
+msgctxt "#30849"
+msgid "       Enable Fanart"
+msgstr "       אפשר Fanart"
+
+msgctxt "#30850"
+msgid "       Fallback to PW Posters if Cover Art unavailable"
+msgstr "       חזור לפוסטרים PW אם תמונת כיסוי אינה זמין"
+
+msgctxt "#30851"
+msgid "Library Integration"
+msgstr "אינטגרצית ספרייה"
+
+msgctxt "#30852"
+msgid "TV Show Folder:"
+msgstr "תיקייה סדרות:"
+
+msgctxt "#30853"
+msgid "Movie Folder:"
+msgstr "תיקייה סרטים:"
+
+msgctxt "#30854"
+msgid "All Days"
+msgstr "כל הימים"
+
+msgctxt "#30855"
+msgid "No Days"
+msgstr "ללא ימים"
+
+msgctxt "#30856"
+msgid "Every Other Day"
+msgstr "בכל יום אחר"
+
+msgctxt "#30857"
+msgid "Today"
+msgstr "היום"
+
+msgctxt "#30858"
+msgid "Today + Tomorrow"
+msgstr "היום + מחר"
+
+msgctxt "#30859"
+msgid "Default Subscription Days"
+msgstr "ברירת מחדל של ימי הרשמות"
+
+msgctxt "#30860"
+msgid "First Day of Week"
+msgstr "היום הראשון של שבוע"
+
+msgctxt "#30861"
+msgid "Enable automatic subscription updates"
+msgstr "אפשר עדכונים אוטומטיים של הרשמות"
+
+msgctxt "#30862"
+msgid "       Add ToWatch movies to library"
+msgstr "       הוסף סרטים לצפייה לספרייה"
+
+msgctxt "#30863"
+msgid "       Subscription update interval (in hours)"
+msgstr "       מרווח עדכון הרשמות (בשעות)"
+
+msgctxt "#30864"
+msgid "       Run on start up"
+msgstr "       הפעל באתחול"
+
+msgctxt "#30865"
+msgid "       Update library afterward?"
+msgstr "       לעדכן ספרייה לאחר מכן?"
+
+msgctxt "#30866"
+msgid "       Clean Up subscriptions for ended shows"
+msgstr "       ניקוי הרשמות לסדרות שהסתיימו"
+
+msgctxt "#30867"
+msgid "       During Playback?"
+msgstr "       במהלך ההשמעה?"
+
+msgctxt "#30868"
+msgid "       Show Notifications"
+msgstr "       הצג התראות"
+
+msgctxt "#30869"
+msgid "       Last Subscription Update"
+msgstr "       עדכון הרשמות אחרון"
+
+msgctxt "#30870"
+msgid "Skin Integration"
+msgstr "אינטגרצית ערכת נושא"
+
+msgctxt "#30871"
+msgid "Category"
+msgstr "קטגוריה"
+
+msgctxt "#30872"
+msgid "Update Now"
+msgstr "עדכן כעת"
+
+msgctxt "#30873"
+msgid "Base:"
+msgstr "מאגר:"
+
+msgctxt "#30874"
+msgid "Title:"
+msgstr "כותרת:"
+
+msgctxt "#30875"
+msgid "Year:"
+msgstr "שנה:"
+
+msgctxt "#30876"
+msgid "Subscribed:"
+msgstr "הרשמה:"
+
+msgctxt "#30877"
+msgid "Episodes:"
+msgstr "פרקים:"
+
+# 30878 removed
+
+msgctxt "#30879"
+msgid "Source:"
+msgstr "מקור:"
+
+msgctxt "#30880"
+msgid "Verified Sources:"
+msgstr "מקורות מאומתים:"
+
+msgctxt "#30881"
+msgid "Subsequent parts:"
+msgstr "חלקים הבאים:"
+
+msgctxt "#30882"
+msgid "Label Formatting"
+msgstr "תווית עיצוב"
+
+msgctxt "#30883"
+msgid "Format Subscription Days"
+msgstr "פורמט ימי הרשמות"
+
+# 30884 removed
+
+msgctxt "#30885"
+msgid "Sources"
+msgstr "מקורות"
+
+msgctxt "#30886"
+msgid "Database"
+msgstr "מסד נתונים"
+
+msgctxt "#30887"
+msgid "Use a MySQL DB"
+msgstr "השתמש ב-DB MySQL"
+
+msgctxt "#30888"
+msgid "    Address"
+msgstr "    כתובת"
+
+msgctxt "#30889"
+msgid "    Port"
+msgstr "    יציאה"
+
+# 30890 & 30891 removed
+
+msgctxt "#30892"
+msgid "    Database"
+msgstr "    מסד נתונים"
+
+msgctxt "#30893"
+msgid "Enable automatic 1Channel DB Backups"
+msgstr "אפשר גיבויי 1Channel DB אוטומטיים"
+
+msgctxt "#30894"
+msgid "       Export Folder"
+msgstr "       יצוא תיקייה"
+
+msgctxt "#30895"
+msgid "       Export Interval"
+msgstr "       מרווח ייצוא"
+
+msgctxt "#30896"
+msgid "       Last DB Backup"
+msgstr "       גיבוי DB האחרון"
+
+msgctxt "#30897"
+msgid "Flush webpage cache..."
+msgstr "ריקון מטמון האינטרנט..."
+
+msgctxt "#30898"
+msgid "Reset 1Channel DB ([COLOR red]SQLITE Only[/COLOR])"
+msgstr "איפוס 1Channel DB ([COLOR red]רק SQLITE Only[/COLOR])"
+
+msgctxt "#30899"
+msgid "Export data from 1Channel DB"
+msgstr "ייצוא נתוני 1Channel DB"
+
+msgctxt "#30900"
+msgid "Import data into 1Channel DB"
+msgstr "ייבוא נתוני 1Channel DB"
+
