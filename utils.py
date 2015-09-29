@@ -264,6 +264,7 @@ def rank_host(source):
     ranking = _1CH.get_setting('host-rank').split(',')
     host = host.lower()
     for tier in ranking:
+        tier = tier.replace(' ', '')
         tier = tier.lower()
         if host in tier.split('|'):
             return ranking.index(tier) + 1
