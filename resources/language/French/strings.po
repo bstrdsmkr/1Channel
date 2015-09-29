@@ -1,151 +1,151 @@
 # 
 # Translators:
-# Michael strat <Mstrat37@gmail.com>, 2015
-# tknorris, 2015
+# Jrm, 2015
+# Pierre-Luc Filiatrault <pierre_luc_filiatrault@hotmail.com>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: 1Channel/PW Addon\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2015-09-29 16:31+0000\n"
-"Last-Translator: Michael strat <Mstrat37@gmail.com>\n"
-"Language-Team: Hebrew (http://www.transifex.com/tv-addons/primewire-addon/language/he/)\n"
+"PO-Revision-Date: 2015-09-11 00:00+0000\n"
+"Last-Translator: Jrm\n"
+"Language-Team: French (http://www.transifex.com/tv-addons/primewire-addon/language/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: he\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 msgctxt "#30000"
 msgid "Import Failed"
-msgstr "הייבוא נכשל"
+msgstr "Échec de l'importation"
 
 msgctxt "#30001"
 msgid "Remove from ToWatch List"
-msgstr "הסר מרשימת לצפייה"
+msgstr "Supprimer de la liste À Regarder"
 
 msgctxt "#30002"
 msgid "Remove from Watched list"
-msgstr "הסר מרשימת שניצפו"
+msgstr "Supprimer de la liste Vu"
 
 msgctxt "#30003"
 msgid "Remove from Favorites"
-msgstr "הסר מהמועדפים"
+msgstr "Supprimer des Favoris"
 
 msgctxt "#30004"
 msgid "%s added to Favorites"
-msgstr "%s הוסף למועדפים"
+msgstr "%s ajouté aux Favoris"
 
 msgctxt "#30005"
 msgid "%s already in Favorites"
-msgstr "%s כבר במועדפים"
+msgstr "%s déjà dans les Favoris"
 
 msgctxt "#30006"
 msgid "Favorite Removed"
-msgstr "המועדף הוסר"
+msgstr "Favori Supprimé"
 
 msgctxt "#30007"
 msgid "Resume from %s"
-msgstr "המשך מ %s"
+msgstr "Reprendre de %s"
 
 msgctxt "#30008"
 msgid "Resume?"
-msgstr "להמשיך?"
+msgstr "Reprendre ?"
 
 msgctxt "#30009"
 msgid "Start from beginning"
-msgstr "התחל מהתחלה"
+msgstr "Lire du début"
 
 msgctxt "#30010"
 msgid "Resume"
-msgstr "המשך"
+msgstr "Reprendre"
 
 msgctxt "#30011"
 msgid "No sources were found for this item"
-msgstr "לא נמצאו מקורות עבור פריט זה"
+msgstr "Aucune source n'à été trouvée pour cet élément"
 
 msgctxt "#30012"
 msgid "Choose your stream"
-msgstr "בחר את ההזרמה שלך"
+msgstr "Choisir votre flux"
 
 msgctxt "#30013"
 msgid "Trying Source:    "
-msgstr "מנסה מקור:    "
+msgstr "Essai de la Source:"
 
 msgctxt "#30014"
 msgid "Playback Failed: %s"
-msgstr "ההשמעה נכשלה: %s"
+msgstr "Erreur de lecture: %s"
 
 msgctxt "#30015"
 msgid "All Sources Failed to Play"
-msgstr "כל המקורות נכשלו לנגן"
+msgstr "Lecture échouée de toutes les sources"
 
 msgctxt "#30016"
 msgid "Link Resolve Failed: %s"
-msgstr "הקישור נכשל: %s"
+msgstr "Résolution du lien échoué: %s"
 
 msgctxt "#30017"
 msgid "Axel [COLOR blue]ENABLED[/COLOR] but [COLOR red]NOT INSTALLED[/COLOR]"
-msgstr "אקסל [COLOR blue]זמין[/COLOR] אבל [COLOR red]אינו מותקן[/COLOR]"
+msgstr "Axel [COLOR blue]ACTIVÉ[/COLOR] mais [COLOR red]NON INSTALLÉ[/COLOR]"
 
 msgctxt "#30018"
 msgid "Search TV Shows"
-msgstr "חיפוש סדרות"
+msgstr "Chercher Séries TV"
 
 msgctxt "#30019"
 msgid "Search Movies"
-msgstr "חיפוש סרטים"
+msgstr "Chercher Films"
 
 msgctxt "#30020"
 msgid ""
-msgstr "חיפושים ריקים אסורים, אלא אם כן [/B]דפדוף בתוצאות חיפוש[B] מופעל."
+msgstr "Recherches vides non autorisées lorsque [B]Pagination des résultats de recherche[/B] est désactivé."
 
 msgctxt "#30021"
 msgid "Site Blocked? Unexpected page received."
-msgstr "האתר חסום? התקבל דף בלתי צפוי."
+msgstr "Site Bloqué ? Page inattendue reçue."
 
 msgctxt "#30022"
 msgid "Skip to Page"
-msgstr "דלג לדף"
+msgstr "Sauter vers la Page"
 
 msgctxt "#30023"
 msgid "Next Page"
-msgstr "עמוד הבא"
+msgstr "Page Suivante"
 
 msgctxt "#30024"
 msgid ""
-msgstr "התוסף 1Channel/PrimeWire מפותח ונתמך על ידי צוות ב-[COLOR white]www.tvaddons.ag[/COLOR]"
+msgstr "L'addon 1Channel/PrimeWire est développé et supporté par l'équipe de [COLOR white]www.tvaddons.ag[/COLOR]"
 
 msgctxt "#30025"
 msgid ""
-msgstr "אם אתה נתקלת בבעיות עם התוסף, בקר בפורומים שלנו לקבלת עזרה. כמו כן, אנו מזמינים אתכם לבקר אותנו באופן קבוע כדי להראות את התמיכה שלך."
+msgstr "Si vous rencontrez des problèmes avec l'addon, visitez les Forums pour de l'aide. Nous vous invitons également à nous rendre visite régulièrement pour montrer votre support."
 
 msgctxt "#30026"
 msgid ""
-msgstr "[I](הודעה זו מוצגת [B/]רק[B] כאשר התוסף 1Channel מותקן לראשונה או מתעדכן.)[/I]"
+msgstr "[I](Ce message est affiché [B]seulement[/B] lorsque l'addon 1Channel est installé où mis à jour pour la première fois.)[/I]"
 
 msgctxt "#30027"
 msgid "Movies"
-msgstr "סרטים"
+msgstr "Films"
 
 msgctxt "#30028"
 msgid "TV Shows"
-msgstr "סדרות"
+msgstr "Séries TV"
 
 msgctxt "#30029"
 msgid "Playlists"
-msgstr "רשימות השמעה"
+msgstr "Listes de lecture"
 
 msgctxt "#30030"
 msgid "Install 1Channel Themes/Icons"
-msgstr "התקנת ערכות נושא/סמלים"
+msgstr "Installer les Thèmes/Icônes 1Channel"
 
 msgctxt "#30031"
 msgid "URLResolver Settings"
-msgstr "הגדרות URLResolver"
+msgstr "Paramètres de URLResolver"
 
 msgctxt "#30032"
 msgid "Help"
-msgstr "עזרה"
+msgstr "Aide"
 
 msgctxt "#30033"
 msgid "A-Z"
@@ -153,865 +153,865 @@ msgstr "A-Z"
 
 msgctxt "#30034"
 msgid "Search"
-msgstr "חיפוש"
+msgstr "Rechercher"
 
 msgctxt "#30035"
 msgid "Website Favourites"
-msgstr "אתרים מועדפים"
+msgstr "Favoris du site web"
 
 msgctxt "#30036"
 msgid "Website Watched List"
-msgstr "רשימת אתרים שנצפו"
+msgstr "Liste \"Vu\" du site Web"
 
 msgctxt "#30037"
 msgid "Website To Watch List"
-msgstr "רשימת אתרים לצפייה"
+msgstr "Liste \"À Voir\" du site Web"
 
 msgctxt "#30038"
 msgid "My TV Schedule"
-msgstr "לוח שידורים של הסדרות שלי"
+msgstr "Mon Programme TV"
 
 msgctxt "#30039"
 msgid "Favourites"
-msgstr "מועדפים"
+msgstr "Favoris"
 
 msgctxt "#30040"
 msgid "Subscriptions"
-msgstr "הרשמות"
+msgstr "Abonnements"
 
 msgctxt "#30041"
 msgid "Genres"
-msgstr "ז'אנרים"
+msgstr "Genres"
 
 msgctxt "#30042"
 msgid "Featured"
-msgstr "מוצגים עכשיו"
+msgstr "En Vedette"
 
 msgctxt "#30043"
 msgid "Most Popular"
-msgstr "הכי פופולארי"
+msgstr "Plus Populaire"
 
 msgctxt "#30044"
 msgid "Highly rated"
-msgstr "מדורגים גבוהה"
+msgstr "Mieux Notés"
 
 msgctxt "#30045"
 msgid "Date released"
-msgstr "תאריך שוחרר"
+msgstr "Date de publication"
 
 msgctxt "#30046"
 msgid "Date added"
-msgstr "תאריך הוספה"
+msgstr "Date de l'Ajout "
 
 msgctxt "#30047"
 msgid "Search (+Description)"
-msgstr "חיפוש (+תיאור)"
+msgstr "Rechercher (+Description)"
 
 msgctxt "#30048"
 msgid "Search (Advanced Search)"
-msgstr "חיפוש (חיפוש מתקדם)"
+msgstr "Rechercher  (Recherche Avancée)"
 
 msgctxt "#30049"
 msgid "Public Playlists (sorted by date)"
-msgstr "פלייליסטים ציבוריים (מסודרים לפי תאריך)"
+msgstr "Listes de lecture publiques (triées par date)"
 
 msgctxt "#30050"
 msgid "Public Playlists (sorted by rating)"
-msgstr "פלייליסטים ציבוריים (מסודרים לפי דירוג)"
+msgstr "Listes de lecture publiques (triées par notes)"
 
 msgctxt "#30051"
 msgid "Public Playlists (sorted by views)"
-msgstr "פלייליסטים ציבוריים (מסודרים לפי צפיות)"
+msgstr "Listes de lecture publiques (triées par vues)"
 
 msgctxt "#30052"
 msgid "Personal Playlists (sorted by date)"
-msgstr "פלייליסטים אישי (מסודרים לפי תאריך)"
+msgstr "Listes de lecture personnelles (triées par dates)"
 
 msgctxt "#30053"
 msgid "Personal Playlists (sorted by rating)"
-msgstr "פלייליסטים אישי (מסודרים לפי דירוג)"
+msgstr "Listes de lecture personnelles (triées par notes)"
 
 msgctxt "#30054"
 msgid "Personal Playlists (sorted by views)"
-msgstr "פלייליסטים אישי (מסודרים לפי צפיות)"
+msgstr "Listes de lecture personnelles (triées par vues)"
 
 msgctxt "#30055"
 msgid "items"
-msgstr "פריטים"
+msgstr "éléments"
 
 msgctxt "#30056"
 msgid "views"
-msgstr "צפיות"
+msgstr "vues"
 
 msgctxt "#30057"
 msgid "rating"
-msgstr "דירוג"
+msgstr "note"
 
 msgctxt "#30058"
 msgid "Remove from Playlist"
-msgstr "הסר מרשימת ההשמעה"
+msgstr "Enlever de la liste de lecture"
 
 msgctxt "#30059"
 msgid "Item added to playlist."
-msgstr "פריט נוסף לרשימת השמעה."
+msgstr "Élément ajouté à la liste de lecture"
 
 msgctxt "#30060"
 msgid "Error adding item to playlist."
-msgstr "שגיאה בהוספת פריט לרשימת השמעה."
+msgstr "Erreur lors de l'ajout de l'élément à la liste de lecture"
 
 msgctxt "#30061"
 msgid "Create a playlist on the website first."
-msgstr "קודם כל צור רשימת הפעלה באתר."
+msgstr "Créer une liste de lecture du premier Site Web"
 
 msgctxt "#30062"
 msgid "Select Playlist"
-msgstr "בחר רשימת השמעה"
+msgstr "Sélectionner la liste de lecture"
 
 msgctxt "#30063"
 msgid "Select Source"
-msgstr "בחר מקור"
+msgstr "Sélectionner la source"
 
 msgctxt "#30064"
 msgid "Remove from XBMC Favourites"
-msgstr "הסר מהמועדפים של XBMC"
+msgstr "Enlever des Favoris XBMC"
 
 msgctxt "#30065"
 msgid "Add to XBMC Favourites"
-msgstr "הוסף להמועדפים של XBMC"
+msgstr "Ajouter aux Favoris XBMC"
 
 msgctxt "#30066"
 msgid "Add to Favorites"
-msgstr "הוסף למועדפים"
+msgstr "Ajouter aux Favoris"
 
 msgctxt "#30067"
 msgid "Add to ToWatch list"
-msgstr "הוסף לרשימת צפייה"
+msgstr "Ajouter de la liste ÀRegarder"
 
 msgctxt "#30068"
 msgid "Add to Watched List"
-msgstr "הוסף לרשימת שניצפו"
+msgstr "Ajouter à la liste Vues"
 
 msgctxt "#30069"
 msgid "Add to Library"
-msgstr "הוסף לספרייה"
+msgstr "Ajouter à la librairie"
 
 msgctxt "#30070"
 msgid "Add to Playlist"
-msgstr "הוסף לרשימת ההשמעה"
+msgstr "Ajouter à la liste de lecture"
 
 msgctxt "#30071"
 msgid "Subscribe"
-msgstr "הירשם"
+msgstr "S'abonner"
 
 msgctxt "#30072"
 msgid "Cancel Subscription"
-msgstr "ביטול הרשמה"
+msgstr "Abonnement Annulé"
 
 msgctxt "#30073"
 msgid "Add to CouchPotato"
-msgstr "הוסף ל-CouchPotato"
+msgstr "Ajouter à CouchPotato"
 
 msgctxt "#30074"
 msgid "Show Information"
-msgstr "הצג מידע"
+msgstr "Montrer l'information"
 
 msgctxt "#30075"
 msgid "Refresh Metadata"
-msgstr "רענן מידע"
+msgstr "Rafraîchir les Metadonnées"
 
 msgctxt "#30076"
 msgid "Watch Trailer"
-msgstr "צפה בטריילר"
+msgstr "Regarder la bande annonce"
 
 msgctxt "#30077"
 msgid "Mark as watched"
-msgstr "סמן כנצפה"
+msgstr "Marquer comme vu"
 
 msgctxt "#30078"
 msgid "Mark as unwatched"
-msgstr "סמן כלא נצפה"
+msgstr "Marquer comme non-vu"
 
 msgctxt "#30079"
 msgid "Season"
-msgstr "עונה"
+msgstr "Saison"
 
 msgctxt "#30080"
 msgid "No Seasons Found for %s"
-msgstr "לא נמצאו עונות עבור %s"
+msgstr "Aucune Saison Trouvée pour %s"
 
 msgctxt "#30081"
 msgid "Add Favorite TV Shows to Library"
-msgstr "הוסף סדרות מועדפים לספרייה"
+msgstr "Ajouter les Séries TV Favorites à la Librairie"
 
 msgctxt "#30082"
 msgid "Add Favorite Movies to Library"
-msgstr "הוסף סרטים מועדפים לספרייה"
+msgstr "Ajouter les Films Favoris à la Librairie"
 
 msgctxt "#30083"
 msgid "Uploading your favorites to www.primewire.ag..."
-msgstr "מעלה את המועדפים שלך ל-www.primewire.ag..."
+msgstr "Uploader vos favoris vers www.primewire.ag..."
 
 msgctxt "#30084"
 msgid "Uploading Favorites"
-msgstr "מעלה מועדפים"
+msgstr "Upload des Favoris"
 
 msgctxt "#30085"
 msgid "Success"
-msgstr "עבר בהצלחה"
+msgstr "Succès"
 
 msgctxt "#30086"
 msgid "Already Exists"
-msgstr "כבר קיים"
+msgstr "Déjà Existant"
 
 msgctxt "#30087"
 msgid "Processed %s"
-msgstr "מעבד %s"
+msgstr "Traités %s"
 
 msgctxt "#30088"
 msgid "Do you want to remove the successful"
-msgstr "האם ברצונך להסיר את המוצלח"
+msgstr "Voulez-vous supprimer les"
 
 msgctxt "#30089"
 msgid "uploads from local favorites?"
-msgstr "העלאות מהמועדפים מקומיים?"
+msgstr "téléchargements réussis des Favoris Locaux"
 
 msgctxt "#30090"
 msgid "THIS CANNOT BE UNDONE"
-msgstr "לא ניתן לבטל זה"
+msgstr "CELA NE PEUT PAS ÊTRE ANNULÉ"
 
 msgctxt "#30091"
 msgid "Keep"
-msgstr "שמור"
+msgstr "Conserver"
 
 msgctxt "#30092"
 msgid "Delete"
-msgstr "מחק"
+msgstr "Supprimer"
 
 msgctxt "#30093"
 msgid "Migration Complete"
-msgstr "ההעברה הושלמה"
+msgstr "Migration Terminée"
 
 msgctxt "#30094"
 msgid "Favorite TV Shows Added to Library"
-msgstr "סדרות מועדפים התווספו לספרייה"
+msgstr "Séries TV Favories Ajoutées à la Librairie"
 
 msgctxt "#30095"
 msgid "Favorite Movies Added to Library"
-msgstr "סרטים המועדפים התווספו לספרייה"
+msgstr "Films Favoris Ajoutés à la Librairie"
 
 msgctxt "#30096"
 msgid "Add To Watch List Movies to Library"
-msgstr "הוסף רשימת מעקב של סרטים לספרייה"
+msgstr "Ajouter la liste \"À Regarder\" à la librairie"
 
 msgctxt "#30097"
 msgid "Added '%s' to library"
-msgstr "מוסיף '%s' לספרייה"
+msgstr "'%s' ajouté à la librairie"
 
 msgctxt "#30098"
 msgid "Subscribed to '%s'"
-msgstr "נרשם ל-'%s'"
+msgstr "Abonné à '%s'"
 
 msgctxt "#30099"
 msgid "Already subscribed to '%s'"
-msgstr "כבר רשום ל-'%s'"
+msgstr "Déjà abonné à %s"
 
 msgctxt "#30100"
 msgid "Subscriptions Updated"
-msgstr "הרשמות עודכנה"
+msgstr "Mise à jour de l'abonnement"
 
 msgctxt "#30101"
 msgid "Next Update in %s hours"
-msgstr "העדכון הבא בעוד %s שעות"
+msgstr "Prochaine Mise à jour dans %s heures"
 
 msgctxt "#30102"
 msgid "Subscriptions Cleaned Up"
-msgstr "ניקוי הרשמות"
+msgstr "Vider l'abonnement"
 
 msgctxt "#30103"
 msgid "ToWatch LIst added to library"
-msgstr "רשימת לצפייה התווספה לספרייה"
+msgstr "Liste \"À Regarder\" ajoutée à la librarie"
 
 msgctxt "#30104"
 msgid "Update Subscriptions ([B]Next Scheduled Run: %s[/B])"
-msgstr "עדכון הרשמות ([/B]הפעלה הבאה מתוכננת: %s[/B])"
+msgstr "Mettre à jour les souscriptions ([B]Prochaine mise à jour: %s[/B])"
 
 msgctxt "#30105"
 msgid "Clean Up Subscriptions"
-msgstr "ניקוי הרשמות"
+msgstr "Nettoyer les abonnements"
 
 msgctxt "#30106"
 msgid "DISABLED"
-msgstr "השבת"
+msgstr "DÉSACTIVÉ"
 
 msgctxt "#30107"
 msgid "Edit days"
-msgstr "ערוך ימים"
+msgstr "Éditer les jours"
 
 msgctxt "#30109"
 msgid "Page"
-msgstr "עמוד"
+msgstr "Page"
 
 msgctxt "#30110"
 msgid "DB Reset Successful"
-msgstr "איפוס מוצלח של DB"
+msgstr "Base de données réinitialisée avec succès"
 
 msgctxt "#30111"
 msgid "Reset only allowed on sqlite DBs"
-msgstr "איפוס מותר רק על DBs SQLite"
+msgstr "Réinitialisation autorisée seulement sur les bases de données SQLite"
 
 msgctxt "#30112"
 msgid "Select Export Directory"
-msgstr "בחר ספרייה לייצוא"
+msgstr "Sélectionner le Répertoire d'exportation"
 
 msgctxt "#30113"
 msgid "Enter Export Filename"
-msgstr "הזן שם קובץ ייצוא"
+msgstr "Entrer le nom du fichier d'exportation"
 
 msgctxt "#30114"
 msgid "Exported to %s"
-msgstr "ייצוא ל- %s"
+msgstr "Exporté vers %s"
 
 msgctxt "#30115"
 msgid "Export Failed"
-msgstr "הייצוא נכשל"
+msgstr "Échec de l'exportation"
 
 msgctxt "#30116"
 msgid "Export"
-msgstr "ייצוא"
+msgstr "Exporter"
 
 msgctxt "#30117"
 msgid "Select Import File"
-msgstr "בחר קובץ לייבוא"
+msgstr "Sélectionner le fichier d'importation"
 
 msgctxt "#30118"
 msgid "Imported from %s"
-msgstr "מייבא מ-%s"
+msgstr "Importé de %s"
 
 msgctxt "#30120"
 msgid "Import"
-msgstr "ייבוא"
+msgstr "Importer"
 
 msgctxt "#30121"
 msgid "Days to update Subscription"
-msgstr "ימים לעדכון הרשמות"
+msgstr "Jours où mettre à jour l'abonnement"
 
 msgctxt "#30122"
 msgid "Are you sure you want to"
-msgstr "האם אתה בטוח שברצונך"
+msgstr "Êtes-vous sûr de vouloir"
 
 msgctxt "#30123"
 msgid "delete the url cache?"
-msgstr "האם למחוק את המטמון url?"
+msgstr "Supprimer le cache d'url?"
 
 msgctxt "#30124"
 msgid "This will slow things down until rebuilt"
-msgstr "זה ייאט דברים עד שייבנה מחדש"
+msgstr "Cela va ralentir le système jusqu'à reconstruction"
 
 msgctxt "#30125"
 msgid "Flush web cache"
-msgstr "ריקון מטמון האינטרנט"
+msgstr "Vider le cache web"
 
 msgctxt "#30126"
 msgid "Updating. Please wait..."
-msgstr "מעדכן. אנא המתן..."
+msgstr "Mise à jour.  Veuillez patienter..."
 
 msgctxt "#30127"
 msgid "Manual Search"
-msgstr "חיפוש ידני"
+msgstr "Recherche Manuelle"
 
 msgctxt "#30128"
 msgid "Choose"
-msgstr "בחר"
+msgstr "Choisir"
 
 msgctxt "#30129"
 msgid "Enter a Title"
-msgstr "הזן כותרת"
+msgstr "Entrer un Titre"
 
 msgctxt "#30130"
 msgid "Advanced TV Show Search"
-msgstr "חיפוש סדרות מתקדם"
+msgstr "Recherche Avancée de Séries TV"
 
 msgctxt "#30131"
 msgid "Advanced Movie Search"
-msgstr "חיפוש סרטים מתקדם"
+msgstr "Recherche Avancée de Films"
 
 msgctxt "#30132"
 msgid "Enter at least one criteria to search on."
-msgstr "הזן לפחות קריטריון אחד לחיפוש."
+msgstr "Entrez au moins un critère de recherche."
 
 msgctxt "#30133"
 msgid "must be one of:"
-msgstr "חייב להיות אחד:"
+msgstr "doit être l'un de :"
 
 msgctxt "#30134"
 msgid "Year must be a 4 digit number between %s and %s."
-msgstr "שנה חייבת להיות מספר בן 4 ספרות בין %s ל-%s."
+msgstr "L'année doit être composée de 4 chiffres entre %s et %s."
 
 msgctxt "#30500"
 msgid "Select Subscription Days"
-msgstr "בחר ימים להרשמה"
+msgstr "Sélectionner les jours d'abonnement"
 
 msgctxt "#30501"
 msgid "Monday"
-msgstr "יום שני"
+msgstr "Lundi"
 
 msgctxt "#30502"
 msgid "Tuesday"
-msgstr "יום שלישי"
+msgstr "Mardi"
 
 msgctxt "#30503"
 msgid "Wednesday"
-msgstr "יום רביעי"
+msgstr "Mercredi"
 
 msgctxt "#30504"
 msgid "Thursday"
-msgstr "יום חמישי"
+msgstr "Jeudi"
 
 msgctxt "#30505"
 msgid "Friday"
-msgstr "יום שישי"
+msgstr "Vendredi"
 
 msgctxt "#30506"
 msgid "Saturday"
-msgstr "יום שבת"
+msgstr "Samedi"
 
 msgctxt "#30507"
 msgid "Sunday"
-msgstr "יום ראשון"
+msgstr "Dimanche"
 
 msgctxt "#30508"
 msgid "Select/Deselect All"
-msgstr "בחר/בטל הכל"
+msgstr "Sélectionner/Desélectionner Tout"
 
 msgctxt "#30509"
 msgid "OK"
-msgstr "אישור"
+msgstr "OK"
 
 msgctxt "#30510"
 msgid "Cancel"
-msgstr "ביטול"
+msgstr "Annuler"
 
 msgctxt "#30511"
 msgid "Title"
-msgstr "כותרת"
+msgstr "Titre"
 
 msgctxt "#30512"
 msgid "Tag"
-msgstr "תג"
+msgstr "Tag"
 
 msgctxt "#30513"
 msgid "Actor"
-msgstr "שחקן"
+msgstr "Acteur"
 
 msgctxt "#30514"
 msgid "Director"
-msgstr "במאי"
+msgstr "Directeur"
 
 msgctxt "#30515"
 msgid "Country"
-msgstr "מדינה"
+msgstr "Pays"
 
 msgctxt "#30516"
 msgid "Genre"
-msgstr "ז'אנר"
+msgstr "Genre"
 
 msgctxt "#30517"
 msgid "Month"
-msgstr "חודש"
+msgstr "Mois"
 
 msgctxt "#30518"
 msgid "Year"
-msgstr "שנה"
+msgstr "Année"
 
 msgctxt "#30519"
 msgid "Decade"
-msgstr "עשור"
+msgstr "Décennie"
 
 msgctxt "#30800"
 msgid "Website"
-msgstr "אתר"
+msgstr "Site Web"
 
 msgctxt "#30801"
 msgid "Domain"
-msgstr "דומיין"
+msgstr "Domaine"
 
 msgctxt "#30802"
 msgid "Enable Custom Domain"
-msgstr "אפשר דומיין מותאם אישית"
+msgstr "Activer le Domaine Personnalisé"
 
 msgctxt "#30803"
 msgid "Custom Domain"
-msgstr "דומיין מותאם אישית"
+msgstr "Domaine Personnalisé"
 
 msgctxt "#30804"
 msgid "Website Integration"
-msgstr "אינטגרציה לאתר"
+msgstr "Intégration du Site Web"
 
 msgctxt "#30805"
 msgid "    Username"
-msgstr "    שם משתמש"
+msgstr "Utilisateur"
 
 msgctxt "#30806"
 msgid "    Password"
-msgstr "    סיסמה"
+msgstr "Mot De Passe"
 
 msgctxt "#30807"
 msgid "    Subscription Playlist ID"
-msgstr "    מזהה מנוי רשימת השמעה"
+msgstr "ID de la liste de souscription"
 
 msgctxt "#30808"
 msgid "User Interface"
-msgstr "ממשק משתמש"
+msgstr "Interface Utilisateur"
 
 msgctxt "#30809"
 msgid "Theme ([COLOR red]Requires 1channel Themepak Addon[/COLOR])"
-msgstr "ערכת נושא ([COLOR red]נדרש תוסף 1channel Themepack[/COLOR])"
+msgstr "Ce thème ([COLOR red]nécessite l'addon 1channel Themepak[/COLOR])"
 
 msgctxt "#30810"
 msgid "Playlist Sort Order"
-msgstr "מיון רשימת השמעה"
+msgstr "Ordre de tri de la liste de lecture"
 
 msgctxt "#30811"
 msgid "Order Added"
-msgstr "הסדר נוסף"
+msgstr "Ordre d'ajout"
 
 msgctxt "#30812"
 msgid "Alphabetic"
-msgstr "אלפביתי"
+msgstr "Alphabétique"
 
 msgctxt "#30813"
 msgid "Popularity"
-msgstr "פופולריות"
+msgstr "Popularité"
 
 msgctxt "#30814"
 msgid "Set Default Views"
-msgstr "קבע תצוגה ברירת מחדל"
+msgstr "Définir les vues par défaut"
 
 msgctxt "#30815"
 msgid "   Movies View"
-msgstr "   תצוגת סרטים"
+msgstr "Vue Films"
 
 msgctxt "#30816"
 msgid "    TV Shows View"
-msgstr "    תצוגת סדרות"
+msgstr "Vue Séries TV"
 
 msgctxt "#30817"
 msgid "    Seasons View"
-msgstr "    תצוגת עונות"
+msgstr "Vue Saisons"
 
 msgctxt "#30818"
 msgid "    Episodes View"
-msgstr "    תצוגת פרקים"
+msgstr "Vue Épisodes"
 
 msgctxt "#30819"
 msgid "    Actors/Directors/Cast View"
-msgstr "    תצוגת שחקנים/במאים/צוות"
+msgstr "Vue Acteurs / Directeurs / Casting"
 
 msgctxt "#30820"
 msgid "    Default View"
-msgstr "    תצוגת ברירת מחדל"
+msgstr "Vue par défaut"
 
 msgctxt "#30821"
 msgid "Video Playback"
-msgstr "הפעלת וידאו"
+msgstr "Lecture Vidéo"
 
 msgctxt "#30822"
 msgid "Automatically play sources"
-msgstr "נגן מקורות באופן אוטומטי"
+msgstr "Lire les sources automatiquement"
 
 msgctxt "#30823"
 msgid "     Source Selection Method"
-msgstr "     שיטת בחירת מקור"
+msgstr "Méthode de sélection des sources"
 
 msgctxt "#30824"
 msgid "Automatically mark videos as watched"
-msgstr "סמן כצפה באופן אוטומטי"
+msgstr "Marquer les vidéos comme vues automatiquement"
 
 msgctxt "#30825"
 msgid "       Mark Watched Percentage"
-msgstr "       סימון אחוזי נצפה"
+msgstr "Pourcentage pour marquer comme vu"
 
 msgctxt "#30826"
 msgid ""
-msgstr "השתמש באקסל הורדה([COLOR red]ניסיוני[/COLOR] מאיץ הורדה)"
+msgstr "Utiliser Axel Downloader ([COLOR red]EXPERIMENTAL[/COLOR] accélérateur de téléchargements)"
 
 msgctxt "#30827"
 msgid "Enable sorting of sources"
-msgstr "אפשר מיון של מקורות"
+msgstr "Activer le tri des sources"
 
 msgctxt "#30828"
 msgid "     Host Ranking (comma separated)"
-msgstr "     דירוג שרת (מופרד בפסיקים)"
+msgstr "Notation des serveurs (séparé par des virgules)"
 
 msgctxt "#30829"
 msgid "     Sort by:"
-msgstr "     מיין לפי:"
+msgstr "Trier par:"
 
 msgctxt "#30830"
 msgid "None"
-msgstr "ללא"
+msgstr "Aucun"
 
 msgctxt "#30831"
 msgid "Host"
-msgstr "שרת"
+msgstr "Hôte"
 
 msgctxt "#30832"
 msgid "Verified"
-msgstr "מאומת"
+msgstr "Vérifié"
 
 msgctxt "#30833"
 msgid "Quality"
-msgstr "איכות"
+msgstr "Qualité"
 
 msgctxt "#30834"
 msgid "Views"
-msgstr "צפיות"
+msgstr "Vues"
 
 msgctxt "#30835"
 msgid "Multi-part"
-msgstr "מרובה"
+msgstr "Multi-partie"
 
 msgctxt "#30836"
 msgid "          Reverse sort"
-msgstr "          מיון הפוך"
+msgstr "Tri inversé"
 
 msgctxt "#30837"
 msgid "     Then by:"
-msgstr "     ואז לפי:"
+msgstr "Ensuite par:"
 
 msgctxt "#30838"
 msgid "Performance"
-msgstr "ביצועים"
+msgstr "Performance"
 
 msgctxt "#30839"
 msgid "Cache Directory Listings (ON=Faster, but triggers XBMC bugs in resume)"
-msgstr "ספריית רשימת מטמון (פועל= מהיר יותר, אבל מפעיל באגים XBMC בשחזור)"
+msgstr "Mettre les listings de répertoires en cache (ON=Plus rapide, mais provoque des bugs XBMC sur la reprise)"
 
 msgctxt "#30840"
 msgid "Filter Source Lists (OFF=Faster, but shows unusable sources)"
-msgstr "סינון רשימות מקור (כבוי= מהיר יותר, אך מראה מקורות בלתי שמישים)"
+msgstr "Filtrer les listes de sources (OFF=Plus rapide, mais montre des sources inutilisables)"
 
 msgctxt "#30841"
 msgid "Paginate Website Results (ON=Faster and avoids runaway results)"
-msgstr "תוצאות דפדוף אתרים (פועל= מהיר יותר וימנע בריחת תוצאות)"
+msgstr "Pagination des résultats du site Web (ON=plus rapide et évite les résultats incontrôlés)"
 
 msgctxt "#30842"
 msgid "      Paginate Website Favorites"
-msgstr "      דפדוף אתרים מועדפים"
+msgstr "Pagination des favoris du site Web"
 
 msgctxt "#30843"
 msgid "      Paginate Website Watched"
-msgstr "      דפדוף אתרים שניצפו"
+msgstr "Paginer les élements vus du site Web"
 
 msgctxt "#30844"
 msgid "      Paginate Website To Watch"
-msgstr "      דפדוף אתרים לצפייה"
+msgstr "Paginer les éléments \"À Voir\" du site Web"
 
 msgctxt "#30845"
 msgid "      Paginate Search Results"
-msgstr "      דפדוף תוצאות חיפוש"
+msgstr "Paginer les Résultats de Recherche"
 
 msgctxt "#30846"
 msgid "      Paginate Built-in Lists (e.g. Most Popular, Featured, etc.)"
-msgstr "      דפדוף רשימות מובנה (לדוגמא הכי פופולרי, מומלצים, וכ'ו)"
+msgstr "Paginer les listes internes (ex: Plus populaire, en vedette, etc.)"
 
 msgctxt "#30847"
 msgid "Enable MetaData (OFF=Faster, but no pretty pictures, scrobbling, etc.)"
-msgstr "הפעל מטא-נתונים (כבוי = מהר יותר, אבל אין תמונות יפות, scrobbling, וכ'ו)."
+msgstr "Activer les métadonnées (OFF=Plus rapide, mais pas de belles images, scrobbling, etc.) "
 
 msgctxt "#30848"
 msgid "       MetaData Settings..."
-msgstr "       הגדרות"
+msgstr "Paramètres des Metadonnées..."
 
 msgctxt "#30849"
 msgid "       Enable Fanart"
-msgstr "       אפשר Fanart"
+msgstr "Activer le Fan Art"
 
 msgctxt "#30850"
 msgid "       Fallback to PW Posters if Cover Art unavailable"
-msgstr "       חזור לפוסטרים PW אם תמונת כיסוי אינה זמין"
+msgstr "Utiliser les posters PW si les couvertures sont indisponibles"
 
 msgctxt "#30851"
 msgid "Library Integration"
-msgstr "אינטגרצית ספרייה"
+msgstr "Intégration dans la librairie"
 
 msgctxt "#30852"
 msgid "TV Show Folder:"
-msgstr "תיקייה סדרות:"
+msgstr "Répertoire des Séries TV:"
 
 msgctxt "#30853"
 msgid "Movie Folder:"
-msgstr "תיקייה סרטים:"
+msgstr "Répertoire des Films:"
 
 msgctxt "#30854"
 msgid "All Days"
-msgstr "כל הימים"
+msgstr "Tous les jours"
 
 msgctxt "#30855"
 msgid "No Days"
-msgstr "ללא ימים"
+msgstr "Aucun Jour"
 
 msgctxt "#30856"
 msgid "Every Other Day"
-msgstr "בכל יום אחר"
+msgstr "Tous les autres jours"
 
 msgctxt "#30857"
 msgid "Today"
-msgstr "היום"
+msgstr "Aujourd'hui"
 
 msgctxt "#30858"
 msgid "Today + Tomorrow"
-msgstr "היום + מחר"
+msgstr "Aujourd'hui + Demain"
 
 msgctxt "#30859"
 msgid "Default Subscription Days"
-msgstr "ברירת מחדל של ימי הרשמות"
+msgstr "Jours d'abonnement par défaut"
 
 msgctxt "#30860"
 msgid "First Day of Week"
-msgstr "היום הראשון של שבוע"
+msgstr "Premier jour de la Semaine "
 
 msgctxt "#30861"
 msgid "Enable automatic subscription updates"
-msgstr "אפשר עדכונים אוטומטיים של הרשמות"
+msgstr "Activer les mises à jour automatiques des abonnements"
 
 msgctxt "#30862"
 msgid "       Add ToWatch movies to library"
-msgstr "       הוסף סרטים לצפייה לספרייה"
+msgstr "Ajouter les films à voir à la librarie"
 
 msgctxt "#30863"
 msgid "       Subscription update interval (in hours)"
-msgstr "       מרווח עדכון הרשמות (בשעות)"
+msgstr "Intervalle de la mise à jour des abonnements (en heures)"
 
 msgctxt "#30864"
 msgid "       Run on start up"
-msgstr "       הפעל באתחול"
+msgstr "Lancer au démarrage"
 
 msgctxt "#30865"
 msgid "       Update library afterward?"
-msgstr "       לעדכן ספרייה לאחר מכן?"
+msgstr "Mettre à jour la librarie ensuite ?"
 
 msgctxt "#30866"
 msgid "       Clean Up subscriptions for ended shows"
-msgstr "       ניקוי הרשמות לסדרות שהסתיימו"
+msgstr "Nettoyer les abonnements pour les Séries TV terminées"
 
 msgctxt "#30867"
 msgid "       During Playback?"
-msgstr "       במהלך ההשמעה?"
+msgstr "Pendant la lecture?"
 
 msgctxt "#30868"
 msgid "       Show Notifications"
-msgstr "       הצג התראות"
+msgstr "Afficher les notifications"
 
 msgctxt "#30869"
 msgid "       Last Subscription Update"
-msgstr "       עדכון הרשמות אחרון"
+msgstr "Dernière Mise à jour de l'abonnement"
 
 msgctxt "#30870"
 msgid "Skin Integration"
-msgstr "אינטגרצית ערכת נושא"
+msgstr "Intégration du skin"
 
 msgctxt "#30871"
 msgid "Category"
-msgstr "קטגוריה"
+msgstr "Catégorie"
 
 msgctxt "#30872"
 msgid "Update Now"
-msgstr "עדכן כעת"
+msgstr "Mettre à jour maintenant"
 
 msgctxt "#30873"
 msgid "Base:"
-msgstr "מאגר:"
+msgstr "Base:"
 
 msgctxt "#30874"
 msgid "Title:"
-msgstr "כותרת:"
+msgstr "Titre:"
 
 msgctxt "#30875"
 msgid "Year:"
-msgstr "שנה:"
+msgstr "Année:"
 
 msgctxt "#30876"
 msgid "Subscribed:"
-msgstr "הרשמה:"
+msgstr "Abonné:"
 
 msgctxt "#30877"
 msgid "Episodes:"
-msgstr "פרקים:"
+msgstr "Épisodes:"
 
 msgctxt "#30879"
 msgid "Source:"
-msgstr "מקור:"
+msgstr "Source:"
 
 msgctxt "#30880"
 msgid "Verified Sources:"
-msgstr "מקורות מאומתים:"
+msgstr "Sources Vérifiées:"
 
 msgctxt "#30881"
 msgid "Subsequent parts:"
-msgstr "חלקים הבאים:"
+msgstr "Parties suivantes:"
 
 msgctxt "#30882"
 msgid "Label Formatting"
-msgstr "תווית עיצוב"
+msgstr "Formattage des labels"
 
 msgctxt "#30883"
 msgid "Format Subscription Days"
-msgstr "פורמט ימי הרשמות"
+msgstr "Formatter les jours d'abonnement"
 
 msgctxt "#30885"
 msgid "Sources"
-msgstr "מקורות"
+msgstr "Source"
 
 msgctxt "#30886"
 msgid "Database"
-msgstr "מסד נתונים"
+msgstr "Base de données "
 
 msgctxt "#30887"
 msgid "Use a MySQL DB"
-msgstr "השתמש ב-DB MySQL"
+msgstr "Utiliser une base de donées MySQL"
 
 msgctxt "#30888"
 msgid "    Address"
-msgstr "    כתובת"
+msgstr "Adresse"
 
 msgctxt "#30889"
 msgid "    Port"
-msgstr "    יציאה"
+msgstr "Port"
 
 msgctxt "#30892"
 msgid "    Database"
-msgstr "    מסד נתונים"
+msgstr "Base de données "
 
 msgctxt "#30893"
 msgid "Enable automatic 1Channel DB Backups"
-msgstr "אפשר גיבויי 1Channel DB אוטומטיים"
+msgstr "Activer la sauvegarde automatique de la base de donées 1Channel"
 
 msgctxt "#30894"
 msgid "       Export Folder"
-msgstr "       יצוא תיקייה"
+msgstr "Répertoire de l'exportation"
 
 msgctxt "#30895"
 msgid "       Export Interval"
-msgstr "       מרווח ייצוא"
+msgstr "Intervalle d'exportation"
 
 msgctxt "#30896"
 msgid "       Last DB Backup"
-msgstr "       גיבוי DB האחרון"
+msgstr "Dernière Sauvegarde de la base de données"
 
 msgctxt "#30897"
 msgid "Flush webpage cache..."
-msgstr "ריקון מטמון האינטרנט..."
+msgstr "Vider le cache des pages web..."
 
 msgctxt "#30898"
 msgid "Reset 1Channel DB ([COLOR red]SQLITE Only[/COLOR])"
-msgstr "איפוס 1Channel DB ([COLOR red]רק SQLITE Only[/COLOR])"
+msgstr "Réinitialiser la base de données 1Channel ([COLOR red]SQLITE seulement[/COLOR])"
 
 msgctxt "#30899"
 msgid "Export data from 1Channel DB"
-msgstr "ייצוא נתוני 1Channel DB"
+msgstr "Exporter les données depuis la base de données 1Channel"
 
 msgctxt "#30900"
 msgid "Import data into 1Channel DB"
-msgstr "ייבוא נתוני 1Channel DB"
+msgstr "Importer les données dans la base de données 1Channel"
 

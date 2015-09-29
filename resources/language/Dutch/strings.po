@@ -1,0 +1,27 @@
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: 1Channel/PW Addon\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2015-09-27 01:45+0000\n"
+"Last-Translator: tknorris\n"
+"Language-Team: Dutch (http://www.transifex.com/tv-addons/primewire-addon/language/nl/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: nl\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30518"
+msgid "Year"
+msgstr "Jaren"
+
+msgctxt "#30806"
+msgid "    Password"
+msgstr "Paswoord"
+
+msgctxt "#30833"
+msgid "Quality"
+msgstr "Kwaliteit"
+

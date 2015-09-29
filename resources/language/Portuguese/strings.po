@@ -1,0 +1,822 @@
+# 
+# Translators:
+# Mafarricos <MafaStudios@gmail.com>, 2015
+# discave <discavehb@live.com>, 2015
+# discave <discavehb@live.com>, 2015
+msgid ""
+msgstr ""
+"Project-Id-Version: 1Channel/PW Addon\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2015-09-05 18:46+0000\n"
+"Last-Translator: discave <discavehb@live.com>\n"
+"Language-Team: Portuguese (http://www.transifex.com/tv-addons/primewire-addon/language/pt/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30000"
+msgid "Import Failed"
+msgstr "Falha na Importação"
+
+msgctxt "#30001"
+msgid "Remove from ToWatch List"
+msgstr "Remover da Lista \"Para Ver\""
+
+msgctxt "#30002"
+msgid "Remove from Watched list"
+msgstr "Remover da Lista \"Vistos\""
+
+msgctxt "#30003"
+msgid "Remove from Favorites"
+msgstr "Remover dos Favoritos"
+
+msgctxt "#30004"
+msgid "%s added to Favorites"
+msgstr "%s adicionado aos Favoritos"
+
+msgctxt "#30005"
+msgid "%s already in Favorites"
+msgstr "%s já adicionado aos Favoritos"
+
+msgctxt "#30006"
+msgid "Favorite Removed"
+msgstr "Removido como Favorito"
+
+msgctxt "#30007"
+msgid "Resume from %s"
+msgstr "Retomar em %s"
+
+msgctxt "#30008"
+msgid "Resume?"
+msgstr "Retomar?"
+
+msgctxt "#30009"
+msgid "Start from beginning"
+msgstr "Recomeçar"
+
+msgctxt "#30010"
+msgid "Resume"
+msgstr "Retomar"
+
+msgctxt "#30011"
+msgid "No sources were found for this item"
+msgstr "Sem fontes disponíveis"
+
+msgctxt "#30012"
+msgid "Choose your stream"
+msgstr "Escolha o servidor"
+
+msgctxt "#30013"
+msgid "Trying Source:    "
+msgstr "A tentar fonte:"
+
+msgctxt "#30014"
+msgid "Playback Failed: %s"
+msgstr "Falha na Reprodução: %s"
+
+msgctxt "#30015"
+msgid "All Sources Failed to Play"
+msgstr "Falha na Reprodução de todas as fontes"
+
+msgctxt "#30016"
+msgid "Link Resolve Failed: %s"
+msgstr "Falha na Conexão: %s"
+
+msgctxt "#30017"
+msgid "Axel [COLOR blue]ENABLED[/COLOR] but [COLOR red]NOT INSTALLED[/COLOR]"
+msgstr "Axel [COLOR blue]ATIVADO[/COLOR] mas [COLOR red]NÃO INSTALADO[/COLOR]"
+
+msgctxt "#30018"
+msgid "Search TV Shows"
+msgstr "Procurar Séries"
+
+msgctxt "#30019"
+msgid "Search Movies"
+msgstr "Procurar Filmes"
+
+msgctxt "#30020"
+msgid ""
+msgstr "Espaços em Branco só serão permitidos se [B]Resultados de Pesquisa[/B] estiverem activos."
+
+msgctxt "#30021"
+msgid "Site Blocked? Unexpected page received."
+msgstr "Site Bloqueado? Página com problemas."
+
+msgctxt "#30022"
+msgid "Skip to Page"
+msgstr "Saltar para página"
+
+msgctxt "#30023"
+msgid "Next Page"
+msgstr "Próxima página"
+
+msgctxt "#30024"
+msgid ""
+msgstr "A addon 1Channel/PrimeWire é desenvolvida e suportada pela equipa [COLOR white]www.tvaddons.ag[/COLOR]"
+
+msgctxt "#30025"
+msgid ""
+msgstr "Em caso de problemas ou dúvidas, visite o nosso Forum.\nVisite-nos regularmente para mostrar o seu apoio. "
+
+msgctxt "#30026"
+msgid ""
+msgstr "[I](Esta mensagem [B]só[/B] aparece quando a primeira instalação ou actualização do addon 1Channel.)[/I]"
+
+msgctxt "#30027"
+msgid "Movies"
+msgstr "Filmes"
+
+msgctxt "#30028"
+msgid "TV Shows"
+msgstr "Séries"
+
+msgctxt "#30029"
+msgid "Playlists"
+msgstr "Listas de Reprodução"
+
+msgctxt "#30030"
+msgid "Install 1Channel Themes/Icons"
+msgstr "Instalar Temas/Ícones de 1Channel"
+
+msgctxt "#30031"
+msgid "URLResolver Settings"
+msgstr "Definições URLResolver"
+
+msgctxt "#30032"
+msgid "Help"
+msgstr "Ajuda"
+
+msgctxt "#30033"
+msgid "A-Z"
+msgstr "A-Z"
+
+msgctxt "#30034"
+msgid "Search"
+msgstr "Pesquisar"
+
+msgctxt "#30035"
+msgid "Website Favourites"
+msgstr "Favoritos do Site"
+
+msgctxt "#30036"
+msgid "Website Watched List"
+msgstr "Lista de \"Vistos\" do site"
+
+msgctxt "#30037"
+msgid "Website To Watch List"
+msgstr "Lista \"Para Ver\" do site"
+
+msgctxt "#30038"
+msgid "My TV Schedule"
+msgstr "Minha Programação TV"
+
+msgctxt "#30039"
+msgid "Favourites"
+msgstr "Favoritos"
+
+msgctxt "#30040"
+msgid "Subscriptions"
+msgstr "Subscrições"
+
+msgctxt "#30041"
+msgid "Genres"
+msgstr "Géneros"
+
+msgctxt "#30042"
+msgid "Featured"
+msgstr "Destaque"
+
+msgctxt "#30043"
+msgid "Most Popular"
+msgstr "Mais Popular"
+
+msgctxt "#30044"
+msgid "Highly rated"
+msgstr "Mais Votado"
+
+msgctxt "#30045"
+msgid "Date released"
+msgstr "Data de Lançamento"
+
+msgctxt "#30046"
+msgid "Date added"
+msgstr "Data de Adição"
+
+msgctxt "#30047"
+msgid "Search (+Description)"
+msgstr "Pesquisar (+Descrição)"
+
+msgctxt "#30048"
+msgid "Search (Advanced Search)"
+msgstr "Pesquisar (Pesquisa Avançada)"
+
+msgctxt "#30049"
+msgid "Public Playlists (sorted by date)"
+msgstr "Listas Públicas (por data)"
+
+msgctxt "#30050"
+msgid "Public Playlists (sorted by rating)"
+msgstr "Listas Públicas (mais votados)"
+
+msgctxt "#30051"
+msgid "Public Playlists (sorted by views)"
+msgstr "Listas Públicas (mais vistos)"
+
+msgctxt "#30052"
+msgid "Personal Playlists (sorted by date)"
+msgstr "Listas Pessoais (por data)"
+
+msgctxt "#30053"
+msgid "Personal Playlists (sorted by rating)"
+msgstr "Listas Pessoais (mais votados)"
+
+msgctxt "#30054"
+msgid "Personal Playlists (sorted by views)"
+msgstr "Listas Pessoais (mais vistos)"
+
+msgctxt "#30055"
+msgid "items"
+msgstr "artigos"
+
+msgctxt "#30056"
+msgid "views"
+msgstr "vistos"
+
+msgctxt "#30057"
+msgid "rating"
+msgstr "classificação"
+
+msgctxt "#30058"
+msgid "Remove from Playlist"
+msgstr "Removido da Lista"
+
+msgctxt "#30059"
+msgid "Item added to playlist."
+msgstr "Adicionado à Lista."
+
+msgctxt "#30060"
+msgid "Error adding item to playlist."
+msgstr "Erro ao adicionar à lista."
+
+msgctxt "#30061"
+msgid "Create a playlist on the website first."
+msgstr "Crie primeiro uma lista no nosso site."
+
+msgctxt "#30062"
+msgid "Select Playlist"
+msgstr "Seleccione uma Lista"
+
+msgctxt "#30063"
+msgid "Select Source"
+msgstr "Seleccione uma Fonte"
+
+msgctxt "#30064"
+msgid "Remove from XBMC Favourites"
+msgstr "Remover dos Favoritos de XBMC"
+
+msgctxt "#30065"
+msgid "Add to XBMC Favourites"
+msgstr "Adicionar aos Favoritos de XBMC"
+
+msgctxt "#30066"
+msgid "Add to Favorites"
+msgstr "Adicionar aos Favoritos"
+
+msgctxt "#30067"
+msgid "Add to ToWatch list"
+msgstr "Adicionar a \"Para Ver\" Lista"
+
+msgctxt "#30068"
+msgid "Add to Watched List"
+msgstr "Adicionar a \"Vistos\""
+
+msgctxt "#30069"
+msgid "Add to Library"
+msgstr "Adicionar à Biblioteca"
+
+msgctxt "#30070"
+msgid "Add to Playlist"
+msgstr "Adicionar à Lista"
+
+msgctxt "#30071"
+msgid "Subscribe"
+msgstr "Subscrever"
+
+msgctxt "#30072"
+msgid "Cancel Subscription"
+msgstr "Cancelar Subscrição"
+
+msgctxt "#30074"
+msgid "Show Information"
+msgstr "Mostrar Informação"
+
+msgctxt "#30075"
+msgid "Refresh Metadata"
+msgstr "Actualizar Dados"
+
+msgctxt "#30076"
+msgid "Watch Trailer"
+msgstr "Ver Trailer"
+
+msgctxt "#30077"
+msgid "Mark as watched"
+msgstr "Marcar como Visto"
+
+msgctxt "#30078"
+msgid "Mark as unwatched"
+msgstr "Marcar como não visto"
+
+msgctxt "#30079"
+msgid "Season"
+msgstr "Temporada"
+
+msgctxt "#30080"
+msgid "No Seasons Found for %s"
+msgstr "Temporadas não encontradas para %s"
+
+msgctxt "#30081"
+msgid "Add Favorite TV Shows to Library"
+msgstr "Adicionar Séries Favoritas à Biblioteca"
+
+msgctxt "#30082"
+msgid "Add Favorite Movies to Library"
+msgstr "Adicionar Filmes Favoritos à Biblioteca"
+
+msgctxt "#30083"
+msgid "Uploading your favorites to www.primewire.ag..."
+msgstr "A enviar os favoritos para www.primewire.ag..."
+
+msgctxt "#30084"
+msgid "Uploading Favorites"
+msgstr "A enviar favoritos"
+
+msgctxt "#30085"
+msgid "Success"
+msgstr "Sucesso"
+
+msgctxt "#30086"
+msgid "Already Exists"
+msgstr "Já existente"
+
+msgctxt "#30087"
+msgid "Processed %s"
+msgstr "Processado %s"
+
+msgctxt "#30088"
+msgid "Do you want to remove the successful"
+msgstr "Deseja remover o sucedido"
+
+msgctxt "#30089"
+msgid "uploads from local favorites?"
+msgstr "enviar os favoritos locais?"
+
+msgctxt "#30090"
+msgid "THIS CANNOT BE UNDONE"
+msgstr "ISTO NÃO PODE SER DESFEITO"
+
+msgctxt "#30091"
+msgid "Keep"
+msgstr "Guardar"
+
+msgctxt "#30092"
+msgid "Delete"
+msgstr "Apagar"
+
+msgctxt "#30093"
+msgid "Migration Complete"
+msgstr "Migração Completa"
+
+msgctxt "#30094"
+msgid "Favorite TV Shows Added to Library"
+msgstr "Séries Favoritas adicionadas à Biblioteca"
+
+msgctxt "#30095"
+msgid "Favorite Movies Added to Library"
+msgstr "Filmes Favoritos adicionados à Biblioteca"
+
+msgctxt "#30096"
+msgid "Add To Watch List Movies to Library"
+msgstr "Adicionar Filmes \"Para Ver\" à Biblioteca"
+
+msgctxt "#30097"
+msgid "Added '%s' to library"
+msgstr "Adicionado '%s' à Biblioteca"
+
+msgctxt "#30098"
+msgid "Subscribed to '%s'"
+msgstr "Subscrito a '%s'"
+
+msgctxt "#30099"
+msgid "Already subscribed to '%s'"
+msgstr "Já subscrito a '%s'"
+
+msgctxt "#30100"
+msgid "Subscriptions Updated"
+msgstr "Subscrições Actualizadas"
+
+msgctxt "#30101"
+msgid "Next Update in %s hours"
+msgstr "Próxima Actualização em %s horas"
+
+msgctxt "#30102"
+msgid "Subscriptions Cleaned Up"
+msgstr "Subscrições Limpas"
+
+msgctxt "#30103"
+msgid "ToWatch LIst added to library"
+msgstr "Lista \"Para Ver\" adicionada à Biblioteca"
+
+msgctxt "#30104"
+msgid "Update Subscriptions ([B]Next Scheduled Run: %s[/B])"
+msgstr "Actualizar Subscrições ([B]Programado para: %s[/B]) "
+
+msgctxt "#30105"
+msgid "Clean Up Subscriptions"
+msgstr "Limpar Subscrições"
+
+msgctxt "#30106"
+msgid "DISABLED"
+msgstr "Inactivo"
+
+msgctxt "#30107"
+msgid "Edit days"
+msgstr "Editar os dias"
+
+msgctxt "#30109"
+msgid "Page"
+msgstr "Página"
+
+msgctxt "#30110"
+msgid "DB Reset Successful"
+msgstr "DB Reiniciada com Suceso"
+
+msgctxt "#30111"
+msgid "Reset only allowed on sqlite DBs"
+msgstr "Só é permitido reiniciar em Base de Dados sqlite"
+
+msgctxt "#30112"
+msgid "Select Export Directory"
+msgstr "Seleccionar Pasta de Exportação "
+
+msgctxt "#30113"
+msgid "Enter Export Filename"
+msgstr "Introduza Nome do ficheiro a exportar"
+
+msgctxt "#30114"
+msgid "Exported to %s"
+msgstr "Exportar para %s"
+
+msgctxt "#30115"
+msgid "Export Failed"
+msgstr "Falha na Exportação"
+
+msgctxt "#30116"
+msgid "Export"
+msgstr "Exportar"
+
+msgctxt "#30117"
+msgid "Select Import File"
+msgstr "Seleccione Ficheiro a Importar"
+
+msgctxt "#30118"
+msgid "Imported from %s"
+msgstr "A Importar de %s"
+
+msgctxt "#30120"
+msgid "Import"
+msgstr "Importar"
+
+msgctxt "#30121"
+msgid "Days to update Subscription"
+msgstr "Dias para Actualização da Subscrição"
+
+msgctxt "#30122"
+msgid "Are you sure you want to"
+msgstr "Tem a certeza de"
+
+msgctxt "#30123"
+msgid "delete the url cache?"
+msgstr "apagar o URL Cache"
+
+msgctxt "#30124"
+msgid "This will slow things down until rebuilt"
+msgstr "Irá tornar lento até reiniciar"
+
+msgctxt "#30125"
+msgid "Flush web cache"
+msgstr "Limpar Web Cache"
+
+msgctxt "#30126"
+msgid "Updating. Please wait..."
+msgstr "A actualizar. Aguarde..."
+
+msgctxt "#30127"
+msgid "Manual Search"
+msgstr "Procura Manual"
+
+msgctxt "#30128"
+msgid "Choose"
+msgstr "Escolha"
+
+msgctxt "#30129"
+msgid "Enter a Title"
+msgstr "Insira Título"
+
+msgctxt "#30130"
+msgid "Advanced TV Show Search"
+msgstr "Procura de Séries Avançada"
+
+msgctxt "#30131"
+msgid "Advanced Movie Search"
+msgstr "Procura de Filmes Avançada"
+
+msgctxt "#30134"
+msgid "Year must be a 4 digit number between %s and %s."
+msgstr "O ano será um numero de 4 dígitos entre %s e $s."
+
+msgctxt "#30501"
+msgid "Monday"
+msgstr "Segunda-feira"
+
+msgctxt "#30502"
+msgid "Tuesday"
+msgstr "Terça-Feira"
+
+msgctxt "#30503"
+msgid "Wednesday"
+msgstr "Quarta-Feira"
+
+msgctxt "#30504"
+msgid "Thursday"
+msgstr "Quinta-Feira"
+
+msgctxt "#30505"
+msgid "Friday"
+msgstr "Sexta-Feira"
+
+msgctxt "#30506"
+msgid "Saturday"
+msgstr "Sábado"
+
+msgctxt "#30507"
+msgid "Sunday"
+msgstr "Domingo"
+
+msgctxt "#30508"
+msgid "Select/Deselect All"
+msgstr "Selecionar/Remover Todos"
+
+msgctxt "#30509"
+msgid "OK"
+msgstr "OK"
+
+msgctxt "#30510"
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgctxt "#30511"
+msgid "Title"
+msgstr "Título"
+
+msgctxt "#30512"
+msgid "Tag"
+msgstr "Tag"
+
+msgctxt "#30513"
+msgid "Actor"
+msgstr "Ator"
+
+msgctxt "#30514"
+msgid "Director"
+msgstr "Realizador"
+
+msgctxt "#30515"
+msgid "Country"
+msgstr "País"
+
+msgctxt "#30516"
+msgid "Genre"
+msgstr "Género"
+
+msgctxt "#30517"
+msgid "Month"
+msgstr "Mês"
+
+msgctxt "#30518"
+msgid "Year"
+msgstr "Ano"
+
+msgctxt "#30519"
+msgid "Decade"
+msgstr "Década"
+
+msgctxt "#30800"
+msgid "Website"
+msgstr "Site"
+
+msgctxt "#30801"
+msgid "Domain"
+msgstr "Domínio"
+
+msgctxt "#30802"
+msgid "Enable Custom Domain"
+msgstr "Ativar Domínio Alternativo"
+
+msgctxt "#30803"
+msgid "Custom Domain"
+msgstr "Domínio Alternativo"
+
+msgctxt "#30804"
+msgid "Website Integration"
+msgstr "Integração do Site"
+
+msgctxt "#30805"
+msgid "    Username"
+msgstr "Utilizador"
+
+msgctxt "#30806"
+msgid "    Password"
+msgstr "Password"
+
+msgctxt "#30808"
+msgid "User Interface"
+msgstr "Interface de Utilizador"
+
+msgctxt "#30810"
+msgid "Playlist Sort Order"
+msgstr "Ordem das Listas"
+
+msgctxt "#30812"
+msgid "Alphabetic"
+msgstr "Alfabética"
+
+msgctxt "#30813"
+msgid "Popularity"
+msgstr "Popularidade"
+
+msgctxt "#30815"
+msgid "   Movies View"
+msgstr "Por Filmes"
+
+msgctxt "#30816"
+msgid "    TV Shows View"
+msgstr "Por Séries"
+
+msgctxt "#30817"
+msgid "    Seasons View"
+msgstr "Por Temporadas"
+
+msgctxt "#30818"
+msgid "    Episodes View"
+msgstr "Por Episódios"
+
+msgctxt "#30819"
+msgid "    Actors/Directors/Cast View"
+msgstr "Por Actores/Directores/Equipa"
+
+msgctxt "#30820"
+msgid "    Default View"
+msgstr "Por Defeito"
+
+msgctxt "#30822"
+msgid "Automatically play sources"
+msgstr "Reproduzir Automaticamente"
+
+msgctxt "#30829"
+msgid "     Sort by:"
+msgstr "Ordenar por:"
+
+msgctxt "#30830"
+msgid "None"
+msgstr "Nenhum"
+
+msgctxt "#30831"
+msgid "Host"
+msgstr "Servidores"
+
+msgctxt "#30832"
+msgid "Verified"
+msgstr "Verificado"
+
+msgctxt "#30833"
+msgid "Quality"
+msgstr "Qualidade"
+
+msgctxt "#30834"
+msgid "Views"
+msgstr "Vistos"
+
+msgctxt "#30836"
+msgid "          Reverse sort"
+msgstr "Reverter ordem"
+
+msgctxt "#30849"
+msgid "       Enable Fanart"
+msgstr "Activar Fanart"
+
+msgctxt "#30852"
+msgid "TV Show Folder:"
+msgstr "Pasta de Séries:"
+
+msgctxt "#30853"
+msgid "Movie Folder:"
+msgstr "Pasta de Filmes:"
+
+msgctxt "#30854"
+msgid "All Days"
+msgstr "Todos os Dias"
+
+msgctxt "#30857"
+msgid "Today"
+msgstr "Hoje"
+
+msgctxt "#30858"
+msgid "Today + Tomorrow"
+msgstr "Hoje + Amanhã"
+
+msgctxt "#30860"
+msgid "First Day of Week"
+msgstr "Primeiro dia da Semana"
+
+msgctxt "#30864"
+msgid "       Run on start up"
+msgstr "Executar no Iniciar"
+
+msgctxt "#30868"
+msgid "       Show Notifications"
+msgstr "Mostrar Notificações"
+
+msgctxt "#30869"
+msgid "       Last Subscription Update"
+msgstr "Última Actualização de Subscrições"
+
+msgctxt "#30871"
+msgid "Category"
+msgstr "Categoria"
+
+msgctxt "#30872"
+msgid "Update Now"
+msgstr "Actualizar Agora"
+
+msgctxt "#30874"
+msgid "Title:"
+msgstr "Título:"
+
+msgctxt "#30875"
+msgid "Year:"
+msgstr "Ano:"
+
+msgctxt "#30877"
+msgid "Episodes:"
+msgstr "Episódios:"
+
+msgctxt "#30879"
+msgid "Source:"
+msgstr "Fonte:"
+
+msgctxt "#30885"
+msgid "Sources"
+msgstr "Fontes"
+
+msgctxt "#30886"
+msgid "Database"
+msgstr "Base de Dados"
+
+msgctxt "#30887"
+msgid "Use a MySQL DB"
+msgstr "Usar DB MySQL"
+
+msgctxt "#30888"
+msgid "    Address"
+msgstr "Morada"
+
+msgctxt "#30889"
+msgid "    Port"
+msgstr "Porta"
+
+msgctxt "#30892"
+msgid "    Database"
+msgstr "Base de Dados"
+
+msgctxt "#30894"
+msgid "       Export Folder"
+msgstr "Exportar Pasta"
+
+msgctxt "#30896"
+msgid "       Last DB Backup"
+msgstr "Último Backup da Base de Dados"
+
+msgctxt "#30898"
+msgid "Reset 1Channel DB ([COLOR red]SQLITE Only[/COLOR])"
+msgstr "Reiniciar BD 1Channel ([COLOR red]SÓ SQLITE[/COLOR])"
+
+msgctxt "#30899"
+msgid "Export data from 1Channel DB"
+msgstr "Exportar dados da 1Channel DB"
+
+msgctxt "#30900"
+msgid "Import data into 1Channel DB"
+msgstr "Importar dados da 1Channel DB"
+
