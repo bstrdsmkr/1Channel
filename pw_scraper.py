@@ -272,7 +272,8 @@ class PW_Scraper():
         # cleanse playlist title (strips out non-printable chars)
         parser = HTMLParser.HTMLParser()
         title = parser.unescape(title)
-        title = title.encode('ascii', 'ignore')
+        if not isinstance(title, unicode):
+            title = unicode(title, 'windows-1252', 'ignore')
 
         result['img'] = self.__fix_url(img)
         result['url'] = url
