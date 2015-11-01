@@ -94,7 +94,7 @@ def save_favorite(fav_type, title, url, year=''):
         msg = i18n('added_to_favs')
     except:
         msg = i18n('already_in_favs')
-    utils.notify(msg=msg, duration=5000)
+    utils.notify(msg=msg % (title), duration=5000)
     xbmc.executebuiltin('Container.Refresh')
 
 @pw_dispatcher.register(MODES.DEL_FAV, ['url'])
@@ -1880,8 +1880,8 @@ def metahandler_settings():
 def resolver_settings():
     urlresolver.display_settings()
 
-@pw_dispatcher.register(MODES.TOGGLE_X_FAVS, ['title', 'url', 'img', 'action'], ['is_playable'])
-def toggle_xbmc_fav(title, url, img, action, is_playable=False):
+@pw_dispatcher.register(MODES.TOGGLE_X_FAVS, ['title', 'url', 'action'], ['img', 'is_playable'])
+def toggle_xbmc_fav(title, url, action, img='', is_playable=False):
     # playable urls have to be added as media; folders as window
     fav_types = ['media', 'window']
     url_types = ['path', 'windowparameter']
