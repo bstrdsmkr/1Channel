@@ -2,13 +2,14 @@
 # Translators:
 # Mafarricos <MafaStudios@gmail.com>, 2015
 # discave <discavehb@live.com>, 2015
+# Helder <helderkid@gmail.com>, 2016
 # discave <discavehb@live.com>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: 1Channel/PW Addon\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2015-10-05 15:50+0000\n"
-"Last-Translator: discave <discavehb@live.com>\n"
+"PO-Revision-Date: 2016-01-19 17:01+0000\n"
+"Last-Translator: Helder <helderkid@gmail.com>\n"
 "Language-Team: Portuguese (http://www.transifex.com/tv-addons/primewire-addon/language/pt/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -532,9 +533,21 @@ msgctxt "#30131"
 msgid "Advanced Movie Search"
 msgstr "Procura de Filmes Avançada"
 
+msgctxt "#30132"
+msgid "Enter at least one criteria to search on."
+msgstr "Inserir pelo menos um criterio de procura"
+
+msgctxt "#30133"
+msgid "must be one of:"
+msgstr "Tem que ser um de:"
+
 msgctxt "#30134"
 msgid "Year must be a 4 digit number between %s and %s."
 msgstr "O ano será um numero de 4 dígitos entre %s e $s."
+
+msgctxt "#30500"
+msgid "Select Subscription Days"
+msgstr "Selecionar os dias de subscrição"
 
 msgctxt "#30501"
 msgid "Monday"
@@ -640,9 +653,17 @@ msgctxt "#30806"
 msgid "    Password"
 msgstr "Password"
 
+msgctxt "#30807"
+msgid "    Subscription Playlist ID"
+msgstr "ID da Playlist Subscrita"
+
 msgctxt "#30808"
 msgid "User Interface"
 msgstr "Interface de Utilizador"
+
+msgctxt "#30809"
+msgid "Theme ([COLOR red]Requires 1channel Themepak Addon[/COLOR])"
+msgstr "Tema([COLOR red]Requere um Packtheme 1channel[/COLOR])"
 
 msgctxt "#30810"
 msgid "Playlist Sort Order"
@@ -655,6 +676,10 @@ msgstr "Alfabética"
 msgctxt "#30813"
 msgid "Popularity"
 msgstr "Popularidade"
+
+msgctxt "#30814"
+msgid "Set Default Views"
+msgstr "Definir Vistas Padrão"
 
 msgctxt "#30815"
 msgid "   Movies View"
@@ -715,6 +740,10 @@ msgstr "Reverter ordem"
 msgctxt "#30849"
 msgid "       Enable Fanart"
 msgstr "Activar Fanart"
+
+msgctxt "#30851"
+msgid "Library Integration"
+msgstr "Biblioteca"
 
 msgctxt "#30852"
 msgid "TV Show Folder:"
@@ -807,6 +836,10 @@ msgstr "Exportar Pasta"
 msgctxt "#30896"
 msgid "       Last DB Backup"
 msgstr "Último Backup da Base de Dados"
+
+msgctxt "#30897"
+msgid "Flush webpage cache..."
+msgstr "Apagar cache de páginas web"
 
 msgctxt "#30898"
 msgid "Reset 1Channel DB ([COLOR red]SQLITE Only[/COLOR])"

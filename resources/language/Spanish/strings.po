@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1Channel/PW Addon\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2015-10-15 21:18+0000\n"
+"PO-Revision-Date: 2016-01-15 20:57+0000\n"
 "Last-Translator: tknorris\n"
 "Language-Team: Spanish (http://www.transifex.com/tv-addons/primewire-addon/language/es/)\n"
 "MIME-Version: 1.0\n"
@@ -13,7 +13,243 @@ msgstr ""
 "Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgctxt "#30000"
+msgid "Import Failed"
+msgstr "Falló la importación"
+
+msgctxt "#30007"
+msgid "Resume from %s"
+msgstr "Continuar desde %s"
+
+msgctxt "#30009"
+msgid "Start from beginning"
+msgstr "Comenzar del Inicio"
+
+msgctxt "#30010"
+msgid "Resume"
+msgstr "Continuar"
+
+msgctxt "#30012"
+msgid "Choose your stream"
+msgstr "Elige tu Fuente"
+
+msgctxt "#30016"
+msgid "Link Resolve Failed: %s"
+msgstr "Rsolución de Link Fallida: %s"
+
+msgctxt "#30023"
+msgid "Next Page"
+msgstr "Siguiente Página"
+
+msgctxt "#30027"
+msgid "Movies"
+msgstr "Peliculas"
+
+msgctxt "#30028"
+msgid "TV Shows"
+msgstr "Series de TV"
+
+msgctxt "#30034"
+msgid "Search"
+msgstr "Buscar"
+
+msgctxt "#30039"
+msgid "Favourites"
+msgstr "Favoritos"
+
+msgctxt "#30042"
+msgid "Featured"
+msgstr "Destacadas"
+
+msgctxt "#30043"
+msgid "Most Popular"
+msgstr "Lo Mas Popular"
+
+msgctxt "#30063"
+msgid "Select Source"
+msgstr "Seleccionar Fuente"
+
+msgctxt "#30069"
+msgid "Add to Library"
+msgstr "Agregar a Librería"
+
+msgctxt "#30071"
+msgid "Subscribe"
+msgstr "Suscribir"
+
+msgctxt "#30074"
+msgid "Show Information"
+msgstr "Mostrar información"
+
+msgctxt "#30077"
+msgid "Mark as watched"
+msgstr "Marcar como visto"
+
+msgctxt "#30078"
+msgid "Mark as unwatched"
+msgstr "Marcar como no visto"
+
+msgctxt "#30079"
+msgid "Season"
+msgstr "Temporada"
+
+msgctxt "#30091"
+msgid "Keep"
+msgstr "Mantener"
+
+msgctxt "#30092"
+msgid "Delete"
+msgstr "Eliminar"
+
+msgctxt "#30106"
+msgid "DISABLED"
+msgstr "DESACTIVADO"
+
+msgctxt "#30110"
+msgid "DB Reset Successful"
+msgstr "Reinicio de BD Exitoso"
+
+msgctxt "#30111"
+msgid "Reset only allowed on sqlite DBs"
+msgstr "Reiniciar solo permitidas en BD de sqlite"
+
+msgctxt "#30112"
+msgid "Select Export Directory"
+msgstr "Selecciona el directorio de exporatación"
+
+msgctxt "#30113"
+msgid "Enter Export Filename"
+msgstr "Ingresa el nombre de archivo a exportar"
+
+msgctxt "#30114"
+msgid "Exported to %s"
+msgstr "Exportado a %s"
+
+msgctxt "#30115"
+msgid "Export Failed"
+msgstr "Falló la exportación"
+
+msgctxt "#30116"
+msgid "Export"
+msgstr "Exportar"
+
+msgctxt "#30117"
+msgid "Select Import File"
+msgstr "Seleccione el archivo a importar"
+
+msgctxt "#30118"
+msgid "Imported from %s"
+msgstr "Importado desde %s"
+
+msgctxt "#30120"
+msgid "Import"
+msgstr "Importar"
+
+msgctxt "#30125"
+msgid "Flush web cache"
+msgstr "Eliminar cache web"
+
+msgctxt "#30127"
+msgid "Manual Search"
+msgstr "Búsqueda Manual"
+
+msgctxt "#30501"
+msgid "Monday"
+msgstr "Lunes"
+
+msgctxt "#30502"
+msgid "Tuesday"
+msgstr "Jueves"
+
+msgctxt "#30503"
+msgid "Wednesday"
+msgstr "Miércoles"
+
+msgctxt "#30504"
+msgid "Thursday"
+msgstr "Jueves"
+
+msgctxt "#30505"
+msgid "Friday"
+msgstr "Viernes"
+
+msgctxt "#30506"
+msgid "Saturday"
+msgstr "Sábado"
+
+msgctxt "#30507"
+msgid "Sunday"
+msgstr "Domingo"
+
+msgctxt "#30510"
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgctxt "#30511"
+msgid "Title"
+msgstr "Título"
+
+msgctxt "#30518"
+msgid "Year"
+msgstr "Año"
+
+msgctxt "#30805"
+msgid "    Username"
+msgstr "    Nombre de Usuario"
+
+msgctxt "#30806"
+msgid "    Password"
+msgstr "Contraseña"
+
+msgctxt "#30808"
+msgid "User Interface"
+msgstr "Interfaz de Usuario"
+
+msgctxt "#30814"
+msgid "Set Default Views"
+msgstr "Configurar Vistas por Defecto"
+
+msgctxt "#30830"
+msgid "None"
+msgstr "Ninguno"
+
+msgctxt "#30833"
+msgid "Quality"
+msgstr "Calidad"
+
+msgctxt "#30834"
+msgid "Views"
+msgstr "Vistas"
+
+msgctxt "#30851"
+msgid "Library Integration"
+msgstr "Integración de Colección"
+
 msgctxt "#30872"
 msgid "Update Now"
 msgstr "Actualizar Ahora"
+
+msgctxt "#30886"
+msgid "Database"
+msgstr "Base de Datos"
+
+msgctxt "#30887"
+msgid "Use a MySQL DB"
+msgstr "Usar BD MySQL"
+
+msgctxt "#30888"
+msgid "    Address"
+msgstr "    Dirección"
+
+msgctxt "#30889"
+msgid "    Port"
+msgstr "    Puerto"
+
+msgctxt "#30892"
+msgid "    Database"
+msgstr "    Base de Datos"
+
+msgctxt "#30897"
+msgid "Flush webpage cache..."
+msgstr "Eliminar cache de webpage..."
 

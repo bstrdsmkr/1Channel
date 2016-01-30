@@ -1,0 +1,143 @@
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: 1Channel/PW Addon\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2016-01-20 20:43+0000\n"
+"Last-Translator: tknorris\n"
+"Language-Team: Croatian (http://www.transifex.com/tv-addons/primewire-addon/language/hr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: hr\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+
+msgctxt "#30000"
+msgid "Import Failed"
+msgstr "Uvoz nije uspio"
+
+msgctxt "#30007"
+msgid "Resume from %s"
+msgstr "Nastavi od %s"
+
+msgctxt "#30009"
+msgid "Start from beginning"
+msgstr "Počnite od početka"
+
+msgctxt "#30010"
+msgid "Resume"
+msgstr "Nastavi"
+
+msgctxt "#30023"
+msgid "Next Page"
+msgstr "Slijedeća stranica"
+
+msgctxt "#30027"
+msgid "Movies"
+msgstr "Filmovi"
+
+msgctxt "#30028"
+msgid "TV Shows"
+msgstr "TV Serije"
+
+msgctxt "#30034"
+msgid "Search"
+msgstr "Pretraga"
+
+msgctxt "#30042"
+msgid "Featured"
+msgstr "Istaknuto"
+
+msgctxt "#30043"
+msgid "Most Popular"
+msgstr "Najpopularnije"
+
+msgctxt "#30063"
+msgid "Select Source"
+msgstr "Odaberite izvor"
+
+msgctxt "#30069"
+msgid "Add to Library"
+msgstr "Dodaj u biblioteku"
+
+msgctxt "#30071"
+msgid "Subscribe"
+msgstr "Pretplatite se"
+
+msgctxt "#30074"
+msgid "Show Information"
+msgstr "Prikaži informacije"
+
+msgctxt "#30079"
+msgid "Season"
+msgstr "Sezona"
+
+msgctxt "#30091"
+msgid "Keep"
+msgstr "Zadrži"
+
+msgctxt "#30092"
+msgid "Delete"
+msgstr "Izbriši"
+
+msgctxt "#30106"
+msgid "DISABLED"
+msgstr "Onesposobljen"
+
+msgctxt "#30110"
+msgid "DB Reset Successful"
+msgstr "DB Ponovno postavljanje Uspješno"
+
+msgctxt "#30111"
+msgid "Reset only allowed on sqlite DBs"
+msgstr "Ponovno postavljanje dopušteno samo na sqlite DBs"
+
+msgctxt "#30112"
+msgid "Select Export Directory"
+msgstr "Odaberite  Directory za Izvoz"
+
+msgctxt "#30113"
+msgid "Enter Export Filename"
+msgstr "Unesite Naziv datoteke za Izvoz"
+
+msgctxt "#30114"
+msgid "Exported to %s"
+msgstr "Izvezi u %s"
+
+msgctxt "#30115"
+msgid "Export Failed"
+msgstr "Izvoz nije uspio"
+
+msgctxt "#30116"
+msgid "Export"
+msgstr "Izvoz"
+
+msgctxt "#30117"
+msgid "Select Import File"
+msgstr "Odaberite Uvoz datoteke"
+
+msgctxt "#30118"
+msgid "Imported from %s"
+msgstr "Uvezeno od %s"
+
+msgctxt "#30120"
+msgid "Import"
+msgstr "Uvoz"
+
+msgctxt "#30125"
+msgid "Flush web cache"
+msgstr "Isperite web cashe"
+
+msgctxt "#30510"
+msgid "Cancel"
+msgstr "Odustani"
+
+msgctxt "#30511"
+msgid "Title"
+msgstr "Naslov"
+
+msgctxt "#30518"
+msgid "Year"
+msgstr "Godina"
+

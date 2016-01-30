@@ -1,0 +1,159 @@
+# 
+# Translators:
+msgid ""
+msgstr ""
+"Project-Id-Version: 1Channel/PW Addon\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2016-01-15 20:39+0000\n"
+"Last-Translator: tknorris\n"
+"Language-Team: Greek (http://www.transifex.com/tv-addons/primewire-addon/language/el/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: el\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30000"
+msgid "Import Failed"
+msgstr "Αποτυχία εισαγωγής"
+
+msgctxt "#30010"
+msgid "Resume"
+msgstr "Επανεκκίνηση"
+
+msgctxt "#30012"
+msgid "Choose your stream"
+msgstr "Επιλέξτε ροή σας"
+
+msgctxt "#30023"
+msgid "Next Page"
+msgstr "Επόμενη σελίδα"
+
+msgctxt "#30027"
+msgid "Movies"
+msgstr "Ταινίες"
+
+msgctxt "#30028"
+msgid "TV Shows"
+msgstr "Σειρές"
+
+msgctxt "#30034"
+msgid "Search"
+msgstr "Αναζήτηση"
+
+msgctxt "#30042"
+msgid "Featured"
+msgstr "Προτάσεις"
+
+msgctxt "#30043"
+msgid "Most Popular"
+msgstr "Πιο δημοφιλή"
+
+msgctxt "#30063"
+msgid "Select Source"
+msgstr "Επιλέξτε Πηγή"
+
+msgctxt "#30069"
+msgid "Add to Library"
+msgstr "Προσθήκη στη Βιβλιοθήκη"
+
+msgctxt "#30071"
+msgid "Subscribe"
+msgstr "Εγγραφή"
+
+msgctxt "#30074"
+msgid "Show Information"
+msgstr "Δείτε Πληροφορίες"
+
+msgctxt "#30079"
+msgid "Season"
+msgstr "Κύκλος"
+
+msgctxt "#30091"
+msgid "Keep"
+msgstr "Διατήρηση"
+
+msgctxt "#30092"
+msgid "Delete"
+msgstr "Διαγραφή"
+
+msgctxt "#30106"
+msgid "DISABLED"
+msgstr "ΑΠΕΝΕΡΓΟΠΟΙΗΜΕΝΟ"
+
+msgctxt "#30115"
+msgid "Export Failed"
+msgstr "Η Εξαγωγή απέτυχε"
+
+msgctxt "#30116"
+msgid "Export"
+msgstr "Εξαγωγή"
+
+msgctxt "#30117"
+msgid "Select Import File"
+msgstr "Επιλέξτε Αρχείο για Εισαγωγή"
+
+msgctxt "#30120"
+msgid "Import"
+msgstr "Import"
+
+msgctxt "#30127"
+msgid "Manual Search"
+msgstr "Χειροκίνητη Αναζήτηση"
+
+msgctxt "#30510"
+msgid "Cancel"
+msgstr "Ακύρωση"
+
+msgctxt "#30511"
+msgid "Title"
+msgstr "Τίτλος"
+
+msgctxt "#30518"
+msgid "Year"
+msgstr "Έτος"
+
+msgctxt "#30805"
+msgid "    Username"
+msgstr "Όνομα χρήστη"
+
+msgctxt "#30806"
+msgid "    Password"
+msgstr "Κωδικός"
+
+msgctxt "#30808"
+msgid "User Interface"
+msgstr "Περιβάλλον χρήστη"
+
+msgctxt "#30814"
+msgid "Set Default Views"
+msgstr "Ορίστε Προεπιλεγμένες Προβολές"
+
+msgctxt "#30830"
+msgid "None"
+msgstr "Κανένα"
+
+msgctxt "#30833"
+msgid "Quality"
+msgstr "Ποιότητα"
+
+msgctxt "#30834"
+msgid "Views"
+msgstr "Προβολές"
+
+msgctxt "#30886"
+msgid "Database"
+msgstr "Βάση Δεδομένων"
+
+msgctxt "#30888"
+msgid "    Address"
+msgstr "Διεύθυνση"
+
+msgctxt "#30889"
+msgid "    Port"
+msgstr "Θύρα"
+
+msgctxt "#30892"
+msgid "    Database"
+msgstr "    Βάση Δεδομένων"
+
