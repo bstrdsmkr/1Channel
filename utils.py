@@ -128,7 +128,7 @@ def format_tvshow_year(year):
 def format_tvshow_episode(info):
     episode_format = _1CH.get_setting('format-tvshow-episode')
     label = re.sub('\{s\}', str(info['season']), episode_format)
-    label = re.sub('\{0s\}', str(info['season']).zfill(2), episode_format)
+    label = re.sub('\{0s\}', str(info['season']).zfill(2), label)
     label = re.sub('\{e\}', str(info['episode']), label)
     label = re.sub('\{0e\}', str(info['episode']).zfill(2), label)
     label = re.sub('\{t\}', info['title'], label)
