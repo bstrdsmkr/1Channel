@@ -339,11 +339,17 @@ def auto_try_sources(hosters, title, img, year, imdbnum, video_type, season, epi
 @pw_dispatcher.register(MODES.PLAY_SOURCE, ['url', ' title', 'video_type', 'primewire_url', 'resume'], ['imdbnum', 'year', 'season', 'episode'])
 def PlaySource(url, title, video_type, primewire_url, resume, imdbnum='', year='', season='', episode='', dbid=None):
     utils.log('Attempting to play url: %s' % url)
-    stream_url = urlresolver.HostedMediaFile(url=url).resolve()
-
-    # If urlresolver returns false then the video url was not resolved.
-    if not stream_url or not isinstance(stream_url, basestring):
-        try: msg = stream_url.msg
+    
+    try:
+        stream_url = urlresolver.HostedMediaFile(url=url).resolve()
+        # If urlresolver returns false then the video url was not resolved.
+        if not stream_url or not isinstance(stream_url, basestring):
+            try: msg = stream_url.msg
+            except: msg = url
+            utils.notify(msg=i18n('link_resolve_failed') % (msg), duration=7500)
+            return False
+    except Exception as e:
+        try: msg = str(e)
         except: msg = url
         utils.notify(msg=i18n('link_resolve_failed') % (msg), duration=7500)
         return False
