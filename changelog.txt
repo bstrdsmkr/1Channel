@@ -1,5 +1,8 @@
+[B]Version 2.5.69[/B]
+- Add debrid indicators
+
 [B]Version 2.5.68[/B]
-Minor Code Fixes
+- Minor Code Fixes
 
 [B]Version 2.5.67[/B]
 - Fix library playback
