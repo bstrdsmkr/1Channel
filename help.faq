@@ -108,6 +108,7 @@ A lot of new features have been added to 1Channel recently, most importantly the
             {h} The host of the source
             {v} The number of views reported by the website
             {p} The part number of the specified source
+            {d} The list of configured debrid resolvers that can handle this link
 
 [COLOR blue][B]Automatic view settings[/B][/COLOR]
     - Specify a skin's view id to be automatically set for each section

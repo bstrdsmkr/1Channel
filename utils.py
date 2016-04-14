@@ -173,20 +173,30 @@ def format_label_source(info):
     label = re.sub('\{q\}', info['quality'], label)
     label = re.sub('\{h\}', info['host'], label)
     label = re.sub('\{v\}', str(info['views']), label)
+    if 'debrid' in info and info['debrid']:
+        resolvers = ', '.join(info['debrid'])
+        label = re.sub('\{d\}', '%s' % (resolvers), label)
+    else:
+        label = re.sub('\{d\}', '', label)
+        
     if info['multi-part']:
         parts = 'part 1'
     else:
         parts = ''
     label = re.sub('\{p\}', parts, label)
     if info['verified']: label = format_label_source_verified(label)
+    if 'debrid' in info and info['debrid']:
+        label = format_label_source_debrid(label)
     return label
 
-
+def format_label_source_debrid(label):
+    debrid_format = _1CH.get_setting('format-source-debrid')
+    return re.sub('\{L\}', label, debrid_format)
+    
 def format_label_source_verified(label):
     ver_format = _1CH.get_setting('format-source-verified')
     formatted_label = re.sub('\{L\}', label, ver_format)
     return formatted_label
-
 
 def format_label_source_parts(info, part_num):
     label = _1CH.get_setting('format-source-parts')

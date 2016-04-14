@@ -114,8 +114,9 @@
         <setting id="format-movie-title" type="text" label="30874" default="[B]{t}[/B]"/>
         <setting id="format-movie-year" type="text" label="30875" default="({y})"/>
         <setting type="lsep" label="30885"/>
-        <setting id="format-source" type="text" label="30879" default="[{q}] {h} {p} ({v} views)"/>
+        <setting id="format-source" type="text" label="30879" default="[{q}] {h} {p} ({v} views) {d}"/>
         <setting id="format-source-verified" type="text" label="30880" default="[COLOR gold]{L}[/COLOR]"/>
+        <setting id="format-source-debrid" type="text" label="30901" default="[COLOR green]{L}[/COLOR]"/>
         <setting id="format-source-parts" type="text" label="30881" default="     {h} {p}"/>
         <setting id="format-sub-days" type="text" label="30883" default="[COLOR deeppink]%s[/COLOR]"/>
     </category>
