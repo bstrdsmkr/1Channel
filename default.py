@@ -182,9 +182,7 @@ def apply_urlresolver(hosters):
                 hoster['debrid'] = debrid_hosts[host]
             else:
                 temp_resolvers = [resolver.name[:3].upper() for resolver in debrid_resolvers if resolver.valid_url('', host)]
-                debrid_hosts[host] = temp_resolvers
-                if temp_resolvers:
-                    hoster['debrid'] = temp_resolvers
+                hoster['debrid'] = debrid_hosts[host] = temp_resolvers
     return hosters
                 
 def get_dbid(video_type, title, season='', episode='', year=''):
