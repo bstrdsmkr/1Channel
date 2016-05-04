@@ -239,24 +239,20 @@ class TextBox:
     CONTROL_TEXTBOX = 5
 
     def __init__(self, *args, **kwargs):
-        # activate the text viewer window
-        xbmc.executebuiltin("ActivateWindow(%d)" % (self.WINDOW,))
-        # get window
-        self.win = xbmcgui.Window(self.WINDOW)
-        # give window time to initialize
+        xbmc.executebuiltin("ActivateWindow(%d)" % (self.WINDOW))
         xbmc.sleep(1000)
+        self.win = xbmcgui.Window(TextBox.WINDOW)
         self.setControls()
 
     def setControls(self):
-        # set heading
         heading = "PrimeWire v%s" % (_1CH.get_version())
-        self.win.getControl(self.CONTROL_LABEL).setLabel(heading)
-        # set text
+        self.win.getControl(TextBox.CONTROL_LABEL).setLabel(heading)
         root = _1CH.get_path()
         faq_path = os.path.join(root, 'help.faq')
         f = open(faq_path)
         text = f.read()
-        self.win.getControl(self.CONTROL_TEXTBOX).setText(text)
+        log(faq_path)
+        self.win.getControl(TextBox.CONTROL_TEXTBOX).setText(text)
 
 
 def website_is_integrated():

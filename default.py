@@ -654,7 +654,6 @@ def AddonMenu():  # homescreen
     db_connection.init_database()
     fix_urls()
     if utils.has_upgraded():
-        utils.TextBox()
         adn = xbmcaddon.Addon('plugin.video.1channel')
         adn.setSetting('domain', 'http://www.primewire.ag')
         adn.setSetting('old_version', _1CH.get_version())
