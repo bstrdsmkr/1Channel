@@ -256,10 +256,11 @@ class TextBox:
 
 
 def website_is_integrated():
+    use_https = _1CH.get_setting('use_https') == 'true'
     enabled = _1CH.get_setting('site_enabled') == 'true'
     user = _1CH.get_setting('usename') is not None
     passwd = _1CH.get_setting('passwd') is not None
-    return enabled and user and passwd
+    return use_https and enabled and user and passwd
 
 def using_pl_subs():
     return (website_is_integrated() and _1CH.get_setting('playlist-sub'))

@@ -63,7 +63,9 @@ class PW_Scraper():
     MAX_PAGES = 10
 
     def __init__(self, username, password):
-        self.base_url = _1CH.get_setting('domain')
+        base_url = _1CH.get_setting('domain')
+        scheme = 'https' if _1CH.get_setting('use_https') == 'true' else 'http'
+        self.base_url = scheme + '://' + base_url
         if (_1CH.get_setting("enableDomain") == 'true') and (len(_1CH.get_setting("customDomain")) > 10):
             self.base_url = _1CH.get_setting("customDomain")
 
@@ -602,9 +604,10 @@ class PW_Scraper():
         cookiejar = _1CH.get_profile()
         cookiejar = os.path.join(cookiejar, 'cookies')
         host = urlparse.urlparse(self.base_url).hostname
-        headers = {'Referer': redirect, 'Origin': self.base_url, 'Host': host, 'User-Agent': USER_AGENT}
+        headers = {'Referer': redirect, 'Host': host, 'User-Agent': USER_AGENT}
         form_data = {'username': self.username, 'password': self.password, 'remember': 'on', 'login_submit': 'Login'}
         html = net.http_POST(url, headers=headers, form_data=form_data).content
+        utils.log(html)
         if '<a href="/logout.php"' in html:
             net.save_cookies(cookiejar)
             return True

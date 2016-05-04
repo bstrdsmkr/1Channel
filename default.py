@@ -682,7 +682,6 @@ def AddonMenu():  # homescreen
     _1CH.add_directory({'mode': MODES.HELP}, {'title': i18n('help')}, img=art('help.png'), fanart=art('fanart.png'))
     # _1CH.add_directory({'mode': 'test'},   {'title':  'Test'}, img=art('settings.png'), fanart=art('fanart.png'))
 
-    # utils.set_view('list', '%s-view' % ('default'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 @pw_dispatcher.register(MODES.INSTALL_THEMES)
@@ -720,7 +719,7 @@ def BrowseListMenu(section):
     add_search_item({'mode': MODES.DESC_QUERY, 'section': section, 'next_mode': MODES.SEARCH_DESC}, i18n('search_desc'))
     add_search_item({'mode': MODES.ADV_QUERY, 'section': section}, i18n('search_adv'))
 
-    utils.set_view('list', '%s-view' % ('default'))
+    utils.set_view('files', '%s-view' % ('default'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 @pw_dispatcher.register(MODES.PLAYLISTS_MENU)
@@ -739,7 +738,7 @@ def playlist_menu():
                            fanart=art('fanart.png'))
         _1CH.add_directory({'mode': MODES.BROWSE_PLAYLISTS, 'public': False, 'sort': 'hits'}, {'title': i18n('private_views')}, img=art('personal_playlists_views.png'),
                            fanart=art('fanart.png'))
-    utils.set_view('list', '%s-view' % ('default'))
+    # utils.set_view('list', '%s-view' % ('default'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 @pw_dispatcher.register(MODES.BROWSE_PLAYLISTS, ['public'], ['sort', 'page'])
@@ -765,7 +764,7 @@ def browse_playlists(public, sort=None, page=None, paginate=True):
             {'mode': MODES.BROWSE_PLAYLISTS, 'public': public, 'sort': sort, 'page': next_page},
             meta, contextmenu_items=menu_items, context_replace=True, img=art('nextpage.png'), fanart=art('fanart.png'), is_folder=True)
 
-    utils.set_view('list', 'default-view')
+    # utils.set_view('list', 'default-view')
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 @pw_dispatcher.register(MODES.SHOW_PLAYLIST, ['url', 'public'])

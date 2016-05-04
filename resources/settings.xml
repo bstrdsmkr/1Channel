@@ -1,15 +1,14 @@
 <settings>
 	<category label="30800">
-        <setting id="domain" type="labelenum" label="30801"
-                 values="http://www.primewire.ag|http://www.1channel.ch|http://www.primewire.org|http://www.primewire.is"
-                 default="http://www.primewire.ag"/>
+        <setting id="domain" type="labelenum" label="30801" values="www.primewire.ag|www.primewire.org|www.primewire.is" default="www.primewire.ag"/>
+        <setting id="use_https" type="bool" label="30902" default="false"/>
         <setting id="enableDomain" 	type="bool" label="30802" default="false" visible="true"/>
         <setting id="customDomain" 	type="text" label="30803" default="" enable="!eq(-1,false)" />
         <setting type="sep"/>
-        <setting id="site_enabled" type="bool" label="30804" default="False"/>
-        <setting id="username" type="text" label="30805" enable="eq(-1,true)" default=""/>
-        <setting id="passwd" type="text" label="30806" enable="eq(-2,true)" default="" option="hidden"/>
-		<setting id="playlist-sub" type="number" label="30807" enable="eq(-3,true)" default=""/>
+        <setting id="site_enabled" type="bool" label="30804" default="False" enable="eq(-4,true)"/>
+        <setting id="username" type="text" label="30805" enable="eq(-1,true)+eq(-5,true)" default=""/>
+        <setting id="passwd" type="text" label="30806" enable="eq(-2,true)+eq(-6,true)" default="" option="hidden"/>
+		<setting id="playlist-sub" type="number" label="30807" enable="eq(-3,true)+eq(-7,true)" default=""/>
         <setting id="old_version" type="text" visible="False" default="0.0.0.0"/>
         <setting id="h99_hidden" type="bool" label="H99's Hidden Menu" visible="false" default="false"/>
         <setting id="show_splash" type="bool" label="Show Upgrade Splash" visible="false" default="true"/>
