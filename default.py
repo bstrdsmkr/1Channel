@@ -1428,7 +1428,7 @@ def show_schedule():
     for episode in pw_scraper.get_schedule():
         create_item(section_params, episode['show_title'], '', episode['img'], episode['url'], '', episode['season_num'], episode['episode_num'], day=episode['day'])
 
-    utils.set_view(section_params['content'], '%s-view' % (section_params['content']))
+    utils.set_view('episodes', '%s-view' % (section_params['content']))
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=_1CH.get_setting('dir-cache') == 'true')
 
 def create_meta(video_type, title, year):
