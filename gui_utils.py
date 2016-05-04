@@ -210,6 +210,7 @@ def days_select(days):
 
             # select_all goes up to last control and last control goes down to select_all
             select_all = self.getControl(SEL_ALL_BUTTON)
+            select_all.setPosition(0, ypos)
             select_all.controlUp(control)
             select_all.controlLeft(control)
             control.controlDown(select_all)

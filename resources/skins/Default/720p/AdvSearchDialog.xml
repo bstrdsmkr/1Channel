@@ -161,9 +161,9 @@
 			<control type="button" id="200">
 				<description>Search Button</description>
 				<posx>50</posx>
-				<posy>460</posy>
+				<posy>435</posy>
 				<width>200</width>
-				<height>40</height>
+				<height>90</height>
 				<align>center</align>
 				<aligny>center</aligny>
 				<label>$ADDON[plugin.video.1channel 30034]</label>
@@ -174,9 +174,9 @@
 			<control type="button" id="201">
 				<description>Cancel Button</description>
 				<posx>260</posx>
-				<posy>460</posy>
+				<posy>435</posy>
 				<width>200</width>
-				<height>40</height>
+				<height>90</height>
 				<align>center</align>
 				<aligny>center</aligny>
 				<label>$ADDON[plugin.video.1channel 30510]</label>
