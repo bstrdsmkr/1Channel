@@ -5,10 +5,8 @@
 		<posx>385</posx>
 		<posy>95</posy>
 	</coordinates>
-	<include>dialogeffect</include>
 	<controls>
 		<control type="group">
-			<include>VisibleFadeEffect</include>
 			<control type="image">
 				<description>Background Image</description>
 				<posx>0</posx>

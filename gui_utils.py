@@ -18,8 +18,6 @@
 import datetime
 import xbmcgui
 import xbmc
-import time
-import os.path
 from utils import i18n
 from pw_scraper import PW_Scraper
 from addon.common.addon import Addon
@@ -49,18 +47,18 @@ def get_adv_search_query(section):
     allowed_values['genre'] = [''] + pw_scraper.get_genres()
 
     class AdvSearchDialog(xbmcgui.WindowXMLDialog):
-        ypos = 85
+        ypos = 80
         gap = 55
         params = [
-                ('title', 30, ypos, 30, 450),
-                ('tag', 30, ypos + gap, 30, 450),
-                ('actor', 30, ypos + gap * 2, 30, 450),
-                ('director', 30, ypos + gap * 3, 30, 450),
-                ('country', 30, ypos + gap * 4, 30, 450),
-                ('genre', 30, ypos + gap * 5, 30, 450),
-                ('month', 30, ypos + gap * 6, 30, 140),
-                ('year', 185, ypos + gap * 6, 30, 140),
-                ('decade', 340, ypos + gap * 6, 30, 140)]
+            ('title', 10, ypos, 40, 490),
+            ('tag', 10, ypos + gap, 40, 490),
+            ('actor', 10, ypos + gap * 2, 40, 490),
+            ('director', 10, ypos + gap * 3, 40, 490),
+            ('country', 10, ypos + gap * 4, 40, 490),
+            ('genre', 10, ypos + gap * 5, 40, 490),
+            ('month', 30, ypos + gap * 6, 40, 140),
+            ('year', 185, ypos + gap * 6, 40, 140),
+            ('decade', 340, ypos + gap * 6, 40, 140)]
         
         def onInit(self):
             self.query_controls = []
@@ -156,7 +154,7 @@ def get_adv_search_query(section):
 
         # have to add edit controls programatically because getControl() (hard) crashes XBMC on them
         def __add_editcontrol(self, x, y, height, width):
-            temp = xbmcgui.ControlEdit(0, 0, 0, 0, '', font='font12', textColor='0xFFFFFFFF', focusTexture='button-focus2.png', noFocusTexture='button-nofocus.png', _alignment=CENTER_Y | CENTER_X)
+            temp = xbmcgui.ControlEdit(0, 0, 0, 0, '', font='font12', textColor='0xFFFFFFFF', focusTexture='buttons/button-fo.png', noFocusTexture='buttons/button-nofo.png', _alignment=CENTER_Y | CENTER_X)
             temp.setPosition(x, y)
             temp.setHeight(height)
             temp.setWidth(width)
