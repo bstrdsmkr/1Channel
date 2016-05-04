@@ -654,10 +654,6 @@ def AddonMenu():  # homescreen
     db_connection.init_database()
     fix_urls()
     if utils.has_upgraded():
-        utils.log('Showing update popup', xbmc.LOGDEBUG)
-        if _1CH.get_setting('show_splash') == 'true':
-            msg = (i18n('popup_msg_line1') + '\n\n' + i18n('popup_msg_line2') + '\n\n' + i18n('popup_msg_line3'))
-            gui_utils.do_My_TextSplash(msg, HowLong=20, TxtColor='0xFF00FF00', BorderWidth=45)
         utils.TextBox()
         adn = xbmcaddon.Addon('plugin.video.1channel')
         adn.setSetting('domain', 'http://www.primewire.ag')
@@ -687,7 +683,7 @@ def AddonMenu():  # homescreen
     _1CH.add_directory({'mode': MODES.HELP}, {'title': i18n('help')}, img=art('help.png'), fanart=art('fanart.png'))
     # _1CH.add_directory({'mode': 'test'},   {'title':  'Test'}, img=art('settings.png'), fanart=art('fanart.png'))
 
-    utils.set_view('list', '%s-view' % ('default'))
+    # utils.set_view('list', '%s-view' % ('default'))
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
 
 @pw_dispatcher.register(MODES.INSTALL_THEMES)
