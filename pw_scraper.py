@@ -108,7 +108,7 @@ class PW_Scraper():
         fav_url = '/profile.php?user=%s&fav&show=%s'
         if page: fav_url += '&page=%s' % (page)
         url = self.base_url + fav_url % (self.username, section)
-        html = self.__get_url(url)
+        html = self.__get_url(url, login=True)
         r = re.search('strong>Favorites \(\s+([0-9,]+)\s+\)', html)
         self.__set_totals(r, PW_Scraper.ITEMS_PER_PAGE2)
 
@@ -129,7 +129,7 @@ class PW_Scraper():
         url = '/profile.php?user=%s&watched&show=%s'
         if page: url += '&page=%s' % (page)
         url = self.base_url + url % (self.username, section)
-        html = self.__get_url(url)
+        html = self.__get_url(url, login=True)
         r = re.search('strong>Watched \(\s+([0-9,]+)\s+\)', html)
         self.__set_totals(r, PW_Scraper.ITEMS_PER_PAGE2)
 
@@ -141,7 +141,7 @@ class PW_Scraper():
         url = '/profile.php?user=%s&towatch&show=%s'
         if page: url += '&page=%s' % (page)
         url = self.base_url + url % (self.username, section)
-        html = self.__get_url(url)
+        html = self.__get_url(url, login=True)
         r = re.search('strong>To Watch \(\s+([0-9,]+)\s+\)', html)
         self.__set_totals(r, PW_Scraper.ITEMS_PER_PAGE2)
 
@@ -237,7 +237,7 @@ class PW_Scraper():
         page_url = self.base_url + '/tvschedule.php'
         utils.log('Getting Schedule: %s' % (page_url), xbmc.LOGDEBUG)
 
-        html = self.__get_url(page_url)
+        html = self.__get_url(page_url, login=True)
 
         for day_section in html.split('<h2'):
             match = re.search('<span>(.*?)</span>', day_section)
