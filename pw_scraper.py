@@ -407,15 +407,25 @@ class PW_Scraper():
         container_pattern = r'<table[^>]+class="movie_version[ "][^>]*>(.*?)</table>'
         item_pattern = (
             r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
-            r'url=([^&]+)&(?:amp;)?domain=([^&]+)&(?:amp;)?(.*?)'
+            r'url=([^&]+)&(?:amp;)?domain=([^&"]+)[^>]*class="secure_link"(.*?)'
             r'"version_veiws"> ([\d]+) views</')
         for container in re.finditer(container_pattern, html, re.DOTALL | re.IGNORECASE):
+            utils.log(container.group(1))
             for source in re.finditer(item_pattern, container.group(1), re.DOTALL):
+                utils.log(source.groups())
                 qual, url, host, parts, views = source.groups()
 
                 if host == 'ZnJhbWVndGZv': continue  # filter out promo hosts
 
-                item = {'host': host.decode('base-64'), 'url': url.decode('base-64')}
+                url = url.decode('base-64')
+                if 'secure.link/' in url:
+                    url = re.sub('https?://secure\.link/', '', url)
+                    url = url.decode('base-64')
+                    match = re.search('(.*?)::', url)
+                    if match:
+                        url = match.group(1)
+                        
+                item = {'host': host.decode('base-64'), 'url': url}
                 item['verified'] = source.group(0).find('star.gif') > -1
                 item['quality'] = qual.upper()
                 item['views'] = int(views)
