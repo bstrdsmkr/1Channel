@@ -1,5 +1,16 @@
+[B]Version 2.5.71[/B]
+Strip scheme is present on base_url
+
 [B]Version 2.5.70[/B]
 - Fix URL decode for website change
+- Require login for all profile base lists
+- Krypton Changes
+    - Remove upgrade pop-up (freezes Krypton)
+    - Remove help menu pop-up (doesn't work on Krypton)
+    - Add support for https for the pw_scraper
+    - Fix My Schedule for Krypton
+    - Fix dialogs for Krypton
+    
 
 [B]Version 2.5.69[/B]
 - Add debrid indicators
