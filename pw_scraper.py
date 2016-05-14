@@ -410,9 +410,7 @@ class PW_Scraper():
             r'url=([^&]+)&(?:amp;)?domain=([^&"]+)[^>]*class="secure_link"(.*?)'
             r'"version_veiws"> ([\d]+) views</')
         for container in re.finditer(container_pattern, html, re.DOTALL | re.IGNORECASE):
-            utils.log(container.group(1))
             for source in re.finditer(item_pattern, container.group(1), re.DOTALL):
-                utils.log(source.groups())
                 qual, url, host, parts, views = source.groups()
 
                 if host == 'ZnJhbWVndGZv': continue  # filter out promo hosts
