@@ -1,3 +1,6 @@
+[B]Version 2.5.70[/B]
+- Fix URL decode for website change
+
 [B]Version 2.5.69[/B]
 - Add debrid indicators
 
