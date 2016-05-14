@@ -64,6 +64,7 @@ class PW_Scraper():
 
     def __init__(self, username, password):
         base_url = _1CH.get_setting('domain')
+        base_url = re.sub('https?://', '', base_url)
         scheme = 'https' if _1CH.get_setting('use_https') == 'true' else 'http'
         self.base_url = scheme + '://' + base_url
         if (_1CH.get_setting("enableDomain") == 'true') and (len(_1CH.get_setting("customDomain")) > 10):
