@@ -32,10 +32,7 @@ from addon.common.net import Net
 from addon.common.addon import Addon
 from db_utils import DB_Connection
 
-USER_AGENT = ("Mozilla/5.0 (Windows NT 6.2; WOW64)"
-              "AppleWebKit/537.17 (KHTML, like Gecko)"
-              "Chrome/24.0.1312.56")
-
+USER_AGENT = utils.get_ua()
 _1CH = Addon('plugin.video.1channel')
 ADDON_PATH = _1CH.get_path()
 ICON_PATH = os.path.join(ADDON_PATH, 'icon.png')
@@ -44,7 +41,6 @@ TEMP_ERRORS = [500, 502, 503, 504]
 
 class PW_Error(Exception):
     pass
-
 
 class MyHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
@@ -408,23 +404,14 @@ class PW_Scraper():
         container_pattern = r'<table[^>]+class="movie_version[ "][^>]*>(.*?)</table>'
         item_pattern = (
             r'quality_(?!sponsored|unknown)([^>]*)></span>.*?'
-            r'url=([^&]+)&(?:amp;)?domain=([^&"]+)[^>]*class="secure_link"(.*?)'
+            r'url=([^&]+)&(?:amp;)?domain=([^&"]+)[^>]*(.*?)'
             r'"version_veiws"> ([\d]+) views</')
         for container in re.finditer(container_pattern, html, re.DOTALL | re.IGNORECASE):
             for source in re.finditer(item_pattern, container.group(1), re.DOTALL):
                 qual, url, host, parts, views = source.groups()
 
                 if host == 'ZnJhbWVndGZv': continue  # filter out promo hosts
-
-                url = url.decode('base-64')
-                if 'secure.link/' in url:
-                    url = re.sub('https?://secure\.link/', '', url)
-                    url = url.decode('base-64')
-                    match = re.search('(.*?)::', url)
-                    if match:
-                        url = match.group(1)
-                        
-                item = {'host': host.decode('base-64'), 'url': url}
+                item = {'host': host.decode('base-64'), 'url': url.decode('base-64')}
                 item['verified'] = source.group(0).find('star.gif') > -1
                 item['quality'] = qual.upper()
                 item['views'] = int(views)

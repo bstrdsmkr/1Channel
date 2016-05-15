@@ -12,6 +12,8 @@
         <setting id="old_version" type="text" visible="False" default="0.0.0.0"/>
         <setting id="h99_hidden" type="bool" label="H99's Hidden Menu" visible="false" default="false"/>
         <setting id="show_splash" type="bool" label="Show Upgrade Splash" visible="false" default="true"/>
+        <setting id="current_ua" type="text" visible="false"/>
+        <setting id="last_ua_create" type="number" default="0" visible="false"/>
 	</category>
 
 	<category label="30808">
