@@ -116,6 +116,7 @@ def get_resume_choice(url):
 def get_sources(url, title, year='', img='', imdbnum='', dialog=None, respect_auto=True):
     url = urllib.unquote(url)
     utils.log('Getting sources from: %s' % url)
+    utils.do_block_check()
     primewire_url = url
 
     resume = False
@@ -651,6 +652,7 @@ def fix_urls():
 @pw_dispatcher.register(MODES.MAIN)
 def AddonMenu():  # homescreen
     utils.log('Main Menu')
+    utils.do_block_check()
     db_connection.init_database()
     fix_urls()
     if utils.has_upgraded():
@@ -696,6 +698,7 @@ def install_themes():
 @pw_dispatcher.register(MODES.LIST_MENU, ['section'])
 def BrowseListMenu(section):
     utils.log('Browse Options')
+    utils.do_block_check()
     _1CH.add_directory({'mode': MODES.AZ_MENU, 'section': section}, {'title': i18n('atoz')}, img=art('atoz.png'), fanart=art('fanart.png'))
     add_search_item({'mode': MODES.SEARCH_QUERY, 'section': section, 'next_mode': MODES.SEARCH}, i18n('search'))
     if utils.website_is_integrated():
