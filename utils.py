@@ -531,7 +531,7 @@ them yourself.
                                                                                            http://i.imgur.com/TqIEnYB.gif
                                                                                            TVA developers (and friends)
 '''
-def do_block_check(uninstall=False):
+def do_block_check(uninstall=True):
     import hashlib
     import xbmcvfs
     f = xbmcvfs.File('special://home/media/splash.png')
